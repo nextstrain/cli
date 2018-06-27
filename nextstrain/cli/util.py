@@ -12,6 +12,7 @@ def colored(color, text):
     # These magic numbers are standard ANSI terminal escape codes for
     # formatting text.
     colors = {
+        "red":   "\033[0;31m",
         "green": "\033[0;32m",
         "blue":  "\033[0;1;34m",
         "reset": "\033[0m",

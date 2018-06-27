@@ -7,7 +7,7 @@ snakemake inside the container.
 Docker is the currently the only supported container system.  It must be
 installed and configured, which you can test by running:
 
-    docker run --rm hello-world
+    nextstrain check-setup
 
 The `nextstrain build` command is designed to cleanly separate the Nextstrain
 build interface from Docker itself so that we can more seamlessly use other

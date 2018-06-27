@@ -6,8 +6,8 @@ The data directory should contain sets of files with at least two files:
     <prefix>_tree.json
     <prefix>_meta.json
 
-The viewer runs inside a container, which requires Docker.  See `nextstrain
-build --help` for more information on the setup and use of Docker.
+The viewer runs inside a container, which requires Docker.  Run `nextstrain
+check-setup` to check if Docker is installed and works.
 """
 
 import re

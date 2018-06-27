@@ -3,6 +3,7 @@ Run commands inside a container image using Docker.
 """
 
 import os
+import shutil
 import argparse
 import subprocess
 from collections import namedtuple
@@ -126,4 +127,24 @@ def replace_ellipsis(items, elided_items):
     return [
         y for x in items
           for y in (elided_items if x is ... else [x])
+    ]
+
+
+def test_setup():
+    def test_run():
+        try:
+            status = subprocess.run(
+                ["docker", "run", "--rm", "hello-world"],
+                check = True,
+                stdout = subprocess.DEVNULL)
+        except:
+            return False
+        else:
+            return status.returncode == 0
+
+    return [
+        ('docker is installed',
+            shutil.which("docker") is not None),
+        ('docker run works',
+            test_run()),
     ]

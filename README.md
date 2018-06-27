@@ -22,7 +22,7 @@ run `nextstrain`.  Otherwise, you can run `./bin/nextstrain` from a copy of the
 source code.
 
 ```
-usage: nextstrain [-h] {build,view,version} ...
+usage: nextstrain [-h] {build,view,check-setup,version} ...
 
 Nextstrain command-line tool
 
@@ -30,9 +30,10 @@ optional arguments:
   -h, --help            show this help message and exit
 
 commands:
-  {build,view,version}
+  {build,view,check-setup,version}
     build               Run pathogen build
     view                View pathogen build
+    check-setup         Tests your local setup
     version             Show version information
 ```
 
@@ -58,7 +59,8 @@ need to use pip3 instead of pip (which often defaults to pip2).
 We plan to publish a package on [PyPi][] soon.
 
 This tool also currently requires [Docker][].  You can download and install the
-[Docker Community Edition (CE)][] for your platform for free.
+[Docker Community Edition (CE)][] for your platform for free.  After doing so,
+run `nextstrain check-setup` to ensure it works.
 
 
 [PyPi]: https://pypi.org
