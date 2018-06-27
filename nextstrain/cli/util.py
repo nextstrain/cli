@@ -18,7 +18,7 @@ def colored(color, text):
     }
 
     return "{start}{text}{end}".format(
-        start = colors[color],
+        start = colors.get(color, ""),
         end   = colors["reset"],
         text  = text,
     )
