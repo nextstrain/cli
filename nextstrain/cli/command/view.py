@@ -13,6 +13,7 @@ build --help` for more information on the setup and use of Docker.
 import re
 from pathlib import Path
 from ..runner import docker
+from ..util import colored
 
 
 def register_parser(subparser):
@@ -98,23 +99,3 @@ def print_url(host, port, datasets):
         print("    Open <%s> in your browser." % url())
 
     print(horizontal_rule)
-
-
-def colored(color, text):
-    """
-    Returns a string of text suitable for colored output on a terminal.
-    """
-
-    # These magic numbers are standard ANSI terminal escape codes for
-    # formatting text.
-    colors = {
-        "green": "\033[0;32m",
-        "blue":  "\033[0;1;34m",
-        "reset": "\033[0m",
-    }
-
-    return "{start}{text}{end}".format(
-        start = colors[color],
-        end   = colors["reset"],
-        text  = text,
-    )
