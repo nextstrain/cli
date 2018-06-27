@@ -7,7 +7,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescripti
 from textwrap import dedent
 from types    import SimpleNamespace
 
-from .command     import build, version
+from .command     import build, view, version
 from .__version__ import __version__
 
 
@@ -33,6 +33,7 @@ def run(args):
     #
     commands = [
         build,
+        view,
         version,
     ]
 
