@@ -10,11 +10,7 @@ installed and configured, which this command will test by running:
 
 from functools import partial
 from ..util import colored
-from ..runner import docker
-
-runners = [
-    docker,
-]
+from ..runner import all_runners
 
 
 def register_parser(subparser):
@@ -36,7 +32,7 @@ def run(opts):
     print("Testing your setup…")
 
     tests = [
-        test for runner in runners
+        test for runner in all_runners
              for test in runner.test_setup()
     ]
 

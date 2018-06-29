@@ -10,6 +10,9 @@ from collections import namedtuple
 from ..util import warn
 
 
+DEFAULT_IMAGE = "quay.io/nextstrain/base"
+
+
 def store_volume(volume_name):
     """
     Generates and returns an argparse.Action subclass for storing named volume
@@ -51,7 +54,7 @@ def register_arguments(parser, exec=None, volumes=[]):
         "--image",
         help    = "Container image in which to run the pathogen build",
         metavar = "<name>",
-        default = "quay.io/nextstrain/base")
+        default = DEFAULT_IMAGE)
 
     development.add_argument(
         "--exec",
@@ -148,3 +151,14 @@ def test_setup():
         ('docker run works',
             test_run()),
     ]
+
+
+def update():
+    try:
+        status = subprocess.run(
+            ["docker", "image", "pull", DEFAULT_IMAGE],
+            check = True)
+    except:
+        return False
+    else:
+        return status.returncode == 0
