@@ -31,4 +31,4 @@ def run(opts):
     print(success("Up to date!") if all_good else failure("Update failed"))
 
     # Return a 1 or 0 exit code
-    return int(all_good)
+    return int(not all_good)
