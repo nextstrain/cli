@@ -1,0 +1,76 @@
+#!/bin/bash
+set -euo pipefail
+
+devel="$(dirname $0)"
+repo="$devel/.."
+version_file="$repo/nextstrain/cli/__version__.py"
+
+main() {
+    assert-clean-working-dir
+
+    version=$(next-version)
+
+    update-version $version
+    commit-and-tag $version
+    remind-to-push $version
+}
+
+assert-clean-working-dir() {
+    local status="$(git status --porcelain --untracked-files=no)"
+
+    if [[ -n $status ]]; then
+        echo "Please commit all changes before releasing:" >&2
+        echo >&2
+        echo "$status" >&2
+        exit 1
+    fi
+}
+
+next-version() {
+    local current_version="$(read-version)"
+
+    read -e -p "New version? " -i "$current_version" new_version
+
+    if [[ -z $new_version || $new_version == $current_version ]]; then
+        echo "You must provide a new version!" >&2
+        exit 1
+    fi
+
+    echo "$new_version"
+}
+
+update-version() {
+    local new_version="$1"
+    local current_version="$(read-version)"
+
+    perl -pi -e "s/(?<=^__version__ = ')(.*)(?='$)/$new_version/" "$version_file"
+
+    if [[ $new_version != $(read-version) ]]; then
+        echo "Failed to update $version_file!" >&2
+        exit 1
+    fi
+}
+
+commit-and-tag() {
+    local version="$1"
+
+    git commit -m "version $version" "$version_file"
+    git tag -sm "version $version" "$version"
+}
+
+remind-to-push() {
+    local version="$1"
+
+    echo "Version updated, committed, and tagged!"
+    echo
+    echo "Please remember to push, including tags:"
+    echo
+    echo "   git push origin master tag $version"
+    echo
+}
+
+read-version() {
+    python3 -c "exec(open('''$version_file''').read()); print(__version__)"
+}
+
+main "$@"
