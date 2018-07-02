@@ -10,7 +10,7 @@ from collections import namedtuple
 from ..util import warn
 
 
-DEFAULT_IMAGE = "quay.io/nextstrain/base"
+DEFAULT_IMAGE = "nextstrain/base"
 
 
 def store_volume(volume_name):
