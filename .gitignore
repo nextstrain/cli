@@ -1,2 +1,7 @@
 *.pyc
 __pycache__/
+
+# Package build dirs
+/build/
+/dist/
+/nextstrain_cli.egg-info/
