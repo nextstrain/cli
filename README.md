@@ -44,11 +44,10 @@ option, for example, `nextstrain build --help`.
 
 ## Installation
 
-This tool is written in Python 3 and requires at least Python 3.5.  Currently
-it is unpublished on [PyPi][] while still in initial development, but you may
-still install the development version with pip (or pip3) like so:
+This tool is written in Python 3 and requires at least Python 3.5.  You may
+install it with pip (or pip3) like so:
 
-    pip install git+https://github.com/nextstrain/cli
+    pip install nextstrain-cli
 
 or from a git clone or copy of the source code:
 
@@ -57,13 +56,10 @@ or from a git clone or copy of the source code:
 If your system has both Python 2 and Python 3 installed side-by-side, you may
 need to use pip3 instead of pip (which often defaults to pip2).
 
-We plan to publish a package on [PyPi][] soon.
-
 This tool also currently requires [Docker][].  You can download and install the
 [Docker Community Edition (CE)][] for your platform for free.  After doing so,
 run `nextstrain check-setup` to ensure it works.
 
 
-[PyPi]: https://pypi.org
 [Docker]: https://docker.com
 [Docker Community Edition (CE)]: https://www.docker.com/community-edition#download
