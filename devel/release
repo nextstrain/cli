@@ -12,6 +12,7 @@ main() {
 
     update-version $version
     commit-and-tag $version
+    build-dist
     remind-to-push $version
 }
 
@@ -58,14 +59,25 @@ commit-and-tag() {
     git tag -sm "version $version" "$version"
 }
 
+build-dist() {
+    python3 setup.py clean
+    python3 setup.py sdist bdist_wheel
+}
+
 remind-to-push() {
     local version="$1"
 
+    echo
+    echo
     echo "Version updated, committed, and tagged!"
     echo
     echo "Please remember to push, including tags:"
     echo
     echo "   git push origin master tag $version"
+    echo
+    echo "You'll also want to upload the build release to PyPi:"
+    echo
+    echo "   twine upload dist/*"
     echo
 }
 
