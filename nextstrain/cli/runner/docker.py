@@ -107,6 +107,10 @@ def run(opts):
             for v in opts.volumes
              if v.src is not None],
 
+        # Pass through credentials as environment variables
+        "--env=RETHINK_HOST",
+        "--env=RETHINK_AUTH_KEY",
+
         *opts.docker_args,
         opts.image,
         opts.exec,
