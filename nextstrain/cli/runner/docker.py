@@ -62,6 +62,8 @@ def register_arguments(parser, exec=None, volumes=[]):
         metavar = "<prog>",
         default = exec_cmd)
 
+    development.set_defaults(volumes = [])
+
     for name in volumes:
         development.add_argument(
             "--" + name,
