@@ -13,7 +13,7 @@ check-setup` to check if Docker is installed and works.
 import re
 import netifaces as net
 from ..runner import docker
-from ..util import colored
+from ..util import colored, warn
 
 
 def register_parser(subparser):
@@ -42,8 +42,19 @@ def register_parser(subparser):
 
 
 def run(opts):
-    # Try to find the available dataset paths since we may not have a manifest
+    # Ensure our data path is a directory that exists
     data_dir = opts.auspice_data.src
+
+    if not data_dir.is_dir():
+        warn("Error: Data path \"%s\" does not exist or is not a directory." % data_dir)
+
+        if not data_dir.is_absolute():
+            warn()
+            warn("Perhaps your current working directory is different than you expect?")
+
+        return 1
+
+    # Try to find the available dataset paths since we may not have a manifest
     datasets = [
         re.sub(r"_tree$", "", path.stem).replace("_", "/")
             for path in data_dir.glob("*_tree.json")
@@ -119,6 +130,7 @@ def print_url(host, port, datasets):
         print("    Open <%s> in your browser." % url())
 
     print(horizontal_rule)
+    print()
 
 
 def best_remote_address():

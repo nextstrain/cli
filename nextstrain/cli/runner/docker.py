@@ -95,6 +95,21 @@ def register_arguments(parser, exec=None, volumes=[]):
 
 
 def run(opts):
+    # Ensure all volume source paths exist.  Docker will auto-create missing
+    # directories in the path, which, while desirable under some circumstances,
+    # doesn't match up well with our use case.  We're aiming to not surprise or
+    # confuse the user.
+    #
+    missing_volumes = [ vol for vol in opts.volumes if not vol.src.is_dir() ]
+
+    if missing_volumes:
+        warn("Error: The path(s) given for the following components do not exist")
+        warn("or are not directories:")
+        warn()
+        for vol in missing_volumes:
+            warn("    • %s: %s" % (vol.name, vol.src))
+        return 1
+
     if opts.docker_args is None:
         opts.docker_args = []
 
