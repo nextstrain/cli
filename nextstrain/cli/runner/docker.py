@@ -7,6 +7,7 @@ import shutil
 import argparse
 import subprocess
 from collections import namedtuple
+from pathlib import Path
 from ..util import warn
 
 
@@ -25,6 +26,9 @@ def store_volume(volume_name):
     stored on the options object under the volume's name (modified to replace
     slashes with underscores), as well as added to a shared list of volumes,
     accessible via the "volumes" attribute on the options object.
+
+    For convenient path manipulation and testing, the "src" value is stored as
+    a Path object.
     """
     volume = namedtuple("volume", ("name", "src"))
 
@@ -32,7 +36,7 @@ def store_volume(volume_name):
         def __call__(self, parser, namespace, values, option_strings = None):
             # Add the new volume to the list of volumes
             volumes    = getattr(namespace, "volumes", [])
-            new_volume = volume(volume_name, values)
+            new_volume = volume(volume_name, Path(values))
             setattr(namespace, "volumes", [*volumes, new_volume])
 
             # Allow the new volume to be found by name on the opts object
@@ -105,7 +109,7 @@ def run(opts):
         "--user=%d:%d" % (os.getuid(), os.getgid()),
 
         # Map directories to bind mount into the container.
-      *["--volume=%s:/nextstrain/%s" % (os.path.abspath(v.src), v.name)
+      *["--volume=%s:/nextstrain/%s" % (v.src.resolve(), v.name)
             for v in opts.volumes
              if v.src is not None],
 

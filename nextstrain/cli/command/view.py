@@ -12,7 +12,6 @@ check-setup` to check if Docker is installed and works.
 
 import re
 import netifaces as net
-from pathlib import Path
 from ..runner import docker
 from ..util import colored
 
@@ -44,7 +43,7 @@ def register_parser(subparser):
 
 def run(opts):
     # Try to find the available dataset paths since we may not have a manifest
-    data_dir = Path(opts.auspice_data.src)
+    data_dir = opts.auspice_data.src
     datasets = [
         re.sub(r"_tree$", "", path.stem).replace("_", "/")
             for path in data_dir.glob("*_tree.json")
