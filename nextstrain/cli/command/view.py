@@ -128,6 +128,8 @@ def print_url(host, port, datasets):
             print("       • %s" % url(path))
     else:
         print("    Open <%s> in your browser." % url())
+        print()
+        print("   ", colored("yellow", "Warning: No datasets detected."))
 
     print(horizontal_rule)
     print()
