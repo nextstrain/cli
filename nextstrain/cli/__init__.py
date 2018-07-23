@@ -4,7 +4,6 @@ Nextstrain command-line tool
 
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
-from textwrap import dedent
 from types    import SimpleNamespace
 
 from .command     import build, view, update, check_setup, version
