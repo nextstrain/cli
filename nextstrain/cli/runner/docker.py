@@ -100,9 +100,11 @@ def run(opts):
         "--tty",            # Colors, etc.
         "--interactive",    # Pass through control signals (^C, etc.)
 
-        # Run the process in the container with the same UID/GID so that file
-        # ownership is correct in the bind mount directories.
-        "--user=%d:%d" % (os.getuid(), os.getgid()),
+        # On Unix (POSIX) systems, run the process in the container with the same
+        # UID/GID so that file ownership is correct in the bind mount directories.
+        # The getuid()/getgid() functions are documented to be only available on
+        # Unix systems, not, for example, Windows.
+        *(["--user=%d:%d" % (os.getuid(), os.getgid())] if os.name == "posix" else []),
 
         # Map directories to bind mount into the container.
       *["--volume=%s:/nextstrain/%s" % (os.path.abspath(v.src), v.name)
