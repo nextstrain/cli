@@ -30,7 +30,7 @@ assert-clean-working-dir() {
 next-version() {
     local current_version="$(read-version)"
 
-    read -e -p "New version? " -i "$current_version" new_version
+    read -e -p "Current version is $current_version."$'\n'"New version? " -i "$current_version" new_version
 
     if [[ -z $new_version || $new_version == $current_version ]]; then
         echo "You must provide a new version!" >&2
