@@ -1,0 +1,24 @@
+sudo: required
+
+services:
+  - docker
+
+language: python
+
+python:
+  - "3.6"
+  - "3.7-dev"
+
+install:
+  - pip3 install .
+
+before_script:
+  - git clone https://github.com/nextstrain/zika
+  - mkdir -p zika/data/
+  - cp -v zika/example_data/zika.fasta zika/data/
+
+script:
+  - nextstrain version
+  - nextstrain check-setup
+  - nextstrain update
+  - nextstrain build zika
