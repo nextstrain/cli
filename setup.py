@@ -75,5 +75,7 @@ setup(
         ],
     },
 
-    install_requires = [],
+    install_requires = [
+        "netifaces >=0.10.6",
+    ],
 )

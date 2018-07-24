@@ -11,6 +11,7 @@ check-setup` to check if Docker is installed and works.
 """
 
 import re
+import netifaces as net
 from pathlib import Path
 from ..runner import docker
 from ..util import colored
@@ -19,6 +20,11 @@ from ..util import colored
 def register_parser(subparser):
     parser = subparser.add_parser("view", help = "View pathogen build")
     parser.description = __doc__
+
+    parser.add_argument(
+        "--allow-remote-access",
+        help   = "Allow other computers on the network to access the website",
+        action = "store_true")
 
     # Positional parameters
     parser.add_argument(
@@ -44,13 +50,15 @@ def run(opts):
             for path in data_dir.glob("*_tree.json")
     ]
 
-    # Setup the published port.
+    # Setup the published port.  Default to localhost for security reasons
+    # unless explicitly told otherwise.
     #
     # There are docker-specific implementation details here that should be
     # refactored once we have more than one nextstrain.cli.runner module in
     # play.  Doing that work now would be premature; we'll get a better
     # interface for ports/environment when we have concrete requirements.
     #   -trs, 27 June 2018
+    host = "0.0.0.0" if opts.allow_remote_access else "127.0.0.1"
     port = 4000
 
     if opts.docker_args is None:
@@ -62,12 +70,25 @@ def run(opts):
         # PORT is respected by auspice's server.js
         "--env=PORT=%d" % port,
 
-        # Publish the port only to the localhost
-        "--publish=127.0.0.1:%d:%d" % (port, port),
+        # Publish the port
+        "--publish=%s:%d:%d" % (host, port, port),
     ]
 
+    # Find the best remote address if we're allowing remote access.  While we
+    # listen on all interfaces (0.0.0.0), only the local host can connect to
+    # that successfully.  Remote hosts need a real IP on the network, which we
+    # do our best to discover.  If something goes wrong, ignore it and leave
+    # the host IP as-is (0.0.0.0); it'll at least work for local access.
+    if opts.allow_remote_access:
+        try:
+            remote_address = best_remote_address()
+        except:
+            pass
+        else:
+            host = remote_address
+
     # Show a helpful message about where to connect
-    print_url("localhost", port, datasets)
+    print_url(host, port, datasets)
 
     return docker.run(opts)
 
@@ -99,3 +120,30 @@ def print_url(host, port, datasets):
         print("    Open <%s> in your browser." % url())
 
     print(horizontal_rule)
+
+
+def best_remote_address():
+    """
+    Returns the "best" non-localback IP address for the local host, if
+    possible.  The "best" IP address is that bound to either the default
+    gateway interface, if any, else the arbitrary first interface found.
+
+    IPv4 is preferred, but IPv6 will be used if no IPv4 interfaces/addresses
+    are available.
+    """
+    default_gateway   = net.gateways().get("default", {})
+    default_interface = default_gateway.get(net.AF_INET,  (None, None))[1] \
+                     or default_gateway.get(net.AF_INET6, (None, None))[1] \
+                     or net.interfaces()[0]
+
+    interface_addresses = net.ifaddresses(default_interface).get(net.AF_INET)  \
+                       or net.ifaddresses(default_interface).get(net.AF_INET6) \
+                       or []
+
+    addresses = [
+        address["addr"]
+            for address in interface_addresses
+             if address.get("addr")
+    ]
+
+    return addresses[0] if addresses else None
