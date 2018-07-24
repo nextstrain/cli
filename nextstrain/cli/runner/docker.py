@@ -1,14 +1,13 @@
 """
 Run commands inside a container image using Docker.
 """
-
+import argparse
 import os
 import shutil
-import argparse
 import subprocess
 from collections import namedtuple
-from ..util import warn
 
+from ..util import warn
 
 DEFAULT_IMAGE = "nextstrain/base"
 
@@ -91,23 +90,23 @@ def register_arguments(parser, exec=None, volumes=[]):
 
 
 def run(opts):
-    if opts.docker_args is None:
-        opts.docker_args = []
+    opts.docker_args = opts.docker_args or []
 
     argv = [
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
         "--tty",            # Colors, etc.
         "--interactive",    # Pass through control signals (^C, etc.)
+    ]
 
+    if os.name != "nt":
         # Run the process in the container with the same UID/GID so that file
-        # ownership is correct in the bind mount directories.
-        "--user=%d:%d" % (os.getuid(), os.getgid()),
+        # ownership is correct in the bind mount directories - Ignored if on Windows
+        argv.append("--user=%d:%d" % (os.getuid(), os.getgid()))
 
+    argv.extend([
         # Map directories to bind mount into the container.
-      *["--volume=%s:/nextstrain/%s" % (os.path.abspath(v.src), v.name)
-            for v in opts.volumes
-             if v.src is not None],
+        *["--volume=%s:/nextstrain/%s" % (os.path.abspath(v.src), v.name) for v in opts.volumes if v.src],
 
         # Pass through credentials as environment variables
         "--env=RETHINK_HOST",
@@ -117,7 +116,7 @@ def run(opts):
         opts.image,
         opts.exec,
         *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
-    ]
+    ])
 
     try:
         subprocess.run(argv, check = True)
