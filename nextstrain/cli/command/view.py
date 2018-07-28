@@ -112,7 +112,7 @@ def print_url(host, port, datasets):
     def url(path = None):
         return colored(
             "blue",
-            "http://{host}:{port}/{path}".format(
+            "http://{host}:{port}/local/{path}".format(
                 host = host,
                 port = port,
                 path = path if path is not None else ""))
