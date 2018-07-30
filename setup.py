@@ -78,5 +78,6 @@ setup(
     install_requires = [
         "boto3",
         "netifaces >=0.10.6",
+        "requests",
     ],
 )

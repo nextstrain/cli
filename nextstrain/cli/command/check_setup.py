@@ -9,7 +9,7 @@ installed and configured, which this command will test by running:
 """
 
 from functools import partial
-from ..util import colored
+from ..util import colored, check_for_new_version
 from ..runner import all_runners
 
 
@@ -27,6 +27,9 @@ def run(opts):
         True:  success("✔"),
         False: failure("✘"),
     }
+
+    # Check our own version for updates
+    check_for_new_version()
 
     # Run and collect our runners' self-tests
     print("Testing your setup…")
