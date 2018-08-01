@@ -1,5 +1,8 @@
 # __NEXT__
 
+
+# 1.2.0 (1 August 2018)
+
 ## Features
 
 * A new `deploy` command supports uploading data files to S3, allowing the
