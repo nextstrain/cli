@@ -4,25 +4,50 @@ set -euo pipefail
 devel="$(dirname $0)"
 repo="$devel/.."
 version_file="$repo/nextstrain/cli/__version__.py"
+changes_file="$repo/CHANGES.md"
 
 main() {
     assert-clean-working-dir
+    assert-changelog-has-additions
 
     version=$(next-version)
 
     update-version $version
+    update-changelog $version
     commit-and-tag $version
     build-dist
     remind-to-push $version
 }
 
 assert-clean-working-dir() {
-    local status="$(git status --porcelain --untracked-files=no)"
+    local status="$(git status --porcelain --untracked-files=no | grep -vwF "$(basename "$changes_file")" || true)"
 
     if [[ -n $status ]]; then
         echo "Please commit all changes before releasing:" >&2
         echo >&2
         echo "$status" >&2
+        echo >&2
+        echo "Only $(basename "$changes_file") is allowed to have uncommitted changes." >&2
+        exit 1
+    fi
+}
+
+assert-changelog-has-additions() {
+    local current_version="$(read-version)"
+    local numstat="$(git diff --numstat "$current_version" -- "$changes_file")"
+    local insertions deletions rest
+
+    if [[ -z $numstat ]]; then
+        insertions=0
+        deletions=0
+    else
+        read -r insertions deletions rest <<<"$numstat"
+    fi
+
+    local net_changed=$(($insertions - $deletions))
+
+    if [[ $net_changed -lt 1 ]]; then
+        echo "It doesn't look like $(basename "$changes_file") was updated; only $insertions - $deletions = $net_changed line(s) were changed." >&2
         exit 1
     fi
 }
@@ -52,10 +77,22 @@ update-version() {
     fi
 }
 
+update-changelog() {
+    local new_version="$1"
+    local today="$(date +"%d %B %Y")"
+
+    # Remove leading zero from day if present
+    today="${today#0}"
+
+    # Add the new version heading immediately after the __NEXT__ heading,
+    # preserving the __NEXT__ heading itself.
+    perl -pi -e "s/(?<=^# __NEXT__$)/\n\n\n# $new_version ($today)/" "$changes_file"
+}
+
 commit-and-tag() {
     local version="$1"
 
-    git commit -m "version $version" "$version_file"
+    git commit -m "version $version" "$version_file" "$changes_file"
     git tag -sm "version $version" "$version"
 }
 
