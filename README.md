@@ -93,8 +93,24 @@ local repository.  It ends with instructions for you on how to push the release
 commit/tag and how to upload the built distributions to PyPi.  You'll need [a
 PyPi account][] and [twine][] installed.
 
+### Type annotations and static analysis
+
+Our goal is to gradually add [type annotations][] to our code so that we can
+catch errors earlier and be explicit about the interfaces expected and
+provided.  Annotation pairs well with the functional approach taken by the
+package.
+
+During development you can run static type checks using [mypy][]:
+
+    mypy nextstrain
+
+There are also many [editor integrations for mypy][].
+
 
 [Semantic Versioning rules]: https://semver.org
 [_signed_ tag]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
 [PyPi account]: https://pypi.org/account/register/
 [twine]: https://pypi.org/project/twine
+[type annotations]: https://www.python.org/dev/peps/pep-0484/
+[mypy]: http://mypy-lang.org/
+[editor integrations for mypy]: https://github.com/python/mypy#ide--linter-integrations
