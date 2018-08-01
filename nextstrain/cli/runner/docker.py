@@ -181,6 +181,8 @@ def test_setup():
 
 
 def update():
+    print("Updating Docker image %s…" % DEFAULT_IMAGE)
+    print()
     try:
         status = subprocess.run(
             ["docker", "image", "pull", DEFAULT_IMAGE],
