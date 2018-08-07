@@ -187,7 +187,7 @@ def update():
         subprocess.run(
             ["docker", "image", "pull", DEFAULT_IMAGE],
             check = True)
-    except:
+    except subprocess.CalledProcessError:
         return False
 
     return True
