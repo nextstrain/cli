@@ -183,6 +183,8 @@ def test_setup():
 def update():
     print("Updating Docker image %s…" % DEFAULT_IMAGE)
     print()
+
+    # Pull the latest image down
     try:
         subprocess.run(
             ["docker", "image", "pull", DEFAULT_IMAGE],
@@ -190,4 +192,47 @@ def update():
     except subprocess.CalledProcessError:
         return False
 
+    # Prune any old images which are now dangling to avoid leaving lots of
+    # hidden disk use around.  We don't use `docker image prune` because we
+    # want to just remove _our_ dangling images, not all.  We very much don't
+    # want to automatically prune unrelated images.
+    print()
+    print("Pruning old copies of image…")
+    print()
+
+    try:
+        images = dangling_images(DEFAULT_IMAGE)
+
+        if images:
+            subprocess.run(
+                ["docker", "image", "rm", *images],
+                check = True)
+    except subprocess.CalledProcessError as error:
+        warn("Error pruning old image versions: ", error)
+        return False
+
     return True
+
+
+def dangling_images(name):
+    """
+    Return a list of Docker image IDs which are untagged ("dangling") and thus
+    likely no longer in use.
+
+    Since dangling images are untagged, this finds images by name using our
+    custom org.nextstrain.image.name label.
+    """
+    name_sans_tag = name.split(":")[0]
+
+    # Set stdout = PIPE and decode the result ourselves instead of using the
+    # new capture_output parameter added in Python 3.7.  We're aiming for 3.5.
+    result = subprocess.run(
+        ["docker", "image", "ls",
+            "--no-trunc",
+            "--format={{.ID}}",
+            "--filter=dangling=true",
+            "--filter=label=org.nextstrain.image.name=%s" % name_sans_tag],
+        stdout = subprocess.PIPE,
+        check  = True)
+
+    return result.stdout.decode("utf-8").splitlines()
