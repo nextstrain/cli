@@ -184,10 +184,10 @@ def update():
     print("Updating Docker image %s…" % DEFAULT_IMAGE)
     print()
     try:
-        status = subprocess.run(
+        subprocess.run(
             ["docker", "image", "pull", DEFAULT_IMAGE],
             check = True)
     except:
         return False
-    else:
-        return status.returncode == 0
+
+    return True
