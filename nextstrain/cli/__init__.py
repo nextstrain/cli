@@ -3,6 +3,8 @@ Nextstrain command-line tool
 """
 
 
+import sys
+import argparse
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from types    import SimpleNamespace
 
@@ -41,6 +43,7 @@ def run(args):
 
     register_default_command(parser)
     register_commands(parser, commands)
+    register_version_alias(parser)
 
     opts = parser.parse_args(args)
     return opts.__command__.run(opts)
@@ -70,3 +73,23 @@ def register_commands(parser, commands):
 
         # Ensure all subparsers format like the top-level parser
         subparser.formatter_class = parser.formatter_class
+
+
+def register_version_alias(parser):
+    """
+    Add --version as a (hidden) alias for the version command.
+
+    It's not uncommon to blindly run a command with --version as the sole
+    argument, so its useful to make that Just Work.
+    """
+
+    class run_version_command(argparse.Action):
+        def __call__(self, *args, **kwargs):
+            empty_opts = SimpleNamespace()
+            sys.exit( version.run(empty_opts) )
+
+    parser.add_argument(
+        "--version",
+        nargs  = 0,
+        help   = argparse.SUPPRESS,
+        action = run_version_command)
