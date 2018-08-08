@@ -8,7 +8,7 @@ import argparse
 import subprocess
 from collections import namedtuple
 from pathlib import Path
-from ..util import warn, colored
+from ..util import warn, colored, capture_output
 
 
 DEFAULT_IMAGE = "nextstrain/base"
@@ -224,15 +224,11 @@ def dangling_images(name):
     """
     name_sans_tag = name.split(":")[0]
 
-    # Set stdout = PIPE and decode the result ourselves instead of using the
-    # new capture_output parameter added in Python 3.7.  We're aiming for 3.5.
-    result = subprocess.run(
-        ["docker", "image", "ls",
+    return capture_output([
+        "docker", "image", "ls",
             "--no-trunc",
             "--format={{.ID}}",
             "--filter=dangling=true",
-            "--filter=label=org.nextstrain.image.name=%s" % name_sans_tag],
-        stdout = subprocess.PIPE,
-        check  = True)
+            "--filter=label=org.nextstrain.image.name=%s" % name_sans_tag
+    ])
 
-    return result.stdout.decode("utf-8").splitlines()
