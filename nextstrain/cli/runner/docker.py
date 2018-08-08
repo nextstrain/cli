@@ -8,7 +8,7 @@ import argparse
 import subprocess
 from collections import namedtuple
 from pathlib import Path
-from ..util import warn
+from ..util import warn, colored
 
 
 DEFAULT_IMAGE = "nextstrain/base"
@@ -181,7 +181,7 @@ def test_setup():
 
 
 def update():
-    print("Updating Docker image %s…" % DEFAULT_IMAGE)
+    print(colored("bold", "Updating Docker image %s…" % DEFAULT_IMAGE))
     print()
 
     # Pull the latest image down
@@ -197,7 +197,7 @@ def update():
     # want to just remove _our_ dangling images, not all.  We very much don't
     # want to automatically prune unrelated images.
     print()
-    print("Pruning old copies of image…")
+    print(colored("bold", "Pruning old copies of image…"))
     print()
 
     try:
