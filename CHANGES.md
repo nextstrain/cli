@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.4.0 (9 August 2018)
+
+## Features
+
+* A new `shell` command launches an interactive shell (bash) inside the build
+  environment, which is useful for running ad-hoc commands and debugging.
+
+
 # 1.3.0 (9 August 2018)
 
 ## Features
