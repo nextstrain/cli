@@ -8,7 +8,7 @@ import argparse
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from types    import SimpleNamespace
 
-from .command     import build, view, deploy, update, check_setup, version
+from .command     import build, view, deploy, shell, update, check_setup, version
 from .__version__ import __version__
 
 
@@ -36,6 +36,7 @@ def run(args):
         build,
         view,
         deploy,
+        shell,
         update,
         check_setup,
         version,
