@@ -12,6 +12,7 @@ from ..util import warn, colored, capture_output
 
 
 DEFAULT_IMAGE = "nextstrain/base"
+COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 
 def store_volume(volume_name):
@@ -234,9 +235,15 @@ def dangling_images(name):
 
 
 def print_version():
+    print_image_version()
+    print_component_versions()
+
+
+def print_image_version():
     """
     Print the Docker image name and version.
     """
+
     # Qualify the name with the "latest" tag if necessary so we only get a
     # single id back.
     qualified_image = DEFAULT_IMAGE
@@ -257,3 +264,32 @@ def print_version():
     # This function (via the version command), may be run before the image is
     # downloaded, so we handle finding no image ids.
     print("%s docker image %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present"))
+
+
+def print_component_versions():
+    """
+    Print the git ids of the Nextstrain components in the image.
+    """
+
+    # It is much faster to spin up a single ephemeral container and read all
+    # the versions with a little bash than to do it one-by-one.  It also lets
+    # us more easily do fine-grained reporting of presence/absence.
+    report_versions = """
+        for component in %s; do
+            if [[ -e /nextstrain/$component/.GIT_ID ]]; then
+                echo $component $(</nextstrain/$component/.GIT_ID)
+            elif [[ -d /nextstrain/$component ]]; then
+                echo $component unknown
+            else
+                echo $component not present
+            fi
+        done
+    """ % " ".join(COMPONENTS)
+
+    versions = capture_output([
+        "docker", "run", "--rm", "-it", DEFAULT_IMAGE,
+            "bash", "-c", report_versions
+    ])
+
+    for version in versions:
+        print("  " + version)

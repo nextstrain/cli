@@ -85,8 +85,8 @@ def register_version_alias(parser):
 
     class run_version_command(argparse.Action):
         def __call__(self, *args, **kwargs):
-            empty_opts = SimpleNamespace()
-            sys.exit( version.run(empty_opts) )
+            opts = SimpleNamespace(verbose = False)
+            sys.exit( version.run(opts) )
 
     parser.add_argument(
         "--version",
