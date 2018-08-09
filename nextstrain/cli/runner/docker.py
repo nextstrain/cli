@@ -8,7 +8,7 @@ import argparse
 import subprocess
 from collections import namedtuple
 from pathlib import Path
-from ..util import warn, colored
+from ..util import warn, colored, capture_output
 
 
 DEFAULT_IMAGE = "nextstrain/base"
@@ -224,15 +224,36 @@ def dangling_images(name):
     """
     name_sans_tag = name.split(":")[0]
 
-    # Set stdout = PIPE and decode the result ourselves instead of using the
-    # new capture_output parameter added in Python 3.7.  We're aiming for 3.5.
-    result = subprocess.run(
-        ["docker", "image", "ls",
+    return capture_output([
+        "docker", "image", "ls",
             "--no-trunc",
             "--format={{.ID}}",
             "--filter=dangling=true",
-            "--filter=label=org.nextstrain.image.name=%s" % name_sans_tag],
-        stdout = subprocess.PIPE,
-        check  = True)
+            "--filter=label=org.nextstrain.image.name=%s" % name_sans_tag
+    ])
 
-    return result.stdout.decode("utf-8").splitlines()
+
+def print_version():
+    """
+    Print the Docker image name and version.
+    """
+    # Qualify the name with the "latest" tag if necessary so we only get a
+    # single id back.
+    qualified_image = DEFAULT_IMAGE
+
+    if ":" not in DEFAULT_IMAGE:
+        qualified_image += ":latest"
+
+    image_ids = capture_output([
+        "docker", "image", "ls",
+            "--format={{.ID}} ({{.CreatedAt}})", qualified_image])
+
+    assert len(image_ids) <= 1
+
+    # Print the default image name as-is, without the implicit :latest
+    # qualification (if any).  The :latest tag is often confusing, as it
+    # doesn't mean you have the latest version.  Thus we avoid it.
+    #
+    # This function (via the version command), may be run before the image is
+    # downloaded, so we handle finding no image ids.
+    print("%s docker image %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present"))

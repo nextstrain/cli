@@ -1,5 +1,6 @@
 from ..__version__ import __version__
 from .. import __package__ as __top_package__
+from ..runner import all_runners
 
 def register_parser(subparser):
     return subparser.add_parser(
@@ -14,3 +15,6 @@ def register_parser(subparser):
 
 def run(opts):
     print(__top_package__, __version__)
+
+    for runner in all_runners:
+        runner.print_version()

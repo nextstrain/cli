@@ -1,5 +1,6 @@
 import re
 import requests
+import subprocess
 from pkg_resources import parse_version
 from sys import stderr
 from .__version__ import __version__
@@ -72,3 +73,20 @@ def fetch_latest_pypi_version(project):
     Return the latest version of the given project from PyPi.
     """
     return requests.get("https://pypi.python.org/pypi/%s/json" % project).json().get("info", {}).get("version", "")
+
+
+def capture_output(argv):
+    """
+    Run the command specified by the argument list and return a list of output
+    lines.
+
+    This wrapper around subprocess.run() exists because its own capture_output
+    parameter wasn't added until Python 3.7 and we aim for compat with 3.5.
+    When we bump our minimum Python version, we can remove this wrapper.
+    """
+    result = subprocess.run(
+        argv,
+        stdout = subprocess.PIPE,
+        check  = True)
+
+    return result.stdout.decode("utf-8").splitlines()
