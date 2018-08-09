@@ -1,6 +1,21 @@
 # __NEXT__
 
 
+# 1.3.0 (9 August 2018)
+
+## Features
+
+* The `update` command now prunes old Docker images after downloading new ones.
+  This functionality relies on our new, labeled images.  Older images will have
+  to be manually pruned as a one-time step.  See `docker image prune` for more
+  information.  Note that locally built images which are tagged
+  nextstrain/base:latest will be pruned when `update` is run.  Protect such
+  images by giving them an additional tag.
+
+* The versions of the Docker image and individual Nextstrain components in the
+  image are shown when the `version` command is run with the `--verbose` flag.
+
+
 # 1.2.0 (1 August 2018)
 
 ## Features
