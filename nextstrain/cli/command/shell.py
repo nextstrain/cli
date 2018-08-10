@@ -6,7 +6,6 @@ The shell runs inside a container, which requires Docker.  Run `nextstrain
 check-setup` to check if Docker is installed and works.
 """
 
-from pathlib import Path
 from ..runner import docker
 
 
