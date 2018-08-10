@@ -14,7 +14,7 @@ from ..runner import all_runners
 
 
 def register_parser(subparser):
-    parser = subparser.add_parser("check-setup", help = "Tests your local setup")
+    parser = subparser.add_parser("check-setup", help = "Test your local setup")
     parser.description = __doc__
     return parser
 
