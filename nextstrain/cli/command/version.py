@@ -3,11 +3,7 @@ from .. import __package__ as __top_package__
 from ..runner import all_runners
 
 def register_parser(subparser):
-    parser = subparser.add_parser(
-        "version",
-
-        # Description of command in top-level --help
-        help = "Show version information")
+    parser = subparser.add_parser("version", help = "Show version information")
 
     parser.add_argument(
         "--verbose",
