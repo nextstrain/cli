@@ -14,6 +14,7 @@ import re
 import netifaces as net
 from ..runner import docker
 from ..util import colored, warn
+from ..volume import store_volume
 
 
 def register_parser(subparser):
@@ -30,7 +31,7 @@ def register_parser(subparser):
         "directory",
         help    = "Path to pathogen build data directory",
         metavar = "<directory>",
-        action  = docker.store_volume("auspice/data"))
+        action  = store_volume("auspice/data"))
 
     # Runner options
     docker.register_arguments(

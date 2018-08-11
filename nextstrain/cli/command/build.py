@@ -16,6 +16,7 @@ container systems in the future as desired or necessary.
 
 from ..runner import docker
 from ..util import warn
+from ..volume import store_volume
 
 
 def register_parser(subparser):
@@ -27,7 +28,7 @@ def register_parser(subparser):
         "directory",
         help    = "Path to pathogen build directory",
         metavar = "<directory>",
-        action  = docker.store_volume("build"))
+        action  = store_volume("build"))
 
     # Runner options
     docker.register_arguments(
