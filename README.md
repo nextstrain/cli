@@ -99,7 +99,8 @@ PyPi account][] and [twine][] installed.
 Our goal is to gradually add [type annotations][] to our code so that we can
 catch errors earlier and be explicit about the interfaces expected and
 provided.  Annotation pairs well with the functional approach taken by the
-package.
+package.  Note that our goal of compatibility with Python 3.5 means that we
+can't yet annotate variable declarations, only functions.
 
 During development you can run static type checks using [mypy][]:
 
