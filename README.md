@@ -110,7 +110,7 @@ There are also many [editor integrations for mypy][].
 
 [Semantic Versioning rules]: https://semver.org
 [_signed_ tag]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
-[PyPi account]: https://pypi.org/account/register/
+[a PyPi account]: https://pypi.org/account/register/
 [twine]: https://pypi.org/project/twine
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [mypy]: http://mypy-lang.org/
