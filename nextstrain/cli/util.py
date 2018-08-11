@@ -1,6 +1,7 @@
 import re
 import requests
 import subprocess
+from types import ModuleType
 from pkg_resources import parse_version
 from sys import stderr
 from .__version__ import __version__
@@ -90,3 +91,23 @@ def capture_output(argv):
         check  = True)
 
     return result.stdout.decode("utf-8").splitlines()
+
+
+def runner_name(runner: ModuleType) -> str:
+    """
+    Return a friendly name suitable for display for the given runner module.
+    """
+    return module_basename(runner).replace("_", "-")
+
+
+def module_basename(module: ModuleType, base_module: str = None) -> str:
+    """
+    Return the final portion of the given module's name, akin to a file's basename.
+
+    Defaults to returning the portion after the name of the module's containing
+    package, but this may be changed by providing the base_module parameter.
+    """
+    if not base_module:
+        base_module = module.__package__
+
+    return remove_prefix(base_module, module.__name__).lstrip(".")

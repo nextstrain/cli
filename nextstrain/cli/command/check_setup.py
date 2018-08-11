@@ -9,7 +9,7 @@ installed and configured, which this command will test by running:
 """
 
 from functools import partial
-from ..util import colored, check_for_new_version
+from ..util import colored, check_for_new_version, runner_name
 from ..runner import all_runners
 
 
@@ -34,23 +34,39 @@ def run(opts):
     # Run and collect our runners' self-tests
     print("Testing your setup…")
 
-    tests = [
-        test for runner in all_runners
-             for test in runner.test_setup()
+    runner_tests = [
+        (runner, runner.test_setup())
+            for runner in all_runners
     ]
 
     # Print test results.  The first print() separates results from the
     # previous header or stderr output, making it easier to read.
     print()
 
-    for description, result in tests:
-        print(status.get(result, " "), description)
+    for runner, tests in runner_tests:
+        print(colored("blue", "#"), "%s support" % runner_name(runner))
 
-    # Print overall status
-    all_good = False not in [result for description, result in tests]
+        for description, result in tests:
+            print(status.get(result, " "), description)
 
-    print()
-    print(success("All good!") if all_good else failure("Some setup tests failed"))
+        print()
+
+    # Print overall status.
+    runner_status = [
+        (runner, False not in [result for test, result in tests])
+            for runner, tests in runner_tests
+    ]
+
+    supported_runners = [
+        runner_name(runner)
+            for runner, status_ok in runner_status
+             if status_ok
+    ]
+
+    if supported_runners:
+        print(success("Supported runners: %s" % ", ".join(supported_runners)))
+    else:
+        print(failure("No support for any runner"))
 
     # Return a 1 or 0 exit code
-    return int(not all_good)
+    return int(not supported_runners)
