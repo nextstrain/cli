@@ -1,6 +1,13 @@
 # __NEXT__
 
 
+# 1.4.1 (11 August 2018)
+
+## Documentation
+
+* Minor updates to README and command help strings
+
+
 # 1.4.0 (9 August 2018)
 
 ## Features
