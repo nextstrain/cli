@@ -6,6 +6,7 @@ import os
 import shutil
 import argparse
 import subprocess
+from .. import runner
 from ..util import warn, colored, capture_output
 from ..volume import store_volume
 
@@ -106,7 +107,7 @@ def run(opts):
         *opts.docker_args,
         opts.image,
         opts.exec,
-        *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
+        *runner.replace_ellipsis(opts.exec_args, opts.extra_exec_args)
     ]
 
     try:
@@ -116,17 +117,6 @@ def run(opts):
         return e.returncode
     else:
         return 0
-
-
-def replace_ellipsis(items, elided_items):
-    """
-    Replaces any Ellipsis items (...) in a list, if any, with the items of a
-    second list.
-    """
-    return [
-        y for x in items
-          for y in (elided_items if x is ... else [x])
-    ]
 
 
 def test_setup():
