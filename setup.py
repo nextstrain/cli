@@ -31,12 +31,16 @@ setup(
     version  = __version__,
     packages = find_namespaced_packages("nextstrain"),
 
+    data_files = [("", ["LICENSE"])],
+
     description      = "Nextstrain command-line tool",
     long_description = long_description,
     long_description_content_type = "text/markdown",
 
     author       = "Thomas Sibley",
     author_email = "tsibley@fredhutch.org",
+
+    license = "MIT",
 
     url          = "https://github.com/nextstrain/cli",
     project_urls = {
