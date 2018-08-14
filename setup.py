@@ -40,8 +40,9 @@ setup(
 
     url          = "https://github.com/nextstrain/cli",
     project_urls = {
-        "Source":      "https://github.com/nextstrain/cli",
         "Bug Reports": "https://github.com/nextstrain/cli/issues",
+        "Change Log":  "https://github.com/nextstrain/cli/blob/master/CHANGES.md",
+        "Source":      "https://github.com/nextstrain/cli",
     },
 
     classifiers = [
