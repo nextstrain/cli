@@ -50,9 +50,8 @@ setup(
     },
 
     classifiers = [
-        # XXX TODO: Bump this eventually...
-        #   -trs, 21 June 2018
-        "Development Status :: 4 - Beta",
+        # Stable now
+        "Development Status :: 5 - Production/Stable",
 
         # This is a CLI
         "Environment :: Console",
