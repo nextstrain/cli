@@ -80,6 +80,8 @@ setup(
         ],
     },
 
+    python_requires = '>=3.5',
+
     install_requires = [
         "boto3",
         "netifaces >=0.10.6",
