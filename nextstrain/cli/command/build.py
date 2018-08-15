@@ -33,8 +33,7 @@ def register_parser(subparser):
     # Runner options
     docker.register_arguments(
         parser,
-        exec    = ["snakemake", ...],
-        volumes = ["sacra", "fauna", "augur"])
+        exec    = ["snakemake", ...])
 
     return parser
 

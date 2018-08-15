@@ -15,7 +15,7 @@ DEFAULT_IMAGE = "nextstrain/base"
 COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 
-def register_arguments(parser, exec=None, volumes=[]):
+def register_arguments(parser, exec=None):
     # Unpack exec parameter into the command and everything else
     (exec_cmd, *exec_args) = exec
 
@@ -38,7 +38,7 @@ def register_arguments(parser, exec=None, volumes=[]):
 
     development.set_defaults(volumes = [])
 
-    for name in volumes:
+    for name in COMPONENTS:
         development.add_argument(
             "--" + name,
             help    = "Replace the image's copy of %s with a local copy" % name,

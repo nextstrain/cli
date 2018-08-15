@@ -24,8 +24,7 @@ def register_parser(subparser):
     # Runner options
     docker.register_arguments(
         parser,
-        exec    = ["bash", "--login", ...],
-        volumes = ["sacra", "fauna", "augur", "auspice"])
+        exec    = ["bash", "--login", ...])
 
     return parser
 

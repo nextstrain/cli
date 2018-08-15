@@ -36,8 +36,7 @@ def register_parser(subparser):
     # Runner options
     docker.register_arguments(
         parser,
-        exec    = ["auspice"],
-        volumes = ["auspice"])
+        exec    = ["auspice"])
 
     return parser
 
