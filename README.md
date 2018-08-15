@@ -116,6 +116,10 @@ are necessary to annotate variable declarations:
     # Instead, use trailing type hint comments:
     foo = 3  # type: int
 
+The [`typing_extensions`][] module should be used for features added to the
+standard `typings` module after 3.5.  (Currently this isn't necessary since we
+don't use those features.)
+
 
 [Semantic Versioning rules]: https://semver.org
 [_signed_ tag]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
@@ -124,3 +128,4 @@ are necessary to annotate variable declarations:
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [mypy]: http://mypy-lang.org/
 [editor integrations for mypy]: https://github.com/python/mypy#ide--linter-integrations
+[`typing_extensions`]: https://pypi.org/project/typing-extensions
