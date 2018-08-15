@@ -31,4 +31,14 @@ def register_parser(subparser):
 
 
 def run(opts):
+    # Ensure our build dir exists
+    if not opts.build.src.is_dir():
+        warn("Error: Build path \"%s\" does not exist or is not a directory." % opts.build.src)
+
+        if not opts.build.src.is_absolute():
+            warn()
+            warn("Perhaps your current working directory is different than you expect?")
+
+        return 1
+
     return docker.run(opts)
