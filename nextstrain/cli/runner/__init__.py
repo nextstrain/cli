@@ -1,13 +1,14 @@
 import argparse
 from argparse import ArgumentParser
 from typing import Any, List
-from . import docker
+from . import docker, native
 from ..types import Options
 from ..util import runner_name, runner_help
 from ..volume import NamedVolume
 
 all_runners = [
     docker,
+    native,
 ]
 
 default_runner = docker

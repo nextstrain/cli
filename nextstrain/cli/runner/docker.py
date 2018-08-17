@@ -18,6 +18,14 @@ COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 def register_arguments(parser) -> None:
     # Docker development options
+    #
+    # XXX TODO: Consider prefixing all of these with --docker-* at some point,
+    # depending on how other image-based runners (like Singularity) pan out.
+    # For now, I think it's better to do nothing than to prospectively rename.
+    # Renaming means maintaining the old names as deprecated alternatives for a
+    # while anyway, so we might as well just keep using what we have until
+    # we're forced to change.
+    #   -trs, 15 August 2018
     development = parser.add_argument_group(
         "development options for --docker")
 
