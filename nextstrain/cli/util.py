@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 import subprocess
@@ -91,6 +92,20 @@ def capture_output(argv):
         check  = True)
 
     return result.stdout.decode("utf-8").splitlines()
+
+
+def exec_or_return(argv):
+    """
+    exec(3) into the desired program, or return 1 on failure.  Never returns if
+    successful.
+
+    The return value makes this suitable for chaining through to sys.exit().
+    """
+    try:
+        os.execvp(argv[0], argv)
+    except OSError as error:
+        warn("Error executing into %s: %s" % (argv, error))
+        return 1
 
 
 def runner_name(runner: ModuleType) -> str:

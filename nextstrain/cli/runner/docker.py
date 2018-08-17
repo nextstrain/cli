@@ -7,7 +7,7 @@ import shutil
 import argparse
 import subprocess
 from .. import runner
-from ..util import warn, colored, capture_output
+from ..util import warn, colored, capture_output, exec_or_return
 from ..volume import store_volume
 
 
@@ -83,7 +83,7 @@ def run(opts):
     if opts.docker_args is None:
         opts.docker_args = []
 
-    argv = [
+    return exec_or_return([
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
         "--tty",            # Colors, etc.
@@ -108,15 +108,7 @@ def run(opts):
         opts.image,
         opts.exec,
         *runner.replace_ellipsis(opts.exec_args, opts.extra_exec_args)
-    ]
-
-    try:
-        subprocess.run(argv, check = True)
-    except subprocess.CalledProcessError as e:
-        warn("Error running %s, exited %d" % (e.cmd, e.returncode))
-        return e.returncode
-    else:
-        return 0
+    ])
 
 
 def test_setup():
