@@ -103,7 +103,7 @@ def run(opts):
     # Show a helpful message about where to connect
     print_url(host, port, datasets)
 
-    return runner.run(opts)
+    return runner.run(opts, working_volume = opts.auspice_data)
 
 
 def print_url(host, port, datasets):

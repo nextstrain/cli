@@ -43,4 +43,4 @@ def run(opts):
 
         return 1
 
-    return runner.run(opts)
+    return runner.run(opts, working_volume = opts.build)

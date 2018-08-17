@@ -42,7 +42,7 @@ def register_arguments(parser):
         action  = "append")
 
 
-def run(opts, argv):
+def run(opts, argv, working_volume = None):
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -77,6 +77,9 @@ def run(opts, argv):
       *["--volume=%s:/nextstrain/%s" % (v.src.resolve(), v.name)
             for v in opts.volumes
              if v.src is not None],
+
+        # Change the default working directory if requested
+        *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
 
         # Pass through credentials as environment variables
         "--env=RETHINK_HOST",

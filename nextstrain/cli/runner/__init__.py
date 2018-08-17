@@ -4,6 +4,7 @@ from typing import Any, List
 from . import docker
 from ..types import Options
 from ..util import runner_name, runner_help
+from ..volume import NamedVolume
 
 all_runners = [
     docker,
@@ -108,7 +109,7 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         runner.register_arguments(parser)
 
 
-def run(opts: Options) -> int:
+def run(opts: Options, working_volume: NamedVolume = None) -> int:
     """
     Inspect the given options object and call the selected runner's run()
     function with appropriate arguments.
@@ -122,7 +123,7 @@ def run(opts: Options) -> int:
         *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
     ]
 
-    return opts.__runner__.run(opts, argv)
+    return opts.__runner__.run(opts, argv, working_volume = working_volume)
 
 
 def replace_ellipsis(items, elided_items):
