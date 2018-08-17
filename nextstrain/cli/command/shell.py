@@ -6,6 +6,7 @@ The shell runs inside a container, which requires Docker.  Run `nextstrain
 check-setup` to check if Docker is installed and works.
 """
 
+from .. import runner
 from ..runner import docker
 from ..volume import store_volume
 
@@ -21,10 +22,12 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("build"))
 
-    # Runner options
-    docker.register_arguments(
+    # Register runner flags and arguments; only Docker is supported for now
+    # since a "native" shell doesn't make any sense.
+    runner.register_runners(
         parser,
-        exec    = ["bash", "--login", ...])
+        exec    = ["bash", "--login", ...],
+        runners = [docker])
 
     return parser
 
@@ -40,4 +43,4 @@ def run(opts):
 
         return 1
 
-    return docker.run(opts)
+    return runner.run(opts)

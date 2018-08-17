@@ -3,6 +3,7 @@ import re
 import requests
 import subprocess
 from types import ModuleType
+from typing import List
 from pkg_resources import parse_version
 from sys import stderr
 from .__version__ import __version__
@@ -94,7 +95,7 @@ def capture_output(argv):
     return result.stdout.decode("utf-8").splitlines()
 
 
-def exec_or_return(argv):
+def exec_or_return(argv: List[str]) -> int:
     """
     exec(3) into the desired program, or return 1 on failure.  Never returns if
     successful.
@@ -113,6 +114,16 @@ def runner_name(runner: ModuleType) -> str:
     Return a friendly name suitable for display for the given runner module.
     """
     return module_basename(runner).replace("_", "-")
+
+
+def runner_help(runner: ModuleType) -> str:
+    """
+    Return a brief description of a runner module, suitable for help strings.
+    """
+    if runner.__doc__:
+        return runner.__doc__.strip().splitlines()[0]
+    else:
+        return "(undocumented)"
 
 
 def module_basename(module: ModuleType, base_module: str = None) -> str:

@@ -12,6 +12,7 @@ check-setup` to check if Docker is installed and works.
 
 import re
 import netifaces as net
+from .. import runner
 from ..runner import docker
 from ..util import colored, warn
 from ..volume import store_volume
@@ -33,10 +34,12 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("auspice/data"))
 
-    # Runner options
-    docker.register_arguments(
+    # Register runners; only Docker is supported for now since auspice doesn't
+    # have a native wrapper command yet.
+    runner.register_runners(
         parser,
-        exec    = ["auspice"])
+        exec    = ["auspice"],
+        runners = [docker])
 
     return parser
 
@@ -100,7 +103,7 @@ def run(opts):
     # Show a helpful message about where to connect
     print_url(host, port, datasets)
 
-    return docker.run(opts)
+    return runner.run(opts)
 
 
 def print_url(host, port, datasets):

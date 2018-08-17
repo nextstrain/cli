@@ -14,7 +14,7 @@ build interface from Docker itself so that we can more seamlessly use other
 container systems in the future as desired or necessary.
 """
 
-from ..runner import docker
+from .. import runner
 from ..util import warn
 from ..volume import store_volume
 
@@ -30,10 +30,8 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("build"))
 
-    # Runner options
-    docker.register_arguments(
-        parser,
-        exec    = ["snakemake", ...])
+    # Register runner flags and arguments
+    runner.register_runners(parser, exec = ["snakemake", ...])
 
     return parser
 
@@ -49,4 +47,4 @@ def run(opts):
 
         return 1
 
-    return docker.run(opts)
+    return runner.run(opts)

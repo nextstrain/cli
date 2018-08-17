@@ -4,7 +4,6 @@ Run commands inside a container image using Docker.
 
 import os
 import shutil
-import argparse
 import subprocess
 from .. import runner
 from ..util import warn, colored, capture_output, exec_or_return
@@ -15,26 +14,16 @@ DEFAULT_IMAGE = "nextstrain/base"
 COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 
-def register_arguments(parser, exec=None):
-    # Unpack exec parameter into the command and everything else
-    (exec_cmd, *exec_args) = exec
-
-    # Development options
+def register_arguments(parser):
+    # Docker development options
     development = parser.add_argument_group(
-        "development options",
-        "These should generally be unnecessary unless you're developing build images.")
+        "development options for --docker")
 
     development.add_argument(
         "--image",
         help    = "Container image in which to run the pathogen build",
         metavar = "<name>",
         default = DEFAULT_IMAGE)
-
-    development.add_argument(
-        "--exec",
-        help    = "Program to exec inside the build container",
-        metavar = "<prog>",
-        default = exec_cmd)
 
     development.set_defaults(volumes = [])
 
@@ -52,19 +41,8 @@ def register_arguments(parser, exec=None):
         dest    = "docker_args",
         action  = "append")
 
-    # Optional exec arguments
-    parser.set_defaults(exec_args = exec_args)
-    parser.set_defaults(extra_exec_args = [])
 
-    if ... in exec_args:
-        parser.add_argument(
-            "extra_exec_args",
-            help    = "Additional arguments to pass to the executed build program",
-            metavar = "...",
-            nargs   = argparse.REMAINDER)
-
-
-def run(opts):
+def run(opts, argv):
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -106,8 +84,7 @@ def run(opts):
 
         *opts.docker_args,
         opts.image,
-        opts.exec,
-        *runner.replace_ellipsis(opts.exec_args, opts.extra_exec_args)
+        *argv,
     ])
 
 
