@@ -5,7 +5,9 @@ Run commands inside a container image using Docker.
 import os
 import shutil
 import subprocess
+from typing import List
 from .. import runner
+from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return
 from ..volume import store_volume
 
@@ -14,7 +16,7 @@ DEFAULT_IMAGE = "nextstrain/base"
 COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 
-def register_arguments(parser):
+def register_arguments(parser) -> None:
     # Docker development options
     development = parser.add_argument_group(
         "development options for --docker")
@@ -42,7 +44,7 @@ def register_arguments(parser):
         action  = "append")
 
 
-def run(opts, argv, working_volume = None):
+def run(opts, argv, working_volume = None) -> int:
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -91,7 +93,7 @@ def run(opts, argv, working_volume = None):
     ])
 
 
-def test_setup():
+def test_setup() -> RunnerTestResults:
     def test_run():
         try:
             status = subprocess.run(
@@ -111,7 +113,7 @@ def test_setup():
     ]
 
 
-def update():
+def update() -> bool:
     print(colored("bold", "Updating Docker image %s…" % DEFAULT_IMAGE))
     print()
 
@@ -145,7 +147,7 @@ def update():
     return True
 
 
-def dangling_images(name):
+def dangling_images(name: str) -> List[str]:
     """
     Return a list of Docker image IDs which are untagged ("dangling") and thus
     likely no longer in use.
@@ -164,12 +166,12 @@ def dangling_images(name):
     ])
 
 
-def print_version():
+def print_version() -> None:
     print_image_version()
     print_component_versions()
 
 
-def print_image_version():
+def print_image_version() -> None:
     """
     Print the Docker image name and version.
     """
@@ -196,7 +198,7 @@ def print_image_version():
     print("%s docker image %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present"))
 
 
-def print_component_versions():
+def print_component_versions() -> None:
     """
     Print the git ids of the Nextstrain components in the image.
     """
