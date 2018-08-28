@@ -113,7 +113,7 @@ remind-to-push() {
     echo
     echo "   git push origin master tag $version"
     echo
-    echo "You'll also want to upload the build release to PyPi:"
+    echo "You'll also want to upload the built releases to PyPi:"
     echo
     echo "   twine upload dist/*"
     echo
