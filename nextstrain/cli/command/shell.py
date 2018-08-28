@@ -12,6 +12,11 @@ from ..volume import store_volume
 
 
 def register_parser(subparser):
+    """
+    %(prog)s [options] <directory> [...]
+    %(prog)s --help
+    """
+
     parser = subparser.add_parser("shell", help = "Start a new shell in the build environment")
 
     # Positional parameters

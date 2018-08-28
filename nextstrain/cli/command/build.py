@@ -26,6 +26,11 @@ from ..volume import store_volume
 
 
 def register_parser(subparser):
+    """
+    %(prog)s [options] <directory> [...]
+    %(prog)s --help
+    """
+
     parser = subparser.add_parser("build", help = "Run pathogen build")
 
     # Positional parameters

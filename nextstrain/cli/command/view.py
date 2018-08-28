@@ -19,6 +19,11 @@ from ..volume import store_volume
 
 
 def register_parser(subparser):
+    """
+    %(prog)s [options] <directory>
+    %(prog)s --help
+    """
+
     parser = subparser.add_parser("view", help = "View pathogen build")
 
     parser.add_argument(
