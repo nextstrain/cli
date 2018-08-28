@@ -27,7 +27,6 @@ from ..volume import store_volume
 
 def register_parser(subparser):
     parser = subparser.add_parser("build", help = "Run pathogen build")
-    parser.description = __doc__
 
     # Positional parameters
     parser.add_argument(

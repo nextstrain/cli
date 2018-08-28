@@ -20,7 +20,6 @@ from ..volume import store_volume
 
 def register_parser(subparser):
     parser = subparser.add_parser("view", help = "View pathogen build")
-    parser.description = __doc__
 
     parser.add_argument(
         "--allow-remote-access",

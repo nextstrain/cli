@@ -13,7 +13,6 @@ from ..volume import store_volume
 
 def register_parser(subparser):
     parser = subparser.add_parser("shell", help = "Start a new shell in the build environment")
-    parser.description = __doc__
 
     # Positional parameters
     parser.add_argument(

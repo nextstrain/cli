@@ -75,6 +75,10 @@ def register_commands(parser, commands):
         # Ensure all subparsers format like the top-level parser
         subparser.formatter_class = parser.formatter_class
 
+        # Default long description to the docstring of the command
+        if not subparser.description and cmd.__doc__:
+            subparser.description = cmd.__doc__
+
 
 def register_version_alias(parser):
     """

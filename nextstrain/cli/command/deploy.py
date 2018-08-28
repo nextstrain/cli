@@ -54,7 +54,6 @@ SUPPORTED_SCHEMES = {
 
 def register_parser(subparser):
     parser = subparser.add_parser("deploy", help = "Deploy pathogen build")
-    parser.description = __doc__
 
     # Destination
     parser.add_argument(
