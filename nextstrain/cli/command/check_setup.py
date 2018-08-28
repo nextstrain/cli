@@ -1,11 +1,15 @@
 """
-Checks your local setup to make sure a container runner is installed and works.
+Checks your local setup to see if you have a supported build environment.
 
-Docker is the currently the only supported container system.  It must be
-installed and configured, which this command will test by running:
+Two environments are supported, each of which will be tested:
 
-    docker run --rm hello-world
+  • Our Docker image is the preferred build environment.  Docker itself must
+    be installed and configured on your computer first, but once it is, the
+    build environment is robust and reproducible.
 
+  • Your native ambient environment will be tested for snakemake and augur.
+    Their presence implies a working build environment, but does not guarantee
+    it.
 """
 
 from functools import partial

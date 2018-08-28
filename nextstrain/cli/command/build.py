@@ -1,17 +1,23 @@
 """
-Runs a pathogen build in an ephemeral container.
+Runs a pathogen build in the Nextstrain build environment.
 
 The build directory should contain a Snakefile, which will be run with
-snakemake inside the container.
+snakemake.
 
-Docker is the currently the only supported container system.  It must be
-installed and configured, which you can test by running:
+The default build environment is inside an ephemeral Docker container which has
+all the necessary Nextstrain components available.  You may instead run the
+build in the native ambient environment by passing the --native flag, but all
+dependencies must already be installed and configured.
+
+You can test if Docker or native build environments are properly supported on
+your computer by running:
 
     nextstrain check-setup
 
 The `nextstrain build` command is designed to cleanly separate the Nextstrain
-build interface from Docker itself so that we can more seamlessly use other
-container systems in the future as desired or necessary.
+build interface from provisioning a build environment, so that running builds
+is as easy as possible.  It also lets us more seamlessly make environment
+changes in the future as desired or necessary.
 """
 
 from .. import runner
