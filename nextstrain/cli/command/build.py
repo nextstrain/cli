@@ -21,6 +21,7 @@ changes in the future as desired or necessary.
 """
 
 from .. import runner
+from ..argparse import add_extended_help_flags
 from ..util import warn
 from ..volume import store_volume
 
@@ -31,7 +32,10 @@ def register_parser(subparser):
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("build", help = "Run pathogen build")
+    parser = subparser.add_parser("build", help = "Run pathogen build", add_help = False)
+
+    # Support --help and --help-all
+    add_extended_help_flags(parser)
 
     # Positional parameters
     parser.add_argument(

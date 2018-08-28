@@ -7,6 +7,7 @@ check-setup` to check if Docker is installed and works.
 """
 
 from .. import runner
+from ..argparse import add_extended_help_flags
 from ..runner import docker
 from ..volume import store_volume
 
@@ -17,7 +18,10 @@ def register_parser(subparser):
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("shell", help = "Start a new shell in the build environment")
+    parser = subparser.add_parser("shell", help = "Start a new shell in the build environment", add_help = False)
+
+    # Support --help and --help-all
+    add_extended_help_flags(parser)
 
     # Positional parameters
     parser.add_argument(

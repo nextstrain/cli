@@ -13,6 +13,7 @@ check-setup` to check if Docker is installed and works.
 import re
 import netifaces as net
 from .. import runner
+from ..argparse import add_extended_help_flags
 from ..runner import docker
 from ..util import colored, warn
 from ..volume import store_volume
@@ -24,7 +25,10 @@ def register_parser(subparser):
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("view", help = "View pathogen build")
+    parser = subparser.add_parser("view", help = "View pathogen build", add_help = False)
+
+    # Support --help and --help-all
+    add_extended_help_flags(parser)
 
     parser.add_argument(
         "--allow-remote-access",
