@@ -44,6 +44,7 @@ def register_arguments(parser) -> None:
             metavar = "<dir>",
             action  = store_volume(name))
 
+    development.set_defaults(docker_args = [])
     development.add_argument(
         "--docker-arg",
         help    = "Additional arguments to pass to `docker run`",
@@ -67,9 +68,6 @@ def run(opts, argv, working_volume = None) -> int:
         for vol in missing_volumes:
             warn("    • %s: %s" % (vol.name, vol.src))
         return 1
-
-    if opts.docker_args is None:
-        opts.docker_args = []
 
     return exec_or_return([
         "docker", "run",

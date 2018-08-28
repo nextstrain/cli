@@ -82,9 +82,6 @@ def run(opts):
     host = "0.0.0.0" if opts.allow_remote_access else "127.0.0.1"
     port = 4000
 
-    if opts.docker_args is None:
-        opts.docker_args = []
-
     opts.docker_args = [
         *opts.docker_args,
 
