@@ -9,6 +9,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescripti
 from types    import SimpleNamespace
 
 from .command     import build, view, deploy, shell, update, check_setup, version
+from .util        import format_usage
 from .__version__ import __version__
 
 
@@ -74,6 +75,10 @@ def register_commands(parser, commands):
 
         # Ensure all subparsers format like the top-level parser
         subparser.formatter_class = parser.formatter_class
+
+        # Default usage message to the docstring of register_parser()
+        if not subparser.usage and cmd.register_parser.__doc__:
+            subparser.usage = format_usage(cmd.register_parser.__doc__)
 
         # Default long description to the docstring of the command
         if not subparser.description and cmd.__doc__:

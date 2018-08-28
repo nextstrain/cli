@@ -6,6 +6,7 @@ from types import ModuleType
 from typing import List
 from pkg_resources import parse_version
 from sys import stderr
+from textwrap import dedent, indent
 from .__version__ import __version__
 
 
@@ -137,3 +138,16 @@ def module_basename(module: ModuleType, base_module: str = None) -> str:
         base_module = module.__package__
 
     return remove_prefix(base_module, module.__name__).lstrip(".")
+
+
+def format_usage(doc: str) -> str:
+    """
+    Reformat a multi-line description of command-line usage to play nice with
+    argparse's usage printing.
+
+    Strips trailing and leading newlines, removes indentation shared by all
+    lines (common in docstrings), and then pads all but the first line to match
+    the "usage: " prefix argparse prints for the first line.
+    """
+    padding = " " * len("usage: ")
+    return indent(dedent(doc.strip("\n")), padding).lstrip()
