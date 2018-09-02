@@ -11,7 +11,6 @@ from ..runner import all_runners
 
 def register_parser(subparser):
     parser = subparser.add_parser("update", help = "Update your local image copy")
-    parser.description = __doc__
     return parser
 
 

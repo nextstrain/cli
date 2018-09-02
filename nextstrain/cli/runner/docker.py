@@ -4,56 +4,30 @@ Run commands inside a container image using Docker.
 
 import os
 import shutil
-import argparse
 import subprocess
-from collections import namedtuple
-from pathlib import Path
-from ..util import warn, colored, capture_output
+from typing import List
+from .. import runner
+from ..types import RunnerTestResults
+from ..util import warn, colored, capture_output, exec_or_return
+from ..volume import store_volume
 
 
 DEFAULT_IMAGE = "nextstrain/base"
 COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
 
 
-def store_volume(volume_name):
-    """
-    Generates and returns an argparse.Action subclass for storing named volume
-    tuples.
-
-    Multiple argparse arguments can use this to cooperatively accept source
-    path definitions for named volumes.
-
-    Each named volume is stored as a namedtuple (name, src).  The tuple is
-    stored on the options object under the volume's name (modified to replace
-    slashes with underscores), as well as added to a shared list of volumes,
-    accessible via the "volumes" attribute on the options object.
-
-    For convenient path manipulation and testing, the "src" value is stored as
-    a Path object.
-    """
-    volume = namedtuple("volume", ("name", "src"))
-
-    class store(argparse.Action):
-        def __call__(self, parser, namespace, values, option_strings = None):
-            # Add the new volume to the list of volumes
-            volumes    = getattr(namespace, "volumes", [])
-            new_volume = volume(volume_name, Path(values))
-            setattr(namespace, "volumes", [*volumes, new_volume])
-
-            # Allow the new volume to be found by name on the opts object
-            setattr(namespace, volume_name.replace('/', '_'), new_volume)
-
-    return store
-
-
-def register_arguments(parser, exec=None, volumes=[]):
-    # Unpack exec parameter into the command and everything else
-    (exec_cmd, *exec_args) = exec
-
-    # Development options
+def register_arguments(parser) -> None:
+    # Docker development options
+    #
+    # XXX TODO: Consider prefixing all of these with --docker-* at some point,
+    # depending on how other image-based runners (like Singularity) pan out.
+    # For now, I think it's better to do nothing than to prospectively rename.
+    # Renaming means maintaining the old names as deprecated alternatives for a
+    # while anyway, so we might as well just keep using what we have until
+    # we're forced to change.
+    #   -trs, 15 August 2018
     development = parser.add_argument_group(
-        "development options",
-        "These should generally be unnecessary unless you're developing build images.")
+        "development options for --docker")
 
     development.add_argument(
         "--image",
@@ -61,21 +35,16 @@ def register_arguments(parser, exec=None, volumes=[]):
         metavar = "<name>",
         default = DEFAULT_IMAGE)
 
-    development.add_argument(
-        "--exec",
-        help    = "Program to exec inside the build container",
-        metavar = "<prog>",
-        default = exec_cmd)
-
     development.set_defaults(volumes = [])
 
-    for name in volumes:
+    for name in COMPONENTS:
         development.add_argument(
             "--" + name,
             help    = "Replace the image's copy of %s with a local copy" % name,
             metavar = "<dir>",
             action  = store_volume(name))
 
+    development.set_defaults(docker_args = [])
     development.add_argument(
         "--docker-arg",
         help    = "Additional arguments to pass to `docker run`",
@@ -83,19 +52,8 @@ def register_arguments(parser, exec=None, volumes=[]):
         dest    = "docker_args",
         action  = "append")
 
-    # Optional exec arguments
-    parser.set_defaults(exec_args = exec_args)
-    parser.set_defaults(extra_exec_args = [])
 
-    if ... in exec_args:
-        parser.add_argument(
-            "extra_exec_args",
-            help    = "Additional arguments to pass to the executed build program",
-            metavar = "...",
-            nargs   = argparse.REMAINDER)
-
-
-def run(opts):
+def run(opts, argv, working_volume = None) -> int:
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -111,10 +69,7 @@ def run(opts):
             warn("    • %s: %s" % (vol.name, vol.src))
         return 1
 
-    if opts.docker_args is None:
-        opts.docker_args = []
-
-    argv = [
+    return exec_or_return([
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
         "--tty",            # Colors, etc.
@@ -131,37 +86,20 @@ def run(opts):
             for v in opts.volumes
              if v.src is not None],
 
+        # Change the default working directory if requested
+        *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
+
         # Pass through credentials as environment variables
         "--env=RETHINK_HOST",
         "--env=RETHINK_AUTH_KEY",
 
         *opts.docker_args,
         opts.image,
-        opts.exec,
-        *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
-    ]
-
-    try:
-        subprocess.run(argv, check = True)
-    except subprocess.CalledProcessError as e:
-        warn("Error running %s, exited %d" % (e.cmd, e.returncode))
-        return e.returncode
-    else:
-        return 0
+        *argv,
+    ])
 
 
-def replace_ellipsis(items, elided_items):
-    """
-    Replaces any Ellipsis items (...) in a list, if any, with the items of a
-    second list.
-    """
-    return [
-        y for x in items
-          for y in (elided_items if x is ... else [x])
-    ]
-
-
-def test_setup():
+def test_setup() -> RunnerTestResults:
     def test_run():
         try:
             status = subprocess.run(
@@ -181,7 +119,7 @@ def test_setup():
     ]
 
 
-def update():
+def update() -> bool:
     print(colored("bold", "Updating Docker image %s…" % DEFAULT_IMAGE))
     print()
 
@@ -215,7 +153,7 @@ def update():
     return True
 
 
-def dangling_images(name):
+def dangling_images(name: str) -> List[str]:
     """
     Return a list of Docker image IDs which are untagged ("dangling") and thus
     likely no longer in use.
@@ -234,12 +172,12 @@ def dangling_images(name):
     ])
 
 
-def print_version():
+def print_version() -> None:
     print_image_version()
     print_component_versions()
 
 
-def print_image_version():
+def print_image_version() -> None:
     """
     Print the Docker image name and version.
     """
@@ -266,7 +204,7 @@ def print_image_version():
     print("%s docker image %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present"))
 
 
-def print_component_versions():
+def print_component_versions() -> None:
     """
     Print the git ids of the Nextstrain components in the image.
     """

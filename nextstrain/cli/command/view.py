@@ -12,13 +12,23 @@ check-setup` to check if Docker is installed and works.
 
 import re
 import netifaces as net
+from .. import runner
+from ..argparse import add_extended_help_flags
 from ..runner import docker
 from ..util import colored, warn
+from ..volume import store_volume
 
 
 def register_parser(subparser):
-    parser = subparser.add_parser("view", help = "View pathogen build")
-    parser.description = __doc__
+    """
+    %(prog)s [options] <directory>
+    %(prog)s --help
+    """
+
+    parser = subparser.add_parser("view", help = "View pathogen build", add_help = False)
+
+    # Support --help and --help-all
+    add_extended_help_flags(parser)
 
     parser.add_argument(
         "--allow-remote-access",
@@ -30,13 +40,14 @@ def register_parser(subparser):
         "directory",
         help    = "Path to pathogen build data directory",
         metavar = "<directory>",
-        action  = docker.store_volume("auspice/data"))
+        action  = store_volume("auspice/data"))
 
-    # Runner options
-    docker.register_arguments(
+    # Register runners; only Docker is supported for now since auspice doesn't
+    # have a native wrapper command yet.
+    runner.register_runners(
         parser,
         exec    = ["auspice"],
-        volumes = ["auspice"])
+        runners = [docker])
 
     return parser
 
@@ -71,9 +82,6 @@ def run(opts):
     host = "0.0.0.0" if opts.allow_remote_access else "127.0.0.1"
     port = 4000
 
-    if opts.docker_args is None:
-        opts.docker_args = []
-
     opts.docker_args = [
         *opts.docker_args,
 
@@ -100,7 +108,7 @@ def run(opts):
     # Show a helpful message about where to connect
     print_url(host, port, datasets)
 
-    return docker.run(opts)
+    return runner.run(opts, working_volume = opts.auspice_data)
 
 
 def print_url(host, port, datasets):

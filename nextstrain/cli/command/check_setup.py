@@ -1,21 +1,24 @@
 """
-Checks your local setup to make sure a container runner is installed and works.
+Checks your local setup to see if you have a supported build environment.
 
-Docker is the currently the only supported container system.  It must be
-installed and configured, which this command will test by running:
+Two environments are supported, each of which will be tested:
 
-    docker run --rm hello-world
+  • Our Docker image is the preferred build environment.  Docker itself must
+    be installed and configured on your computer first, but once it is, the
+    build environment is robust and reproducible.
 
+  • Your native ambient environment will be tested for snakemake and augur.
+    Their presence implies a working build environment, but does not guarantee
+    it.
 """
 
 from functools import partial
-from ..util import colored, check_for_new_version
+from ..util import colored, check_for_new_version, runner_name
 from ..runner import all_runners
 
 
 def register_parser(subparser):
     parser = subparser.add_parser("check-setup", help = "Test your local setup")
-    parser.description = __doc__
     return parser
 
 
@@ -34,23 +37,39 @@ def run(opts):
     # Run and collect our runners' self-tests
     print("Testing your setup…")
 
-    tests = [
-        test for runner in all_runners
-             for test in runner.test_setup()
+    runner_tests = [
+        (runner, runner.test_setup())
+            for runner in all_runners
     ]
 
     # Print test results.  The first print() separates results from the
     # previous header or stderr output, making it easier to read.
     print()
 
-    for description, result in tests:
-        print(status.get(result, " "), description)
+    for runner, tests in runner_tests:
+        print(colored("blue", "#"), "%s support" % runner_name(runner))
 
-    # Print overall status
-    all_good = False not in [result for description, result in tests]
+        for description, result in tests:
+            print(status.get(result, " "), description)
 
-    print()
-    print(success("All good!") if all_good else failure("Some setup tests failed"))
+        print()
+
+    # Print overall status.
+    runner_status = [
+        (runner, False not in [result for test, result in tests])
+            for runner, tests in runner_tests
+    ]
+
+    supported_runners = [
+        runner_name(runner)
+            for runner, status_ok in runner_status
+             if status_ok
+    ]
+
+    if supported_runners:
+        print(success("Supported runners: %s" % ", ".join(supported_runners)))
+    else:
+        print(failure("No support for any runner"))
 
     # Return a 1 or 0 exit code
-    return int(not all_good)
+    return int(not supported_runners)

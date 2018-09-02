@@ -1,39 +1,51 @@
 """
-Runs a pathogen build in an ephemeral container.
+Runs a pathogen build in the Nextstrain build environment.
 
 The build directory should contain a Snakefile, which will be run with
-snakemake inside the container.
+snakemake.
 
-Docker is the currently the only supported container system.  It must be
-installed and configured, which you can test by running:
+The default build environment is inside an ephemeral Docker container which has
+all the necessary Nextstrain components available.  You may instead run the
+build in the native ambient environment by passing the --native flag, but all
+dependencies must already be installed and configured.
+
+You can test if Docker or native build environments are properly supported on
+your computer by running:
 
     nextstrain check-setup
 
 The `nextstrain build` command is designed to cleanly separate the Nextstrain
-build interface from Docker itself so that we can more seamlessly use other
-container systems in the future as desired or necessary.
+build interface from provisioning a build environment, so that running builds
+is as easy as possible.  It also lets us more seamlessly make environment
+changes in the future as desired or necessary.
 """
 
-from ..runner import docker
+from .. import runner
+from ..argparse import add_extended_help_flags
 from ..util import warn
+from ..volume import store_volume
 
 
 def register_parser(subparser):
-    parser = subparser.add_parser("build", help = "Run pathogen build")
-    parser.description = __doc__
+    """
+    %(prog)s [options] <directory> [...]
+    %(prog)s --help
+    """
+
+    parser = subparser.add_parser("build", help = "Run pathogen build", add_help = False)
+
+    # Support --help and --help-all
+    add_extended_help_flags(parser)
 
     # Positional parameters
     parser.add_argument(
         "directory",
         help    = "Path to pathogen build directory",
         metavar = "<directory>",
-        action  = docker.store_volume("build"))
+        action  = store_volume("build"))
 
-    # Runner options
-    docker.register_arguments(
-        parser,
-        exec    = ["snakemake", ...],
-        volumes = ["sacra", "fauna", "augur"])
+    # Register runner flags and arguments
+    runner.register_runners(parser, exec = ["snakemake", ...])
 
     return parser
 
@@ -49,4 +61,4 @@ def run(opts):
 
         return 1
 
-    return docker.run(opts)
+    return runner.run(opts, working_volume = opts.build)

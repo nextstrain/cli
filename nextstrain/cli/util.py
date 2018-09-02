@@ -1,8 +1,12 @@
+import os
 import re
 import requests
 import subprocess
+from types import ModuleType
+from typing import List
 from pkg_resources import parse_version
 from sys import stderr
+from textwrap import dedent, indent
 from .__version__ import __version__
 
 
@@ -90,3 +94,60 @@ def capture_output(argv):
         check  = True)
 
     return result.stdout.decode("utf-8").splitlines()
+
+
+def exec_or_return(argv: List[str]) -> int:
+    """
+    exec(3) into the desired program, or return 1 on failure.  Never returns if
+    successful.
+
+    The return value makes this suitable for chaining through to sys.exit().
+    """
+    try:
+        os.execvp(argv[0], argv)
+    except OSError as error:
+        warn("Error executing into %s: %s" % (argv, error))
+        return 1
+
+
+def runner_name(runner: ModuleType) -> str:
+    """
+    Return a friendly name suitable for display for the given runner module.
+    """
+    return module_basename(runner).replace("_", "-")
+
+
+def runner_help(runner: ModuleType) -> str:
+    """
+    Return a brief description of a runner module, suitable for help strings.
+    """
+    if runner.__doc__:
+        return runner.__doc__.strip().splitlines()[0]
+    else:
+        return "(undocumented)"
+
+
+def module_basename(module: ModuleType, base_module: str = None) -> str:
+    """
+    Return the final portion of the given module's name, akin to a file's basename.
+
+    Defaults to returning the portion after the name of the module's containing
+    package, but this may be changed by providing the base_module parameter.
+    """
+    if not base_module:
+        base_module = module.__package__
+
+    return remove_prefix(base_module, module.__name__).lstrip(".")
+
+
+def format_usage(doc: str) -> str:
+    """
+    Reformat a multi-line description of command-line usage to play nice with
+    argparse's usage printing.
+
+    Strips trailing and leading newlines, removes indentation shared by all
+    lines (common in docstrings), and then pads all but the first line to match
+    the "usage: " prefix argparse prints for the first line.
+    """
+    padding = " " * len("usage: ")
+    return indent(dedent(doc.strip("\n")), padding).lstrip()

@@ -1,3 +1,7 @@
+"""
+Prints the version of the Nextstrain CLI.
+"""
+
 from ..__version__ import __version__
 from .. import __package__ as __top_package__
 from ..runner import all_runners
