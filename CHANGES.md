@@ -1,6 +1,31 @@
 # __NEXT__
 
 
+# 1.5.0 (4 September 2018)
+
+## Features
+
+* The `build` command now supports a `--native` flag to run the build outside
+  of any container image, that is, within the ambient environment.  That
+  environment might be provided by conda or a cluster module system or custom
+  installs or some other thing.  Docker remains the default, although it
+  may be explicitly specified with `--docker`.  Other runners are planned for
+  the future.  The idea is that the cli as a user-facing tool for Nextstrain is
+  separate from a containerized Nextstrain environment (although the two work
+  well together).
+
+* The `build`, `view`, and `shell` commands now show an abbreviated set of
+  common options when passed `--help`.  The full set of options is available
+  using `--help-all`.  The idea is to make the initial output more approachable.
+
+## Development
+
+* The README now describes how to annotate the type of variable and use other
+  typing features in a way that's compatible with Python 3.5
+
+* Package metadata for PyPi is slightly improved.
+
+
 # 1.4.1 (11 August 2018)
 
 ## Documentation
