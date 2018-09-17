@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 from typing import List
-from .. import runner
+from .. import runner, hostenv
 from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return
 from ..volume import store_volume
@@ -89,9 +89,8 @@ def run(opts, argv, working_volume = None) -> int:
         # Change the default working directory if requested
         *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
 
-        # Pass through credentials as environment variables
-        "--env=RETHINK_HOST",
-        "--env=RETHINK_AUTH_KEY",
+        # Pass through certain environment variables
+      *["--env=%s" % name for name in hostenv.forwarded_names],
 
         *opts.docker_args,
         opts.image,
