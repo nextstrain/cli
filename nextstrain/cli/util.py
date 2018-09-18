@@ -5,7 +5,7 @@ import subprocess
 from types import ModuleType
 from typing import List
 from pkg_resources import parse_version
-from sys import stderr
+from sys import exit, stderr
 from textwrap import dedent, indent
 from .__version__ import __version__
 
@@ -102,12 +102,33 @@ def exec_or_return(argv: List[str]) -> int:
     successful.
 
     The return value makes this suitable for chaining through to sys.exit().
+
+    On Windows (or other non-POSIX OSs), where os.execvp() is not properly
+    supported¹, this forks another process, waits for it to finish, and then
+    exits with the same return code.  A proper POSIX exec(3) is still more
+    desirable when available as it properly handles file descriptors and
+    signals.
+
+    ¹ https://bugs.python.org/issue9148
     """
-    try:
-        os.execvp(argv[0], argv)
-    except OSError as error:
-        warn("Error executing into %s: %s" % (argv, error))
-        return 1
+
+    # Use a POSIX exec(3) for file descriptor and signal handling…
+    if os.name == "posix":
+        try:
+            os.execvp(argv[0], argv)
+        except OSError as error:
+            warn("Error executing into %s: %s" % (argv, error))
+            return 1
+
+    # …or naively emulate one when not available.
+    else:
+        try:
+            process = subprocess.run(argv)
+        except OSError as error:
+            warn("Error running %s: %s" % (argv, error))
+            return 1
+        else:
+            exit(process.returncode)
 
 
 def runner_name(runner: ModuleType) -> str:
