@@ -1,6 +1,17 @@
 # __NEXT__
 
 
+# 1.6.0 (18 September 2018)
+
+## Bug fixes
+
+* On Windows, fix an issue where the `build` and `shell` commands spawn the
+  `docker run` process but also immediately return the user to the
+  command-line.  For `shell`, the situation was weirder still because the user
+  ended up with _two_ command prompts (cmd.exe and bash) but only one appeared
+  to win when reading from the shared stdin.
+
+
 # 1.5.0 (4 September 2018)
 
 ## Features
