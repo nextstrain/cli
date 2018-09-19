@@ -2,9 +2,9 @@
 Log handling for AWS Batch jobs.
 """
 
-import boto3
 import threading
 from typing import Callable, Generator, Mapping, MutableSet
+from ... import aws
 
 
 def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, None]:
@@ -16,7 +16,9 @@ def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, N
     after the given value are fetched.
     """
 
-    log_events = boto3.client("logs").get_paginator("filter_log_events")
+    client = aws.client_with_default_region("logs")
+
+    log_events = client.get_paginator("filter_log_events")
 
     query = {
         "logGroupName": "/aws/batch/job",

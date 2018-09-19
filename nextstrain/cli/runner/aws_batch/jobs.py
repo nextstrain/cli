@@ -2,10 +2,9 @@
 Job handling for AWS Batch.
 """
 
-import boto3
 from time import time
 from typing import Callable, Generator, Iterable, List
-from ... import hostenv
+from ... import hostenv, aws
 from . import logs, s3
 
 
@@ -26,7 +25,7 @@ class JobState:
         self.id              = job_id
         self.state           = {}
         self.previous_status = None
-        self._client         = boto3.client("batch")
+        self._client         = aws.client_with_default_region("batch")
 
     def update(self) -> None:
         """
@@ -103,8 +102,9 @@ def submit(name: str,
 
     Returns a JobState object.
     """
+    batch = aws.client_with_default_region("batch")
 
-    submission = boto3.client("batch").submit_job(
+    submission = batch.submit_job(
         jobName = name,
         jobQueue = queue,
         jobDefinition = definition,
@@ -161,7 +161,7 @@ def definition_exists(name: str) -> bool:
     Test if an AWS Batch job definition exists.
     """
     try:
-        batch = boto3.client("batch")
+        batch = aws.client_with_default_region("batch")
 
         return bool(
             batch.describe_job_definitions(jobDefinitionName = name, status = 'ACTIVE') \
@@ -175,7 +175,7 @@ def queue_exists(name: str) -> bool:
     Test if an AWS Batch job queue exists.
     """
     try:
-        batch = boto3.client("batch")
+        batch = aws.client_with_default_region("batch")
 
         return bool(
             batch.describe_job_queues(jobQueues = [name]) \
