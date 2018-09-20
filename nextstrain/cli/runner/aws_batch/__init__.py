@@ -21,7 +21,8 @@ DEFAULT_S3_BUCKET = os.environ.get("NEXTSTRAIN_AWS_BATCH_S3_BUCKET", "nextstrain
 def register_arguments(parser) -> None:
     # AWS Batch development options
     development = parser.add_argument_group(
-        "development options for --aws-batch")
+        "development options for --aws-batch",
+        "See <https://github.com/nextstrain/cli/tree/master/doc/aws-batch.md>\nfor more information.")
 
     development.add_argument(
         "--aws-batch-job",
