@@ -8,9 +8,9 @@ account is required, but only as an initial, one-time step.  See below for
 details.
 
 Launching Nextstrain builds on Batch from your computer is done using the
-`--aws-batch` flags to `nextstrain build`, for example:
+`--aws-batch` flag to `nextstrain build`, for example:
 
-    nextstrain build --aws-batch --aws-batch-s3-bucket=... zika-tutorial/
+    nextstrain build --aws-batch zika-tutorial/
 
 This uploads the [`zika-tutorial/` directory][] to S3, submits the
 Batch job, monitors the job status, streams the job logs to your terminal, and
@@ -65,15 +65,16 @@ to `export` the environment variable.
 The Nextstrain CLI's AWS Batch support must be told, at a minimum, the name of
 your S3 bucket (which you'll create below).
 
-You can do this by setting the `NEXTSTRAIN_AWS_BATCH_S3_BUCKET` environment
-variable
+You can do this by putting your bucket name in an environment variable
 
     export NEXTSTRAIN_AWS_BATCH_S3_BUCKET=...
 
-or passing the `--aws-batch-s3-bucket=...` option to `nextstrain build`.
+or in the `~/.nextstrain/config` file
 
-In the future, the CLI will support setting your bucket name in a persistent
-configuration file.
+    [aws-batch]
+    s3-bucket = ...
+
+or passing the `--aws-batch-s3-bucket=...` option to `nextstrain build`.
 
 
 # Setting up AWS to run Nextstrain builds
@@ -223,7 +224,8 @@ setup the job definition, compute environment, and job queue described below.
 
 Create a new job definition with the name `nextstrain-job`.  If you use a
 different name, you'll need to use the `--aws-batch-job` option to `nextstrain
-build` or set `NEXTSTRAIN_AWS_BATCH_JOB`.
+build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
+in the `[aws-batch]` section of `~/.nextstrain/config`.
 
 Choose the job role _NextstrainJobsRole_, which you just created in the IAM
 roles section above.
@@ -257,8 +259,9 @@ costs when no jobs are running.
 ### Job queue
 
 Create a job queue named `nextstrain-job-queue`.  If you use a different name,
-you'll need to use the `--aws-batch-queue` option to `nextstrain build` or set
-`NEXTSTRAIN_AWS_BATCH_QUEUE`.
+you'll need to use the `--aws-batch-queue` option to `nextstrain build`, set
+the `NEXTSTRAIN_AWS_BATCH_QUEUE` environment variable, or set `queue` in the
+`[aws-batch]` section of `~/.nextstrain/config`.
 
 If you're not using the wizard, make sure you connect the job queue to the
 compute environment you created above.

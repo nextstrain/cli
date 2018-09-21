@@ -10,12 +10,21 @@ from time import sleep
 from uuid import uuid4
 from ...types import RunnerTestResults
 from ...util import colored, warn
+from ... import config
 from . import jobs, s3
 
 
-DEFAULT_JOB       = os.environ.get("NEXTSTRAIN_AWS_BATCH_JOB",       "nextstrain-job")
-DEFAULT_QUEUE     = os.environ.get("NEXTSTRAIN_AWS_BATCH_QUEUE",     "nextstrain-job-queue")
-DEFAULT_S3_BUCKET = os.environ.get("NEXTSTRAIN_AWS_BATCH_S3_BUCKET", "nextstrain-jobs")
+DEFAULT_JOB = os.environ.get("NEXTSTRAIN_AWS_BATCH_JOB") \
+           or config.get("aws-batch", "job") \
+           or "nextstrain-job"
+
+DEFAULT_QUEUE = os.environ.get("NEXTSTRAIN_AWS_BATCH_QUEUE") \
+             or config.get("aws-batch", "queue") \
+             or "nextstrain-job-queue"
+
+DEFAULT_S3_BUCKET = os.environ.get("NEXTSTRAIN_AWS_BATCH_S3_BUCKET") \
+                 or config.get("aws-batch", "s3-bucket") \
+                 or "nextstrain-jobs"
 
 
 def register_arguments(parser) -> None:
