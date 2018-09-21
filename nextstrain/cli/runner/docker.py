@@ -146,8 +146,10 @@ def update() -> bool:
                 ["docker", "image", "rm", *images],
                 check = True)
     except subprocess.CalledProcessError as error:
-        warn("Error pruning old image versions: ", error)
-        return False
+        warn()
+        warn("Update succeeded, but an error occurred pruning old image versions:")
+        warn("  ", error)
+        warn()
 
     return True
 
