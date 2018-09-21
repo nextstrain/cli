@@ -156,8 +156,8 @@ def update() -> bool:
 
 def dangling_images(name: str) -> List[str]:
     """
-    Return a list of Docker image IDs which are untagged ("dangling") and thus
-    likely no longer in use.
+    Return a list of local Docker image IDs which are untagged ("dangling") and
+    thus likely no longer in use.
 
     Since dangling images are untagged, this finds images by name using our
     custom org.nextstrain.image.name label.
