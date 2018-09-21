@@ -3,17 +3,22 @@ Run commands inside a container image using Docker.
 """
 
 import os
+import json
+import requests
 import shutil
 import subprocess
-from typing import List
-from .. import runner, hostenv
+from typing import List, Tuple
+from .. import runner, hostenv, config
 from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return
 from ..volume import store_volume
 
 
-DEFAULT_IMAGE = "nextstrain/base"
-COMPONENTS    = ["sacra", "fauna", "augur", "auspice"]
+DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
+             or config.get("docker", "image") \
+             or "nextstrain/base"
+
+COMPONENTS = ["sacra", "fauna", "augur", "auspice"]
 
 
 def register_arguments(parser) -> None:
@@ -119,27 +124,41 @@ def test_setup() -> RunnerTestResults:
 
 
 def update() -> bool:
-    print(colored("bold", "Updating Docker image %s…" % DEFAULT_IMAGE))
+    """
+    Pull down the latest Docker image build and prune old image versions.
+    """
+    current_image = DEFAULT_IMAGE
+    latest_image  = latest_build_image(current_image)
+
+    if latest_image == current_image:
+        print(colored("bold", "Updating Docker image %s…" % current_image))
+    else:
+        print(colored("bold", "Updating Docker image from %s to %s…" % (current_image, latest_image)))
     print()
 
     # Pull the latest image down
     try:
         subprocess.run(
-            ["docker", "image", "pull", DEFAULT_IMAGE],
+            ["docker", "image", "pull", latest_image],
             check = True)
     except subprocess.CalledProcessError:
         return False
+
+    # Update the config file to point to the new image so we use it by default
+    # going forward.
+    config.set("docker", "image", latest_image)
 
     # Prune any old images which are now dangling to avoid leaving lots of
     # hidden disk use around.  We don't use `docker image prune` because we
     # want to just remove _our_ dangling images, not all.  We very much don't
     # want to automatically prune unrelated images.
     print()
-    print(colored("bold", "Pruning old copies of image…"))
+    print(colored("bold", "Pruning old images…"))
     print()
 
     try:
-        images = dangling_images(DEFAULT_IMAGE)
+        images = dangling_images(current_image) \
+               + old_build_images(current_image)
 
         if images:
             subprocess.run(
@@ -152,6 +171,104 @@ def update() -> bool:
         warn()
 
     return True
+
+
+def split_image_name(name: str) -> Tuple[str, str]:
+    """
+    Split the image *name* into a (repository, tag) tuple.
+    """
+    if ":" in name:
+        repository, tag = name.split(":", maxsplit = 2)
+    else:
+        repository, tag = name, "latest"
+
+    return (repository, tag)
+
+
+def is_build_tag(tag: str) -> bool:
+    """
+    Test if the given *tag* looks like one of our build tags.
+    """
+    return tag.startswith("build-")
+
+
+def latest_build_image(image_name: str) -> str:
+    """
+    Query the Docker registry for the latest image tagged "build-*" in the
+    given *image_name*'s repository.
+
+    Our "latest" tag always has a "build-*" counterpart.  Using a "build-*" tag
+    is better than using the "latest" tag since the former is more descriptive
+    and points to a static snapshot instead of a mutable snapshot.
+
+    If the given *image_name* is not tagged "build-*" or "latest" (implicitly
+    or explicitly), then the given *image_name* is returned as-is under the
+    presumption that it points to some other mutable snapshot that should be
+    pulled in-place to update.
+    """
+    def auth_token(repository: str) -> str:
+        url, params = "https://auth.docker.io/token", {
+            "scope": "repository:%s:pull" % repository,
+            "service": "registry.docker.io",
+        }
+        return requests.get(url, params = params).json().get("token")
+
+    def tags(respository: str) -> List[str]:
+        url, headers = "https://registry.hub.docker.com/v2/%s/tags/list" % repository, {
+            "Accept": "application/vnd.docker.distribution.manifest.v2+json",
+            "Authorization": "Bearer %s" % auth_token(repository),
+        }
+        return requests.get(url, headers = headers).json().get("tags", [])
+
+    repository, tag = split_image_name(image_name)
+
+    if tag == "latest" or is_build_tag(tag):
+        build_tags = sorted(filter(is_build_tag, tags(repository)))
+
+        if build_tags:
+            return repository + ":" + build_tags[-1]
+        else:
+            return repository + ":latest"
+    else:
+        return image_name
+
+
+def old_build_images(name: str) -> List[str]:
+    """
+    Return a list of local Docker image IDs which are tagged with "build-*" and
+    older than the given image *name*.
+
+    If *name* isn't tagged "build-*", nothing is returned out of an abundance
+    of caution.  Our "build-*" timestamps use an ISO-8601 timestamp, so oldness
+    is determined by sorting lexically.
+    """
+    repository, tag = split_image_name(name)
+
+    if not is_build_tag(tag):
+        return []
+
+    # List all local images from the respository, e.g. nextstrain/base.
+    build_images = map(json.loads, capture_output([
+        "docker", "image", "ls",
+            "--no-trunc",
+            "--format={{json .}}",
+            repository
+    ]))
+
+    # Return the fully-qualified names of images with build tags that come
+    # before our current build tag, as well as the image with the "latest" tag.
+    # The latter is useful to include because it will likely be out of date
+    # when the current tag is a build tag (guaranteed above).
+    #
+    # Names are used instead of IDs because they won't cause conflicts when an
+    # image ID is tagged multiple times: rm-ing the first name will remove only
+    # that tag, rm-ing the final name will remove the actual image layers.
+    return [
+        image["Repository"] + ":" + image["Tag"]
+            for image in build_images
+             if (is_build_tag(image["Tag"]) and image["Tag"] < tag)
+             or image["Tag"] == "latest"
+    ]
 
 
 def dangling_images(name: str) -> List[str]:
