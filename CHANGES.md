@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.6.1 (25 September 2018)
+
+## Features
+
+* The `shell` command announces you're entering the build environment, prints
+  information about mapped volumes, and describes how to leave the environment.
+
+
 # 1.6.0 (18 September 2018)
 
 ## Bug fixes
