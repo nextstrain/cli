@@ -7,6 +7,9 @@ from typing import Callable, Generator, Mapping, MutableSet
 from ... import aws
 
 
+LOG_GROUP = "/aws/batch/job"
+
+
 def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, None]:
     """
     Fetch all log entries from the named AWS Batch job *stream*.  Returns a
@@ -21,7 +24,7 @@ def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, N
     log_events = client.get_paginator("filter_log_events")
 
     query = {
-        "logGroupName": "/aws/batch/job",
+        "logGroupName": LOG_GROUP,
         "logStreamNames": [ stream ],
     } # type: dict
 
@@ -30,6 +33,17 @@ def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, N
 
     for page in log_events.paginate(**query):
         yield from page.get("events", [])
+
+
+def delete_stream(stream: str) -> None:
+    """
+    Delete the named AWS Batch job log *stream*.  Returns nothing.
+    """
+    client = aws.client_with_default_region("logs")
+
+    client.delete_log_stream(
+        logGroupName  = LOG_GROUP,
+        logStreamName = stream)
 
 
 class LogWatcher(threading.Thread):

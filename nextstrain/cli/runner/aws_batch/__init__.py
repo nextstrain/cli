@@ -11,7 +11,7 @@ from uuid import uuid4
 from ...types import RunnerTestResults
 from ...util import colored, warn
 from ... import config
-from . import jobs, s3
+from . import jobs, logs, s3
 
 
 DEFAULT_JOB = os.environ.get("NEXTSTRAIN_AWS_BATCH_JOB") \
@@ -149,6 +149,15 @@ def run(opts, argv, working_volume = None) -> int:
     remote_workdir.delete()
 
     print("deleted:", s3.object_url(remote_workdir))
+
+
+    # Remove log stream.
+    if job.log_stream:
+        print_stage("Cleaning up logs")
+
+        logs.delete_stream(job.log_stream)
+
+        print("deleted log stream:", job.log_stream)
 
 
     # Exit with the job's exit code, or assume success
