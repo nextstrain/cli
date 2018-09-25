@@ -300,9 +300,15 @@ However, there are a few things to keep in mind:
 
 * Jobs are given a limited IAM role to access your designated S3 bucket, but
   jobs with malicious intent may be able to elevate their privileges beyond
-  that and access other AWS services.
+  that and access other AWS services.  For more details, see the note titled
+  "Important" on the ["IAM Roles for Tasks" documentation page][task-iam-roles].
+  AWS Batch jobs run in containers using `host`-mode networking, which prevents
+  blocking this privilege escalation.
 
 * The Batch compute cluster runs as EC2 instances in a network security group
   with access to your private EC2 subnets.  If you're running other EC2
   instances, you may wish to isolate your Batch cluster in a separate security
   group and subnet.
+
+
+[task-iam-roles]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html
