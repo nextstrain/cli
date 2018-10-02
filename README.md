@@ -58,13 +58,15 @@ or from a git clone or copy of the source code:
 If your system has both Python 2 and Python 3 installed side-by-side, you may
 need to use pip3 instead of pip (which often defaults to pip2).
 
-This tool also currently requires [Docker][].  You can download and install the
-[Docker Community Edition (CE)][] for your platform for free.  After doing so,
-run `nextstrain check-setup` to ensure it works.
+This tool also currently requires [Docker][].  On Windows or a Mac you should
+download and install [Docker Desktop][] (also known as "Docker for Mac" and
+"Docker for Windows") for free.  On Linux, you package manager should include a
+Docker package.  After installing Docker, run `nextstrain check-setup` to
+ensure it works.
 
 
 [Docker]: https://docker.com
-[Docker Community Edition (CE)]: https://www.docker.com/community-edition#download
+[Docker Desktop]: https://www.docker.com/products/docker-desktop
 
 
 ## Development
