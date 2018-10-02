@@ -60,8 +60,8 @@ need to use pip3 instead of pip (which often defaults to pip2).
 
 This tool also currently requires [Docker][].  On Windows or a Mac you should
 download and install [Docker Desktop][] (also known as "Docker for Mac" and
-"Docker for Windows") for free.  On Linux, you package manager should include a
-Docker package.  After installing Docker, run `nextstrain check-setup` to
+"Docker for Windows") for free.  On Linux, your package manager should include
+a Docker package.  After installing Docker, run `nextstrain check-setup` to
 ensure it works.
 
 
