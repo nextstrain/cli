@@ -224,10 +224,19 @@ def print_component_versions() -> None:
         done
     """ % " ".join(COMPONENTS)
 
-    versions = capture_output([
-        "docker", "run", "--rm", "-it", DEFAULT_IMAGE,
-            "bash", "-c", report_versions
-    ])
+    versions = run_bash(report_versions)
 
     for version in versions:
         print("  " + version)
+
+
+def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
+    """
+    Run a Bash *script* inside of the container *image*.
+
+    Returns the output of the script as a list of strings.
+    """
+    return capture_output([
+        "docker", "run", "--rm", "-it", image,
+            "bash", "-c", script
+    ])
