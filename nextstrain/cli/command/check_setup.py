@@ -13,6 +13,7 @@ Two environments are supported, each of which will be tested:
 """
 
 from functools import partial
+from ..types import Options
 from ..util import colored, check_for_new_version, runner_name
 from ..runner import all_runners
 
@@ -22,7 +23,7 @@ def register_parser(subparser):
     return parser
 
 
-def run(opts):
+def run(opts: Options) -> int:
     success = partial(colored, "green")
     failure = partial(colored, "red")
 
@@ -38,7 +39,7 @@ def run(opts):
     print("Testing your setup…")
 
     runner_tests = [
-        (runner, runner.test_setup())
+        (runner, runner.test_setup()) # type: ignore
             for runner in all_runners
     ]
 
