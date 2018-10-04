@@ -3,9 +3,10 @@ Type aliases for internal use.
 """
 
 import argparse
-from typing import List, Tuple
+import builtins
+from typing import List, Tuple, Union
 
 Options = argparse.Namespace
 
-RunnerTestResult  = Tuple[str, bool]
+RunnerTestResult  = Tuple[str, Union[bool, None, 'builtins.ellipsis']]
 RunnerTestResults = List[RunnerTestResult]
