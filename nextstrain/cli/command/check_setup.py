@@ -28,8 +28,8 @@ def run(opts: Options) -> int:
     failure = partial(colored, "red")
 
     status = {
-        True:  success("✔"),
-        False: failure("✘"),
+        True:  success("✔ yes"),
+        False: failure("✘ no"),
     }
 
     # Check our own version for updates
@@ -51,7 +51,7 @@ def run(opts: Options) -> int:
         print(colored("blue", "#"), "%s support" % runner_name(runner))
 
         for description, result in tests:
-            print(status.get(result, " "), description)
+            print(status.get(result, str(result)) + ":", formatted_description)
 
         print()
 
