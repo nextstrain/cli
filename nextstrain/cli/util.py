@@ -26,6 +26,7 @@ def colored(color, text):
         "green":  "\033[0;32m",
         "blue":   "\033[0;1;34m",
         "yellow": "\033[0;33m",
+        "gray":   "\033[0;90m",
         "bold":   "\033[1m",
         "reset":  "\033[0m",
     }

@@ -13,8 +13,9 @@ Two environments are supported, each of which will be tested:
 """
 
 from functools import partial
+from textwrap import indent
 from ..types import Options
-from ..util import colored, check_for_new_version, runner_name
+from ..util import colored, check_for_new_version, remove_prefix, runner_name
 from ..runner import all_runners
 
 
@@ -26,10 +27,19 @@ def register_parser(subparser):
 def run(opts: Options) -> int:
     success = partial(colored, "green")
     failure = partial(colored, "red")
+    warning = partial(colored, "yellow")
+    unknown = partial(colored, "gray")
 
+    # XXX TODO: Now that there are special values other than True/False, these
+    # should probably become an enum or custom algebraic type or something
+    # similar.  That will cause a cascade into the test_setup() producers
+    # though, which I'm going to punt on for now.
+    #  -trs, 4 Oct 2018
     status = {
         True:  success("✔ yes"),
         False: failure("✘ no"),
+        None:  warning("⚑ warning"),
+        ...:   unknown("? unknown"),
     }
 
     # Check our own version for updates
@@ -51,6 +61,11 @@ def run(opts: Options) -> int:
         print(colored("blue", "#"), "%s support" % runner_name(runner))
 
         for description, result in tests:
+            # Indent subsequent lines of any multi-line descriptions so it
+            # lines up under the status marker.
+            formatted_description = \
+                remove_prefix("  ", indent(description, "  "))
+
             print(status.get(result, str(result)) + ":", formatted_description)
 
         print()

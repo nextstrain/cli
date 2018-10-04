@@ -5,6 +5,7 @@ Run commands inside a container image using Docker.
 import os
 import shutil
 import subprocess
+from textwrap import dedent
 from typing import List
 from .. import runner
 from ..types import RunnerTestResults
@@ -111,11 +112,47 @@ def test_setup() -> RunnerTestResults:
         else:
             return status.returncode == 0
 
+    def test_memory_limit():
+        GiB = 1024**3
+        desired = 2 * GiB
+
+        msg = 'containers have access to >%.0f GiB of memory' % (desired / GiB)
+        status = ...
+
+        if image_exists():
+            report_memory = """
+                awk '/^MemTotal:/ { print $2 * 1024 }' /proc/meminfo
+                cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+            """
+
+            try:
+                total, cgroup = map(int, run_bash(report_memory))
+            except ValueError:
+                # If for some reason we can't get both values...
+                pass
+            else:
+                limit = cgroup if cgroup < total else total
+
+                if limit <= desired:
+                    msg += dedent("""
+
+                        Containers appear to be limited to %0.1f GiB of memory. This
+                        may not be enough for some Nextstrain builds.  On Windows or
+                        a Mac, you can increase the memory available to containers
+                        in the Docker preferences.\
+                        """ % (limit / GiB))
+                    status = None
+                else:
+                    status = True
+
+        return [(msg, status)]
+
     return [
         ('docker is installed',
             shutil.which("docker") is not None),
         ('docker run works',
             test_run()),
+        *test_memory_limit()
     ]
 
 
@@ -240,3 +277,19 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
         "docker", "run", "--rm", "-it", image,
             "bash", "-c", script
     ])
+
+
+def image_exists(image: str = DEFAULT_IMAGE) -> bool:
+    """
+    Check if a Docker *image* exists locally, returning True or False.
+    """
+    try:
+        subprocess.run(
+            ["docker", "image", "inspect", image],
+            check = True,
+            stdout = subprocess.DEVNULL,
+            stderr = subprocess.DEVNULL)
+    except subprocess.CalledProcessError:
+        return False
+    else:
+        return True
