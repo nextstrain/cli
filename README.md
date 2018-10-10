@@ -7,11 +7,15 @@ You can use it to run a pathogen build which makes use of components like
 [sacra][], [fauna][], and [augur][] or view the results of such a build in our
 standard viewer, [auspice][].
 
+If you're unfamiliar with Nextstrain builds, you may want to follow our
+[quickstart guide][] first and then come back here.
+
 
 [sacra]: https://github.com/nextstrain/sacra
 [fauna]: https://github.com/nextstrain/fauna
 [augur]: https://github.com/nextstrain/augur
 [auspice]: https://github.com/nextstrain/auspice
+[quickstart guide]: https://nextstrain.org/docs/getting-started/quickstart
 
 
 ## Usage
@@ -46,27 +50,63 @@ option, for example, `nextstrain build --help`.
 
 ## Installation
 
-This tool is written in Python 3 and requires at least Python 3.5.  You may
-install it with pip (or pip3) like so:
+### Python 3.5 or newer
 
-    pip install nextstrain-cli
+This tool is written in Python 3 and requires at least Python 3.5.  There are
+many ways to install Python 3 on Windows, macOS, or Linux, including the
+[official packages][], [Homebrew][] for macOS, and the [Anaconda
+Distribution][].  Details are beyond the scope of this guide, but make sure you
+install Python 3.5 or higher.  You may already have Python 3 installed,
+especially if you're on Linux.  Check by running `python --version` or `python3
+--version`.
 
-or from a git clone or copy of the source code:
+[official packages]: https://www.python.org/downloads/
+[Homebrew]: https://brew.sh
+[Anaconda distribution]: https://www.anaconda.com/distribution/
 
-    pip install .
+### nextstrain-cli
 
-If your system has both Python 2 and Python 3 installed side-by-side, you may
-need to use pip3 instead of pip (which often defaults to pip2).
+With Python 3 installed, you can use [pip](https://pip.pypa.io) to install the
+[nextstrain-cli package](https://pypi.org/project/nextstrain-cli):
 
-This tool also currently requires [Docker][].  On Windows or a Mac you should
-download and install [Docker Desktop][] (also known as "Docker for Mac" and
-"Docker for Windows") for free.  On Linux, your package manager should include
-a Docker package.  After installing Docker, run `nextstrain check-setup` to
-ensure it works.
+    $ python3 -m pip install nextstrain-cli
+    Collecting nextstrain-cli
+    […a lot of output…]
+    Successfully installed nextstrain-cli-1.6.1
 
+After installation, make sure the `nextstrain` command works by running
+`nextstrain version`:
+
+    $ nextstrain version
+    nextstrain.cli 1.6.1
+
+The version you get will probably be different than the one shown in the
+example above.
+
+### Docker
+
+This tool also currently requires [Docker][], which is freely available.  On
+Windows or a Mac you should download and install [Docker Desktop][] (also known
+as "Docker for Mac" and "Docker for Windows").  On Linux, your package manager
+should include a Docker package.
 
 [Docker]: https://docker.com
 [Docker Desktop]: https://www.docker.com/products/docker-desktop
+
+After installing Docker, run `nextstrain check-setup` to ensure it works:
+
+    $ nextstrain check-setup
+    nextstrain-cli is up to date!
+
+    Testing your setup…
+
+    ✔ docker is installed
+    ✔ docker run works
+
+    All good!
+
+If the final message doesn't indicate success (as with "All good!" in the
+example above), something may be wrong with your Docker installation.
 
 
 ## Development
@@ -105,7 +145,8 @@ package.
 
 During development you can run static type checks using [mypy][]:
 
-    mypy nextstrain
+    $ mypy nextstrain
+    # No output is good!
 
 There are also many [editor integrations for mypy][].
 
