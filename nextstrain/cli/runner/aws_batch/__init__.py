@@ -130,7 +130,9 @@ def run(opts, argv, working_volume = None) -> int:
                 for entry in job.log_entries():
                     print_job_log(entry)
 
-            print_stage("Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60))
+            print_stage(
+                "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
+                "(%s)" % job.status_reason)
             break
 
         # Only check status every 6s (10 times per minute).

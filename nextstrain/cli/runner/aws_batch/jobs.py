@@ -44,6 +44,19 @@ class JobState:
         return self.status != self.previous_status
 
     @property
+    def status_reason(self) -> Optional[str]:
+        reason = self.state.get("statusReason")
+
+        # Make the default/normal reason more informative
+        if reason == "Essential container in task exited":
+            if self.exit_code is not None:
+                return "exited %d" % self.exit_code
+            else:
+                return "exited"
+        else:
+            return reason
+
+    @property
     def is_waiting(self) -> bool:
         return self.status in self.INITIAL_STATUS
 
