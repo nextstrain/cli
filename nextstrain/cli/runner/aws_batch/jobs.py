@@ -80,7 +80,10 @@ class JobState:
 
         Returns a generator which yields dict objects.
         """
-        return logs.fetch_stream(self.log_stream)
+        if self.log_stream:
+            yield from logs.fetch_stream(self.log_stream)
+        else:
+            yield from []
 
     def log_watcher(self, consumer: Callable[[dict], None]) -> logs.LogWatcher:
         """
@@ -89,6 +92,8 @@ class JobState:
 
         Returns a LogWatcher thread object, which the caller must start().
         """
+        assert self.log_stream, "No log stream for job"
+
         return logs.LogWatcher(self.log_stream, consumer)
 
 
