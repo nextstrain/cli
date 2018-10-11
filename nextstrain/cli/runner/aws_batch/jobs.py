@@ -3,7 +3,7 @@ Job handling for AWS Batch.
 """
 
 from time import time
-from typing import Callable, Generator, Iterable, List
+from typing import Callable, Generator, Iterable, List, Optional
 from ... import hostenv, aws
 from . import logs, s3
 
@@ -67,11 +67,11 @@ class JobState:
         return stopped - created
 
     @property
-    def log_stream(self) -> str:
+    def log_stream(self) -> Optional[str]:
         return self.state.get("container", {}).get("logStreamName")
 
     @property
-    def exit_code(self) -> int:
+    def exit_code(self) -> Optional[int]:
         return self.state.get("container", {}).get("exitCode")
 
     def log_entries(self) -> Generator[dict, None, None]:
