@@ -56,7 +56,7 @@ class LogWatcher(threading.Thread):
     """
 
     def __init__(self, stream: str, consumer: Callable[[dict], None]) -> None:
-        super().__init__(name = "log-watcher")
+        super().__init__(name = "log-watcher", daemon = True)
         self.stream   = stream
         self.consumer = consumer
         self.stopped  = threading.Event()

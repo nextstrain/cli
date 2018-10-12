@@ -106,44 +106,67 @@ def run(opts, argv, working_volume = None) -> int:
     print_stage("Watching job status")
 
     log_watcher = None
+    stop_sent = False
 
     while True:
-        job.update()
+        # This try/except won't catch KeyboardInterrupts which happen in the
+        # narrow window of time between the job submission above and this loop
+        # (or between iterations of the loop).  Handling those extreme edge
+        # cases will make this whole run() function much less clear, and I
+        # don't think its worth it for what's ultimately a convenience feature.
+        #   -trs, 12 Oct 2018
+        try:
+            job.update()
 
-        # Inform the user of intermediate status changes.  Final status changes
-        # are messaged separately below.
-        if job.status_changed and not job.is_complete:
-            print_stage("Job now %s" % job.status)
+            # Inform the user of intermediate status changes.  Final status changes
+            # are messaged separately below.
+            if job.status_changed and not job.is_complete:
+                print_stage("Job now %s" % job.status)
 
-        if job.is_running and job.was_waiting:
-            # Transitioned from waiting → running, so kick off the log watcher.
-            log_watcher = job.log_watcher(consumer = print_job_log)
-            log_watcher.start()
+            if job.is_running and job.was_waiting:
+                # Transitioned from waiting → running, so kick off the log watcher.
+                log_watcher = job.log_watcher(consumer = print_job_log)
+                log_watcher.start()
 
-        elif job.is_complete:
-            if log_watcher:
-                if log_watcher.is_alive():
-                    log_watcher.stop()
-                log_watcher.join()
+            elif job.is_complete:
+                if log_watcher:
+                    if log_watcher.is_alive():
+                        log_watcher.stop()
+                    log_watcher.join()
+                else:
+                    # The watcher never started, so we probably missed the
+                    # transition to running.  Display the whole log now!
+                    for entry in job.log_entries():
+                        print_job_log(entry)
+
+                print_stage(
+                    "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
+                    "(%s)" % job.status_reason)
+                break
+
+            # Only check status every 6s (10 times per minute).
+            sleep(6)
+
+        except KeyboardInterrupt as interrupt:
+            print()
+
+            if not stop_sent:
+                print_stage("Canceling job…")
+                job.stop()
+
+                print_stage("Waiting for job to stop…")
+                print("(Press Ctrl-C again if you don't want to wait.)")
+
+                stop_sent = True
             else:
-                # The watcher never started, so we probably missed the
-                # transition to running.  Display the whole log now!
-                for entry in job.log_entries():
-                    print_job_log(entry)
-
-            print_stage(
-                "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
-                "(%s)" % job.status_reason)
-            break
-
-        # Only check status every 6s (10 times per minute).
-        sleep(6)
+                raise interrupt from None
 
 
-    # Download results.
-    print_stage("Downloading files modified by job to %s" % local_workdir)
+    # Download results if we didn't stop the job early.
+    if not stop_sent:
+        print_stage("Downloading files modified by job to %s" % local_workdir)
 
-    s3.download_workdir(remote_workdir, local_workdir)
+        s3.download_workdir(remote_workdir, local_workdir)
 
 
     # Remove remote results.

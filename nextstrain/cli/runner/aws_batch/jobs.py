@@ -109,6 +109,12 @@ class JobState:
 
         return logs.LogWatcher(self.log_stream, consumer)
 
+    def stop(self, reason = "stopped by user") -> None:
+        """
+        Stop the job, regardless of if it has started yet or not.
+        """
+        self._client.terminate_job(jobId = self.id, reason = reason)
+
 
 def submit(name: str,
            queue: str,
