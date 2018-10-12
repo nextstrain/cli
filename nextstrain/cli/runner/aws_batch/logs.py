@@ -65,9 +65,12 @@ class LogWatcher(threading.Thread):
         """
         Tell the log watcher to cease watching for new logs.
 
-        You must call the watcher's join() method after calling stop() to wait
-        for the watcher thread to exit.
+        This method merely signals to the thread that it should stop, so you
+        must call the thread's join() method afterwards to wait for the thread
+        to exit.  It is an error to call stop() on a thread which isn't alive
+        (running).
         """
+        assert self.is_alive(), "Thread not alive"
         self.stopped.set()
 
     def run(self) -> None:

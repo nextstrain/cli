@@ -122,7 +122,8 @@ def run(opts, argv, working_volume = None) -> int:
 
         elif job.is_complete:
             if log_watcher:
-                log_watcher.stop()
+                if log_watcher.is_alive():
+                    log_watcher.stop()
                 log_watcher.join()
             else:
                 # The watcher never started, so we probably missed the
