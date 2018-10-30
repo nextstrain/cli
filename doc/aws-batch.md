@@ -178,7 +178,8 @@ S3 bucket name.
             "Effect": "Allow",
             "Action": [
                 "logs:GetLogEvents",
-                "logs:FilterLogEvents"
+                "logs:FilterLogEvents",
+                "logs:DeleteLogStream"
             ],
             "Resource": [
                 "arn:aws:logs:*:*:log-group:/aws/batch/job",
