@@ -109,6 +109,15 @@ If the final message doesn't indicate success (as with "All good!" in the
 example above), something may be wrong with your Docker installation.
 
 
+## Big picture
+
+The Nextstrain CLI glues together many different components with an easy-to-use
+interface that doesn't require a lot of fussing.  Below is [a brief overview of
+the big picture](doc/big-picture.svg):
+
+![The Nextstrain CLI glues together many components](doc/big-picture.svg)
+
+
 ## Development
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
