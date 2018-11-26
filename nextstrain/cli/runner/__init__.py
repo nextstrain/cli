@@ -1,7 +1,7 @@
 import argparse
 from argparse import ArgumentParser
 from typing import Any, List
-from . import docker, native
+from . import docker, native, aws_batch
 from ..types import Options
 from ..util import runner_name, runner_help
 from ..volume import NamedVolume
@@ -9,6 +9,7 @@ from ..volume import NamedVolume
 all_runners = [
     docker,
     native,
+    aws_batch,
 ]
 
 default_runner = docker

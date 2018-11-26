@@ -149,17 +149,11 @@ def runner_help(runner: ModuleType) -> str:
         return "(undocumented)"
 
 
-def module_basename(module: ModuleType, base_module: str = None) -> str:
+def module_basename(module: ModuleType) -> str:
     """
     Return the final portion of the given module's name, akin to a file's basename.
-
-    Defaults to returning the portion after the name of the module's containing
-    package, but this may be changed by providing the base_module parameter.
     """
-    if not base_module:
-        base_module = module.__package__
-
-    return remove_prefix(base_module, module.__name__).lstrip(".")
+    return module.__name__.split(".")[-1]
 
 
 def format_usage(doc: str) -> str:

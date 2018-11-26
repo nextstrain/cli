@@ -15,6 +15,7 @@ from os.path import commonprefix
 from pathlib import Path
 from time import time
 from typing import List
+from .. import aws
 from ..util import warn, remove_prefix
 
 
@@ -101,7 +102,7 @@ def purge_cloudfront(bucket, paths: List[str]) -> None:
     Invalidate any CloudFront distribution paths which match the given list of
     file paths originating in the given S3 bucket.
     """
-    cloudfront = boto3.client("cloudfront")
+    cloudfront = aws.client_with_default_region("cloudfront")
 
     # Find the common prefix of this fileset, if any.
     prefix = commonprefix(paths)
