@@ -1,6 +1,38 @@
 # __NEXT__
 
 
+# 1.7.0 (26 November 2018)
+
+## Features
+
+* Builds can now be run remotely on [AWS Batch](https://aws.amazon.com/batch/)
+  by passing the `--aws-batch` flag to the `build` command.  See `nextstrain
+  build --help` for more information.  Setup required to support this is
+  documented in [`doc/aws-batch.md`](doc/aws-batch.md).
+
+* The `update` command now pulls down new images by their `build-*` tag instead
+  of tracking the mutable `latest` tag.  Our build tags are, most importantly,
+  not updated after creation and thus are suitable references for reproducible
+  runs.  The output of `nextstrain version --verbose` now includes the specific
+  build tag.
+
+* The `check-setup` command now tests the amount of memory available to
+  containers and warns if it less than 2GB.  This is particularly important on
+  Windows and macOS where Linux containers are run inside a VM on the host.
+  The VM may have limited memory allocated to it, leading to out-of-memory
+  errors in builds.
+
+## Documentation
+
+* Installation instructions in the README are now more detailed.
+
+* A big picture overview of where the CLI fits into the Nextstrain ecosystem is
+  included in the README for situating newcomers.
+
+* The README now refers to Docker Desktop, the new name for Docker Community
+  Edition.
+
+
 # 1.6.1 (25 September 2018)
 
 ## Features
