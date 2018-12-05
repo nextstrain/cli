@@ -1,6 +1,15 @@
 # __NEXT__
 
 
+# 1.7.1 (5 December 2018)
+
+## Bug fixes
+
+* The `shell` command no longer throws an unexpected exception about a missing
+  `warn()` function when a non-existent build directory is given.  The
+  user-friendly error is printed instead, as expected.
+
+
 # 1.7.0 (26 November 2018)
 
 ## Features
