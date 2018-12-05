@@ -9,7 +9,7 @@ check-setup` to check if Docker is installed and works.
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker
-from ..util import colored
+from ..util import colored, warn
 from ..volume import store_volume
 
 
