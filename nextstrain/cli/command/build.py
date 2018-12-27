@@ -48,7 +48,7 @@ def register_parser(subparser):
         action  = store_volume("build"))
 
     # Register runner flags and arguments
-    runner.register_runners(parser, exec = ["snakemake", ...])
+    runner.register_runners(parser, exec = ["snakemake", "--printshellcmds", ...])
 
     return parser
 
