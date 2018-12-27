@@ -33,12 +33,12 @@ def save(config, path = PATH):
     """
     Write the *config* object to *path*.
 
-    The immediate parent directory of the file named by *path* will be created
-    if it does not exist.  This supports the last two components of the path
-    being ``…/.nextstrain/config`` when the ``.nextstrain`` directory may not
-    already exist.
+    If the immediate parent directory of the file named by *path* is
+    ``.nextstrain``, then that directory will be created if it does not already
+    exist.
     """
-    path.resolve().parent.mkdir(exist_ok = True)
+    if path.parent.name == ".nextstrain":
+        path.parent.mkdir(exist_ok = True)
 
     with path.open(mode = "w", encoding = "utf-8") as file:
         config.write(file)
