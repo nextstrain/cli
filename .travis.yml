@@ -5,9 +5,22 @@ services:
 
 language: python
 
-python:
-  - "3.6"
-  - "3.7-dev"
+matrix:
+  include:
+    - dist: xenial
+      python: 3.5
+
+    - dist: xenial
+      python: 3.6
+
+    - dist: trusty
+      python: 3.6.1
+
+    - dist: xenial
+      python: 3.7
+
+    - dist: xenial
+      python: 3.8-dev
 
 install:
   - pip3 install .
