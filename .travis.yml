@@ -14,13 +14,11 @@ install:
   - pip3 install mypy
 
 before_script:
-  - git clone https://github.com/nextstrain/zika
-  - mkdir -p zika/data/
-  - cp -v zika/example_data/zika.fasta zika/data/
+  - git clone https://github.com/nextstrain/zika-tutorial
 
 script:
   - mypy nextstrain
   - nextstrain version
   - nextstrain check-setup
   - nextstrain update
-  - nextstrain build zika
+  - nextstrain build zika-tutorial
