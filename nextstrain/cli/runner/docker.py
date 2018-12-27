@@ -11,7 +11,7 @@ from textwrap import dedent
 from typing import List, Tuple
 from .. import runner, hostenv, config
 from ..types import RunnerTestResults
-from ..util import warn, colored, capture_output, exec_or_return
+from ..util import warn, colored, capture_output, exec_or_return, resolve_path
 from ..volume import store_volume
 
 
@@ -88,7 +88,7 @@ def run(opts, argv, working_volume = None) -> int:
         *(["--user=%d:%d" % (os.getuid(), os.getgid())] if os.name == "posix" else []),
 
         # Map directories to bind mount into the container.
-      *["--volume=%s:/nextstrain/%s" % (v.src.resolve(), v.name)
+      *["--volume=%s:/nextstrain/%s" % (resolve_path(v.src), v.name)
             for v in opts.volumes
              if v.src is not None],
 
