@@ -1,6 +1,15 @@
 # __NEXT__
 
 
+# 1.7.3 (28 December 2018)
+
+## Features
+
+* The automatic check for newer versions of the CLI, which happens on the
+  `update` and `check-setup` commands, now produces a better,
+  more-likely-to-work suggested invocation of pip to perform the upgrade.
+
+
 # 1.7.2 (28 December 2018)
 
 ## Features
