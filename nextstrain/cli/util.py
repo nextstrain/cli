@@ -1,11 +1,14 @@
 import os
 import re
 import requests
+import site
 import subprocess
+import sys
 from types import ModuleType
 from typing import List
 from pathlib import Path
 from pkg_resources import parse_version
+from shutil import which
 from sys import exit, stderr, version_info as python_version
 from textwrap import dedent, indent
 from .__version__ import __version__
@@ -49,12 +52,27 @@ def remove_suffix(suffix, string):
 def check_for_new_version():
     newer_version = new_version_available()
 
+    installed_into_user_site = \
+            site.ENABLE_USER_SITE \
+        and __file__.startswith(site.USER_SITE)
+
+    if sys.executable:
+        exe_name = Path(sys.executable).name
+
+        if which(exe_name) == sys.executable:
+            python = exe_name
+        else:
+            python = sys.executable
+    else:
+        python = next(filter(which, ["python3", "python"])) or "python3"
+
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
         print("Upgrade by running:")
         print()
-        print("    pip install --upgrade nextstrain-cli")
+        print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+              "    " + python + " -m pip install --upgrade nextstrain-cli")
         print()
     else:
         print("nextstrain-cli is up to date!")
