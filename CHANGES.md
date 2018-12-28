@@ -1,6 +1,35 @@
 # __NEXT__
 
 
+# 1.7.2 (28 December 2018)
+
+## Features
+
+* The `build` command now runs `snakemake` with the `--printshellcmds` option
+  for improved log output.
+
+## Bug fixes
+
+* User-provided paths are now resolved strictly—they must exist—on both Python
+  3.5 and ≥3.6, not just 3.5.  This discrepancy was unlikely to result in any
+  noticeable problems because of other existence checks which were performed.
+  Nevertheless, the change is good housekeeping and helps ensure robustness.
+
+* The `update` command no longer errors on Python 3.6.0 and 3.6.1 when the
+  `~/.nextstrain/` does not exist (for example, when upgrading from CLI
+  versions before 1.7.0).  [#37](https://github.com/nextstrain/cli/issues/37)
+
+## Development
+
+* Continuous integration testing now includes a much fuller range of Python
+  versions in order to more quickly catch bugs like the one affecting `update`
+  above.
+
+* Continuous integration testing switched to running the
+  [zika-tutorial](https://github.com/nextstrain/zika-tutorial), a simplified
+  build more suitable for our needs.
+
+
 # 1.7.1 (5 December 2018)
 
 ## Bug fixes
