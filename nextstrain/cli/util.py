@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import site
 import subprocess
 from types import ModuleType
 from typing import List
@@ -49,12 +50,17 @@ def remove_suffix(suffix, string):
 def check_for_new_version():
     newer_version = new_version_available()
 
+    installed_into_user_site = \
+            site.ENABLE_USER_SITE \
+        and __file__.startswith(site.USER_SITE)
+
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
         print("Upgrade by running:")
         print()
-        print("    pip install --upgrade nextstrain-cli")
+        print("    pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+              "    pip install --upgrade nextstrain-cli")
         print()
     else:
         print("nextstrain-cli is up to date!")
