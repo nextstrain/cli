@@ -9,7 +9,7 @@ from pathlib import Path
 from time import sleep
 from uuid import uuid4
 from ...types import RunnerTestResults
-from ...util import colored, warn
+from ...util import colored, resolve_path, warn
 from ... import config
 from . import jobs, logs, s3
 
@@ -65,7 +65,7 @@ def run(opts, argv, working_volume = None) -> int:
 
 
     # Upload workdir to S3 so it can be fetched at the start of the Batch job.
-    local_workdir = working_volume.src.resolve()
+    local_workdir = resolve_path(working_volume.src)
 
     print_stage("Uploading %s to S3" % local_workdir)
 
