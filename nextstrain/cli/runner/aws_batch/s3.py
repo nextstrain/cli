@@ -42,6 +42,9 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
         # Don't let the local Snakemake's state interfere with the remote job or
         # vice versa.
         ".snakemake/",
+
+        # Sensitive data is often stored in environment.sh files
+        "environment*"
     ])
 
     # Create a temporary zip file of the workdir…
