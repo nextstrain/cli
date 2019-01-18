@@ -38,15 +38,14 @@ def register_parser(subparser):
     # Positional parameters
     parser.add_argument(
         "directory",
-        help    = "Path to pathogen build data directory",
+        help    = "Path to directory containing JSONs for Auspice",
         metavar = "<directory>",
         action  = store_volume("auspice/data"))
 
-    # Register runners; only Docker is supported for now since auspice doesn't
-    # have a native wrapper command yet.
+    # Register runners; only Docker is supported for now.
     runner.register_runners(
         parser,
-        exec    = ["auspice"],
+        exec    = ["auspice", "view", "--verbose"],
         runners = [docker])
 
     return parser
@@ -85,7 +84,13 @@ def run(opts):
     opts.docker_args = [
         *opts.docker_args,
 
-        # PORT is respected by auspice's server.js
+        # auspice's cli (probably thanks to Express or Node?) when run in the
+        # circumstances of the container seems to ignore signals (like SIGINT,
+        # ^C, or SIGTERM), so run it under an init process that does respect
+        # signals.
+        "--init",
+
+        # PORT is respected by auspice's cli/view.js
         "--env=PORT=%d" % port,
 
         # Publish the port
@@ -120,7 +125,7 @@ def print_url(host, port, datasets):
     def url(path = None):
         return colored(
             "blue",
-            "http://{host}:{port}/local/{path}".format(
+            "http://{host}:{port}/{path}".format(
                 host = host,
                 port = port,
                 path = path if path is not None else ""))
