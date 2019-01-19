@@ -1,6 +1,22 @@
 # __NEXT__
 
 
+# 1.8.0 (18 January 2019)
+
+## Bug fixes
+
+* Docker images between `build-20190115T232255Z` and `build-20190116T000613Z`
+  (inclusive) broke the `nextstrain view` command.  It is fixed in this version
+  of the CLI, 1.8.0, in tandem with new images, starting with
+  `build-20190119T045444Z`.  If your `view` command is broken, running
+  `nextstrain update` and following the instructions to upgrade to version
+  1.8.0 of the CLI should resolve the issue.
+
+* AWS Batch builds now avoid uploading files matching `environment*` in the
+  build directory, as such files are commonly used for storing sensitive
+  environment values.
+
+
 # 1.7.3 (28 December 2018)
 
 ## Features
