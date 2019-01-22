@@ -10,10 +10,10 @@ import subprocess
 from textwrap import dedent
 from typing import List, Tuple
 from .. import runner, hostenv, config
-from ... import cli
 from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return, resolve_path
 from ..volume import store_volume
+from ..__version__ import __version__
 
 
 DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
@@ -175,7 +175,7 @@ def test_setup() -> RunnerTestResults:
                     Please run `nextstrain update` to download a newer image.
                     Afterwards, run `nextstrain check-setup` again and this
                     version check shoud pass.
-                    """ % (tag, cli.__version__, minimum_tag))
+                    """ % (tag, __version__, minimum_tag))
 
         # If we're using the "latest" tag and the image doesn't yet exist
         # locally, then the most recent image will be pulled down the first
