@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.8.1 (21 January 2019)
+
+## Features
+
+* The `check-setup` command now tests if the local Docker image is new enough
+  for this version of the CLI.
+
+
 # 1.8.0 (18 January 2019)
 
 ## Bug fixes
