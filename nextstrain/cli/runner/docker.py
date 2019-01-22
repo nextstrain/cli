@@ -10,6 +10,7 @@ import subprocess
 from textwrap import dedent
 from typing import List, Tuple
 from .. import runner, hostenv, config
+from ... import cli
 from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return, resolve_path
 from ..volume import store_volume
@@ -151,12 +152,46 @@ def test_setup() -> RunnerTestResults:
 
         return [(msg, status)]
 
+    def test_image_version():
+        minimum_tag = "build-20190119T045444Z"
+
+        msg = 'image is new enough for this CLI version'
+        status = ...
+
+        repository, tag = split_image_name(DEFAULT_IMAGE)
+
+        # If we're using a build tag, regardless of if the image exists
+        # locally or not yet, we can say for sure if we're all good or not.
+        if is_build_tag(tag):
+            status = tag >= minimum_tag
+
+            if not status:
+                msg += dedent("""
+
+                    Your copy of the Nextstrain Docker image, %s,
+                    is too old for this version of the CLI (%s).  At least
+                    version %s of the image is required.
+
+                    Please run `nextstrain update` to download a newer image.
+                    Afterwards, run `nextstrain check-setup` again and this
+                    version check shoud pass.
+                    """ % (tag, cli.__version__, minimum_tag))
+
+        # If we're using the "latest" tag and the image doesn't yet exist
+        # locally, then the most recent image will be pulled down the first
+        # time its needed.  Presumably this will be new enough for the CLI.
+        elif tag == "latest" and not image_exists(DEFAULT_IMAGE):
+            status = True
+
+        return [(msg, status)]
+
     return [
         ('docker is installed',
             shutil.which("docker") is not None),
         ('docker run works',
             test_run()),
-        *test_memory_limit()
+        *test_memory_limit(),
+        *test_image_version()
     ]
 
 
