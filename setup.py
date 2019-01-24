@@ -85,5 +85,10 @@ setup(
         "boto3",
         "netifaces >=0.10.6",
         "requests",
+
+        # We use pkg_resources.parse_version(), which (confusingly) is provided
+        # by setuptools.  setuptools is nearly ever-present, but it can be
+        # missing!
+        "setuptools >=8.0.3",
     ],
 )
