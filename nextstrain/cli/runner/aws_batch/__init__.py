@@ -169,21 +169,17 @@ def run(opts, argv, working_volume = None) -> int:
         s3.download_workdir(remote_workdir, local_workdir)
 
 
-    # Remove remote results.
-    print_stage("Cleaning up S3")
-
-    remote_workdir.delete()
-
-    print("deleted:", s3.object_url(remote_workdir))
+    # Don't remove remote results
+    # print_stage("Cleaning up S3")
+    # remote_workdir.delete()
+    # print("deleted:", s3.object_url(remote_workdir))
 
 
-    # Remove log stream.
-    if job.log_stream:
-        print_stage("Cleaning up logs")
-
-        logs.delete_stream(job.log_stream)
-
-        print("deleted log stream:", job.log_stream)
+    # Don't remove log stream
+    # if job.log_stream:
+    #     print_stage("Cleaning up logs")
+    #     logs.delete_stream(job.log_stream)
+    #     print("deleted log stream:", job.log_stream)
 
 
     # Exit with the job's exit code, or assume success
