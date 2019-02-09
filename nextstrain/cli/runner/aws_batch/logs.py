@@ -35,17 +35,6 @@ def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, N
         yield from page.get("events", [])
 
 
-def delete_stream(stream: str) -> None:
-    """
-    Delete the named AWS Batch job log *stream*.  Returns nothing.
-    """
-    client = aws.client_with_default_region("logs")
-
-    client.delete_log_stream(
-        logGroupName  = LOG_GROUP,
-        logStreamName = stream)
-
-
 class LogWatcher(threading.Thread):
     """
     Monitor an AWS Batch job log stream and call a supplied function (the
