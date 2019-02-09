@@ -1,6 +1,29 @@
 # __NEXT__
 
 
+# 1.9.0 (8 February 2019)
+
+## Features
+
+* Builds run on AWS Batch no longer delete the build dir zip file from S3 or
+  the job log stream from CloudWatch, making it easier to debug and
+  troubleshoot Batch builds.  The Batch setup documentation is updated to note
+  that the previously suggested retention policies are now the only thing
+  preventing runaway data storage costs (and thus a must).
+
+## Bug fixes
+
+* Declare missing dep on setuptools, used via `pkg_resources` by the
+  `check-setup` and `update` commands.  setuptools nearly always exists already
+  on Python installs, especially when nextstrain-cli is installed using pip,
+  but nearly always is not always.
+
+## Development
+
+* Static type checking now passes again thanks to a work around for a mypy bug
+  related to namespace packages.
+
+
 # 1.8.1 (21 January 2019)
 
 ## Features
