@@ -98,11 +98,11 @@ names must be globally unique.)
 You may set any bucket options you want, but the bucket should be private and
 inaccessible to the public (which is the default).
 
-While the Nextstrain CLI will remove what it uploaded to the bucket after each
-run, it is still possible that orphaned data may be left behind.  You should
-add a [lifecycle retention policy][] to the bucket which expires (deletes)
-objects 30 days after creation so that you don't continue to pay for their
-storage.
+Note that the Nextstrain CLI will **not** remove what it uploaded to the bucket
+after each run.  You must add a [lifecycle retention policy][] to the bucket
+which expires (deletes) objects 30 days after creation so that you don't
+continue to pay for their storage.  You may use a shorter (or longer) lifetime,
+but Amazon's prorated billing uses a minimum duration of one month.
 
 [lifecycle retention policy]: https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-lifecycle.html
 
@@ -274,10 +274,11 @@ AWS Batch jobs automatically send the output of each job to individual log
 streams in the `/aws/batch/job` log group.  This log group won't exist until
 you run your first Batch job, but you can create it yourself before then.
 
-While the Nextstrain CLI will remove a job's log stream after it's done, it is
-still possible that orphaned logs may be left behind.  You should adjust the
-[log retention policy][] for the `/aws/batch/job` log group to expire log
-events after 30 days so that you don't continue to pay for their storage.
+Note that the Nextstrain CLI will **not** remove the job's log stream after
+each run.  You must adjust the [log retention policy][] for the
+`/aws/batch/job` log group to expire log events after 30 days so that you don't
+continue to pay for their storage.  You may use a shorter (or longer) lifetime,
+but Amazon's prorated billing uses a minimum duration of one month.
 
 [log retention policy]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention
 
