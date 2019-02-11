@@ -1,6 +1,17 @@
 # __NEXT__
 
 
+# 1.9.1 (11 February 2019)
+
+# Features
+
+* Restore the modification times of files when unzipping results from an AWS
+  Batch run.  This allows Snakemake's dependency resolution to properly
+  determine file staleness, which in turn allows local builds to continue where
+  AWS Batch builds leave off (e.g.  running the bulk of the computation on AWS
+  Batch and then iterating on subsequent trivial steps locally).
+
+
 # 1.9.0 (8 February 2019)
 
 ## Features
