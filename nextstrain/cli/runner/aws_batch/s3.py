@@ -4,11 +4,13 @@ S3 handling for AWS Batch jobs.
 
 import binascii
 import boto3
-import time
+from calendar import timegm
+from os import utime
 from pathlib import Path
 from tempfile import TemporaryFile
+from time import struct_time
 from typing import Any, Callable, Generator, Iterable, Optional
-from zipfile import ZipFile
+from zipfile import ZipFile, ZipInfo
 
 
 PathMatcher = Callable[[Path], bool]
@@ -102,6 +104,13 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
                     # locally are never created.
                     if member.CRC != crc32(workdir / path):
                         zipfile.extract(member, str(workdir))
+
+                        # Update atime and mtime from the zip member; it's a
+                        # bit boggling that .extract() doesn't handle this,
+                        # even optionally.
+                        mtime = zipinfo_mtime(member)
+                        utime(str(workdir / path), (mtime, mtime))
+
                         print("unzipped:", workdir / path)
 
 
@@ -149,6 +158,20 @@ def crc32(path) -> Optional[int]:
         return crc
     else:
         return None
+
+
+def zipinfo_mtime(member: ZipInfo) -> float:
+    """
+    Return the mtime, in seconds since the Unix epoch, of the given
+    :class:`zipfile.ZipInfo` *member*.
+
+    Assumes the zip file was created using GMT/UTC!
+    """
+    # The argument to struct_time() is a 9-tuple, the first 6 values of which
+    # we can get from the zip member. The rest, filled with bogus -1
+    # placeholders, are tm_wday (day of week), tm_yday (day of year), and
+    # tm_isdst (DST flag).
+    return timegm(struct_time((*member.date_time, -1, -1, -1)))
 
 
 def bucket(name: str) -> S3Bucket:
