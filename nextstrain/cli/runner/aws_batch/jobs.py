@@ -119,8 +119,8 @@ class JobState:
 def submit(name: str,
            queue: str,
            definition: str,
-           cpus: int,
-           memory: int,
+           cpus: Optional[int],
+           memory: Optional[int],
            workdir: s3.S3Object,
            exec: Iterable[str]) -> JobState:
     """
