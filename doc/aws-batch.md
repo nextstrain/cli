@@ -24,23 +24,32 @@ directory.
 [AWS Batch]: https://aws.amazon.com/batch/
 [`zika-tutorial/` directory]: https://github.com/nextstrain/zika-tutorial
 
-### Requesting resources
+### Using and requesting resources
 
-By default AWS Batch jobs request 4 vCPUs and 7200MB of memory. Generally, when
-running Snakemake, the `--jobs` option should be matched to the requested number
-of vCPUs. These defaults can be overridden by specifying `--aws-batch-cpus` and
-`--aws-batch-memory`, for instance `--aws-batch-cpus=8` and
-`--aws-batch-memory=14800`. Alternatively, request can be specified in the
-`~/.nextstrain/config` file via
+By default, each AWS Batch job will have available to it the number of vCPUs
+and amount of memory configured in your [job definition](#job-definition).  To
+take full advantage of multiple CPUs available, [Snakemake's `--jobs` (or
+`-j`)](https://snakemake.readthedocs.io/en/stable/executable.html#EXECUTION)
+option should generally be matched to the configured number of vCPUs.
+
+The resources configured in the job definition can be overridden on a per-build
+basis using the `--aws-batch-cpus` and/or `--aws-batch-memory` options, for
+example:
+
+    nextstrain build --aws-batch --aws-batch-cpus=8 --aws-batch-memory=14800 zika-tutorial/ --jobs 8
+
+Alternatively, default resource overrides can be set via the
+`~/.nextstrain/config` file:
 
     [aws-batch]
     cpus = ...
     memory = ...
 
-Or via setting environment variables `NEXTSTRAIN_AWS_BATCH_CPUS` and
-`NEXTSTRAIN_AWS_BATCH_MEMORY`. Note that requesting more CPUs or memory than
-available in a compute environment will result in a job that is queued but
-is never started.
+Or via the environment variables `NEXTSTRAIN_AWS_BATCH_CPUS` and
+`NEXTSTRAIN_AWS_BATCH_MEMORY`.
+
+Note that requesting more CPUs or memory than available in a compute
+environment will result in a job that is queued but is never started.
 
 ## Configuration on your computer
 
