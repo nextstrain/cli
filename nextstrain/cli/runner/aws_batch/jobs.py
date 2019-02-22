@@ -119,6 +119,8 @@ class JobState:
 def submit(name: str,
            queue: str,
            definition: str,
+           cpus: int,
+           memory: int,
            workdir: s3.S3Object,
            exec: Iterable[str]) -> JobState:
     """
@@ -140,6 +142,8 @@ def submit(name: str,
                 },
                 *forwarded_environment(),
             ],
+            "vcpus": cpus,
+            "memory": memory,
             "command": [
                 "/sbin/entrypoint-aws-batch",
                 *exec

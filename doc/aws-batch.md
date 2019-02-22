@@ -24,6 +24,13 @@ directory.
 [AWS Batch]: https://aws.amazon.com/batch/
 [`zika-tutorial/` directory]: https://github.com/nextstrain/zika-tutorial
 
+### Requesting resources
+
+By default AWS Batch jobs request 4 vCPUs and 7200MB of memory. Generally, when
+running Snamemake, the `--jobs` option should be matched to the requested number
+of vCPUs. These defaults can be overridden by specifying `--aws-batch-cpus` and
+`--aws-batch-memory`, for instance `--aws-batch-cpus=8` and
+`--aws-batch-memory=14800`.
 
 ## Configuration on your computer
 
@@ -75,7 +82,6 @@ or in the `~/.nextstrain/config` file
     s3-bucket = ...
 
 or passing the `--aws-batch-s3-bucket=...` option to `nextstrain build`.
-
 
 # Setting up AWS to run Nextstrain builds
 

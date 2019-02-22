@@ -26,6 +26,13 @@ DEFAULT_S3_BUCKET = os.environ.get("NEXTSTRAIN_AWS_BATCH_S3_BUCKET") \
                  or config.get("aws-batch", "s3-bucket") \
                  or "nextstrain-jobs"
 
+DEFAULT_CPUS = os.environ.get("NEXTSTRAIN_AWS_CPUS") \
+            or config.get("aws-batch", "cpus") \
+            or "4"
+
+DEFAULT_MEMORY = os.environ.get("NEXTSTRAIN_AWS_MEMORY") \
+              or config.get("aws-batch", "memory") \
+              or "7400"
 
 def register_arguments(parser) -> None:
     # AWS Batch development options
@@ -53,6 +60,20 @@ def register_arguments(parser) -> None:
         help    = "Name of the AWS S3 bucket to use as shared storage",
         metavar = "<name>",
         default = DEFAULT_S3_BUCKET)
+
+    development.add_argument(
+        "--aws-batch-cpus",
+        dest    = "cpus",
+        help    = "Number of vCPUs to request for job",
+        metavar = "<name>",
+        default = DEFAULT_CPUS)
+
+    development.add_argument(
+        "--aws-batch-memory",
+        dest    = "memory",
+        help    = "Amount of memory in MB to request for job",
+        metavar = "<name>",
+        default = DEFAULT_MEMORY)
 
 
 def run(opts, argv, working_volume = None) -> int:
@@ -83,6 +104,8 @@ def run(opts, argv, working_volume = None) -> int:
             name       = run_id,
             queue      = opts.job_queue,
             definition = opts.job_definition,
+            cpus = int(opts.cpus),
+            memory = int(opts.memory),
             workdir    = remote_workdir,
             exec       = argv)
     except Exception as error:
