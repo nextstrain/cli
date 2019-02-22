@@ -27,10 +27,20 @@ directory.
 ### Requesting resources
 
 By default AWS Batch jobs request 4 vCPUs and 7200MB of memory. Generally, when
-running Snamemake, the `--jobs` option should be matched to the requested number
+running Snakemake, the `--jobs` option should be matched to the requested number
 of vCPUs. These defaults can be overridden by specifying `--aws-batch-cpus` and
 `--aws-batch-memory`, for instance `--aws-batch-cpus=8` and
-`--aws-batch-memory=14800`.
+`--aws-batch-memory=14800`. Alternatively, request can be specified in the
+`~/.nextstrain/config` file via
+
+    [aws-batch]
+    cpus = ...
+    memory = ...
+
+Or via setting environment variables `NEXTSTRAIN_AWS_BATCH_CPUS` and
+`NEXTSTRAIN_AWS_BATCH_MEMORY`. Note that requesting more CPUs or memory than
+available in a compute environment will result in a job that is queued but
+is never started.
 
 ## Configuration on your computer
 

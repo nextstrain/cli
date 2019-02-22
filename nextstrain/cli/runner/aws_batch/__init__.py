@@ -26,13 +26,13 @@ DEFAULT_S3_BUCKET = os.environ.get("NEXTSTRAIN_AWS_BATCH_S3_BUCKET") \
                  or config.get("aws-batch", "s3-bucket") \
                  or "nextstrain-jobs"
 
-DEFAULT_CPUS = os.environ.get("NEXTSTRAIN_AWS_CPUS") \
-            or config.get("aws-batch", "cpus") \
-            or "4"
+# defaults to None if enviroment or config is not set
+DEFAULT_CPUS = os.environ.get("NEXTSTRAIN_AWS_BATCH_CPUS") \
+            or config.get("aws-batch", "cpus")
 
-DEFAULT_MEMORY = os.environ.get("NEXTSTRAIN_AWS_MEMORY") \
-              or config.get("aws-batch", "memory") \
-              or "7400"
+# defaults to None if enviroment or config is not set
+DEFAULT_MEMORY = os.environ.get("NEXTSTRAIN_AWS_BATCH_MEMORY") \
+              or config.get("aws-batch", "memory")
 
 def register_arguments(parser) -> None:
     # AWS Batch development options
@@ -65,14 +65,16 @@ def register_arguments(parser) -> None:
         "--aws-batch-cpus",
         dest    = "cpus",
         help    = "Number of vCPUs to request for job",
-        metavar = "<name>",
+        metavar = "<count>",
+        type    = int,
         default = DEFAULT_CPUS)
 
     development.add_argument(
         "--aws-batch-memory",
         dest    = "memory",
         help    = "Amount of memory in MB to request for job",
-        metavar = "<name>",
+        metavar = "<megabytes>",
+        type    = int,
         default = DEFAULT_MEMORY)
 
 
@@ -104,8 +106,8 @@ def run(opts, argv, working_volume = None) -> int:
             name       = run_id,
             queue      = opts.job_queue,
             definition = opts.job_definition,
-            cpus = int(opts.cpus),
-            memory = int(opts.memory),
+            cpus       = opts.cpus,
+            memory     = opts.memory,
             workdir    = remote_workdir,
             exec       = argv)
     except Exception as error:
