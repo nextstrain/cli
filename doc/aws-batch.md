@@ -51,6 +51,15 @@ Or via the environment variables `NEXTSTRAIN_AWS_BATCH_CPUS` and
 Note that requesting more CPUs or memory than available in a compute
 environment will result in a job that is queued but is never started.
 
+If requesting c5 instances the following amounts of CPU and memory are
+available within the container:
+
+instance type | vCPUs | memory
+------------- | ----- | ------
+c5-xlarge     | 4     | 7400
+c5-2xlarge    | 8     | 15200
+c5-4xlarge    | 16    | 31000
+
 ## Configuration on your computer
 
 ### AWS credentials
