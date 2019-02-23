@@ -1,6 +1,16 @@
 # __NEXT__
 
 
+# 1.10.0 (22 February 2019)
+
+# Features
+
+* Add ability to specify vCPU and memory when running AWS Batch jobs via
+  `--aws-batch-cpus` and `--aws-batch-memory` or via specification in
+  `~/.nextstrain/config` or via environment variables
+  `NEXTSTRAIN_AWS_BATCH_CPUS` and `NEXTSTRAIN_AWS_BATCH_MEMORY`. This requires
+  corresponding proper setup of compute environment in AWS Batch console.
+
 # 1.9.1 (11 February 2019)
 
 # Features
