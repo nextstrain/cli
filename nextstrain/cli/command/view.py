@@ -35,6 +35,13 @@ def register_parser(subparser):
         help   = "Allow other computers on the network to access the website",
         action = "store_true")
 
+    parser.add_argument(
+        "--port",
+        help    = "Listen on the given port instead of the default port %(default)s",
+        metavar = "<number>",
+        type    = int,
+        default = 4000)
+
     # Positional parameters
     parser.add_argument(
         "directory",
@@ -79,7 +86,7 @@ def run(opts):
     # interface for ports/environment when we have concrete requirements.
     #   -trs, 27 June 2018
     host = "0.0.0.0" if opts.allow_remote_access else "127.0.0.1"
-    port = 4000
+    port = opts.port
 
     opts.docker_args = [
         *opts.docker_args,
