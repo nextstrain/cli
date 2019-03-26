@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.10.1 (26 March 2019)
+
+# Features
+
+* The `view` command now sports a `--port` option to use an alternate port for
+  the viewer.
+
+
 # 1.10.0 (22 February 2019)
 
 # Features
