@@ -362,7 +362,9 @@ following text:
     --==BOUNDARY==--
 
 This allows each container/job to use up to 50 GiB.  Adjust this value to your
-own needs and according to the total EBS volume size you chose above.
+own needs and according to the total EBS volume size you chose above.  The ECS
+documentation includes more information about this format and [specifying
+options for the ECS Docker daemon][ecs-docker-options].
 
 If you want to set other options in your launch template you may, but make sure
 you understand [Batch's support for them][batch-launch-template].
@@ -388,6 +390,7 @@ If all goes well, you should see that the container has access to more space!
 [launch template]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html
 [create-launch-template]: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchTemplates:
 [batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
+[ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#multi-part_user_data
 
 
 ## Security
