@@ -14,6 +14,10 @@ forwarded_names = [
     # RethinkDB credentials
     "RETHINK_HOST",
     "RETHINK_AUTH_KEY",
+
+    # Augur <https://nextstrain-augur.readthedocs.io/en/stable/envvars.html>
+    "AUGUR_RECURSION_LIMIT",
+    "AUGUR_MINIFY_JSON",
 ]
 
 
