@@ -3,7 +3,7 @@
 
 # 1.10.1 (26 March 2019)
 
-# Features
+## Features
 
 * The `view` command now sports a `--port` option to use an alternate port for
   the viewer.
@@ -11,7 +11,7 @@
 
 # 1.10.0 (22 February 2019)
 
-# Features
+## Features
 
 * Add ability to specify vCPU and memory when running AWS Batch jobs via
   `--aws-batch-cpus` and `--aws-batch-memory` or via specification in
@@ -21,7 +21,7 @@
 
 # 1.9.1 (11 February 2019)
 
-# Features
+## Features
 
 * Restore the modification times of files when unzipping results from an AWS
   Batch run.  This allows Snakemake's dependency resolution to properly
