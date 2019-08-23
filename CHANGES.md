@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.10.2 (23 August 2019)
+
+## Bug fixes
+
+* The [environment variables used by Augur](https://nextstrain-augur.readthedocs.io/en/stable/envvars.html)
+  are now passed through to --docker and --aws-batch builds.
+
+
 # 1.10.1 (26 March 2019)
 
 ## Features
