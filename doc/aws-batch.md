@@ -317,6 +317,79 @@ but Amazon's prorated billing uses a minimum duration of one month.
 [log retention policy]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention
 
 
+## Disk space for your jobs
+
+By default, your Batch jobs will each have access to 10 GiB of scratch space.
+This is enough for most Nextstrain builds, but yours may require more.
+
+Configuring more space requires a little bit of setup.  It also helps to
+understand that Batch uses [ECS][] to run containers on clusters of [EC2][]
+servers.
+
+Each EC2 instance in an ECS cluster has a storage volume named `/dev/xvdcz`
+which is shared by all the containers/jobs running on that instance.  The
+default size of this volume is **22 GiB**, which comes from the [AWS-managed
+ECS-optimized machine images (AMIs)][ami-storage] used by Batch.
+
+Each container/job is allowed to use up to **10 GiB** of disk by default.  This
+comes from Docker's [`dm.basesize` option][].
+
+In order to give your Batch jobs more disk, you have to increase **both** of
+these defaults.  There are many approaches to doing this, but the simplest is
+to create a new EC2 _[launch template][]_.
+
+It's quickest to [create the launch template][create-launch-template] using the
+AWS Console, although you can also do it on the command-line.
+
+First, add to the launch template an EBS storage volume with the device name
+`/dev/xvdcz`, volume size you want (e.g. 200 GiB), and a volume type of `gp2`.
+Make sure that the volume is marked for deletion on instance termination, or
+you'll end up paying for old volumes indefinitely!  This sets the size of the
+shared volume available to all containers on a single EC2 instance.
+
+Next, under the "Advanced details" section, add a user data blob with the
+following text:
+
+    Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+    MIME-Version: 1.0
+
+    --==BOUNDARY==
+    Content-Type: text/cloud-boothook; charset="us-ascii"
+
+    # Set Docker daemon option dm.basesize so each container gets up to 50GB
+    cloud-init-per once docker_options echo 'OPTIONS="${OPTIONS} --storage-opt dm.basesize=50GB"' >> /etc/sysconfig/docker
+
+    --==BOUNDARY==--
+
+This allows each container/job to use up to 50 GiB.  Adjust this value to your
+own needs and according to the total EBS volume size you chose above.
+
+If you want to set other options in your launch template you may, but make sure
+you understand [Batch's support for them][batch-launch-template].
+
+Create the launch template and note its id or name.
+
+Finally, create a new Batch compute environment that uses your launch template
+and associate that new compute environment with your Batch job queue.
+
+To check if it worked, create an empty directory on your computer, make a
+Snakefile containing the rule below, and run it on AWS Batch using the
+Nextstrain CLI:
+
+    rule df:
+        shell: "/bin/df -h /"
+
+If all goes well, you should see that the container has access to more space!
+
+[ECS]: https://aws.amazon.com/ecs/
+[EC2]: https://aws.amazon.com/ec2/
+[ami-storage]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html#al1-ami-storage-config
+[`dm.basesize` option]: https://docs.docker.com/engine/reference/commandline/dockerd/#dmbasesize
+[launch template]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html
+[create-launch-template]: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchTemplates:
+[batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
+
+
 ## Security
 
 A full analysis of the security implications of the above configuration depends
