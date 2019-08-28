@@ -52,7 +52,7 @@ def register_parser(subparser):
     # Register runners; only Docker is supported for now.
     runner.register_runners(
         parser,
-        exec    = ["auspice", "view", "--verbose"],
+        exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
         runners = [docker, native])
 
     return parser
@@ -80,14 +80,19 @@ def run(opts):
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
     #
-    # There are docker-specific implementation details here that should be
-    # refactored once we have more than one nextstrain.cli.runner module in
-    # play.  Doing that work now would be premature; we'll get a better
-    # interface for ports/environment when we have concrete requirements.
-    #   -trs, 27 June 2018
+    # The environment variables HOST and PORT are respected by auspice's
+    # cli/view.js.  HOST requires a new enough version of Auspice; 1.35.7 and
+    # earlier always listen on 0.0.0.0 or ::.
     host = "0.0.0.0" if opts.allow_remote_access else "127.0.0.1"
     port = opts.port
 
+    env = {
+        'HOST': host,
+        'PORT': str(port)
+    }
+
+    # These are docker-specific details which will only be used when the
+    # docker runner (--docker flag) is in use.
     opts.docker_args = [
         *opts.docker_args,
 
@@ -96,9 +101,6 @@ def run(opts):
         # ^C, or SIGTERM), so run it under an init process that does respect
         # signals.
         "--init",
-
-        # PORT is respected by auspice's cli/view.js
-        "--env=PORT=%d" % port,
 
         # Publish the port
         "--publish=%s:%d:%d" % (host, port, port),
@@ -120,7 +122,7 @@ def run(opts):
     # Show a helpful message about where to connect
     print_url(host, port, datasets)
 
-    return runner.run(opts, working_volume = opts.auspice_data)
+    return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
 
 
 def print_url(host, port, datasets):
