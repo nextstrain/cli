@@ -14,7 +14,7 @@ import re
 import netifaces as net
 from .. import runner
 from ..argparse import add_extended_help_flags
-from ..runner import docker
+from ..runner import docker, native
 from ..util import colored, warn
 from ..volume import store_volume
 
@@ -53,7 +53,7 @@ def register_parser(subparser):
     runner.register_runners(
         parser,
         exec    = ["auspice", "view", "--verbose"],
-        runners = [docker])
+        runners = [docker, native])
 
     return parser
 

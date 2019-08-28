@@ -30,6 +30,9 @@ def test_setup() -> RunnerTestResults:
         ('augur is installed',
             shutil.which("augur") is not None),
 
+        ('auspice is installed',
+            shutil.which("auspice") is not None),
+
         # XXX TODO: Test other programs here too.  auspice, for example, once
         # it has a native entry point.
         #   -trs, 31 July 2018
