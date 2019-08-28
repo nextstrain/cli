@@ -1,6 +1,6 @@
 import argparse
 from argparse import ArgumentParser
-from typing import Any, List
+from typing import Any, Mapping, List
 from . import docker, native, aws_batch
 from ..types import Options
 from ..util import runner_name, runner_help
@@ -111,7 +111,7 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         runner.register_arguments(parser)
 
 
-def run(opts: Options, working_volume: NamedVolume = None) -> int:
+def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = {}) -> int:
     """
     Inspect the given options object and call the selected runner's run()
     function with appropriate arguments.
@@ -125,7 +125,7 @@ def run(opts: Options, working_volume: NamedVolume = None) -> int:
         *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
     ]
 
-    return opts.__runner__.run(opts, argv, working_volume = working_volume)
+    return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env)
 
 
 def replace_ellipsis(items, elided_items):

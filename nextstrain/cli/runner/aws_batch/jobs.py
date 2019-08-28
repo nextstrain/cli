@@ -3,7 +3,7 @@ Job handling for AWS Batch.
 """
 
 from time import time
-from typing import Callable, Generator, Iterable, List, Optional
+from typing import Callable, Generator, Iterable, Mapping, List, Optional
 from ... import hostenv, aws
 from . import logs, s3
 
@@ -122,7 +122,8 @@ def submit(name: str,
            cpus: Optional[int],
            memory: Optional[int],
            workdir: s3.S3Object,
-           exec: Iterable[str]) -> JobState:
+           exec: Iterable[str],
+           env: Mapping = {}) -> JobState:
     """
     Submit a job to AWS Batch.
 
@@ -141,6 +142,7 @@ def submit(name: str,
                     "value": s3.object_url(workdir),
                 },
                 *forwarded_environment(),
+                *[{"name": name, "value": value} for name, value in env.items()]
             ],
             **({ "vcpus": cpus } if cpus else {}),
             **({ "memory": memory } if memory else {}),

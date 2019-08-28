@@ -15,11 +15,11 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     if working_volume:
         os.chdir(str(working_volume.src))
 
-    return exec_or_return(argv)
+    return exec_or_return(argv, extra_env)
 
 
 def test_setup() -> RunnerTestResults:
