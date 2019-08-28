@@ -60,7 +60,7 @@ def register_arguments(parser) -> None:
         action  = "append")
 
 
-def run(opts, argv, working_volume = None) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -99,10 +99,13 @@ def run(opts, argv, working_volume = None) -> int:
         # Pass through certain environment variables
       *["--env=%s" % name for name in hostenv.forwarded_names],
 
+        # Plus any extra environment variables provided by us
+      *["--env=%s" % name for name in extra_env.keys()],
+
         *opts.docker_args,
         opts.image,
         *argv,
-    ])
+    ], extra_env)
 
 
 def test_setup() -> RunnerTestResults:

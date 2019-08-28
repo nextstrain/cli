@@ -78,7 +78,7 @@ def register_arguments(parser) -> None:
         default = DEFAULT_MEMORY)
 
 
-def run(opts, argv, working_volume = None) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     # Generate our own unique run id since we can't know the AWS Batch job id
     # until we submit it.  This run id is used for workdir and run results
     # storage on S3, in a bucket accessible to both Batch jobs and CLI users.
@@ -109,7 +109,8 @@ def run(opts, argv, working_volume = None) -> int:
             cpus       = opts.cpus,
             memory     = opts.memory,
             workdir    = remote_workdir,
-            exec       = argv)
+            exec       = argv,
+            env        = extra_env)
     except Exception as error:
         warn(error)
         warn("Job submission failed!")

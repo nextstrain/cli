@@ -5,7 +5,7 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import List
+from typing import Mapping, List
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
@@ -116,7 +116,7 @@ def capture_output(argv):
     return result.stdout.decode("utf-8").splitlines()
 
 
-def exec_or_return(argv: List[str]) -> int:
+def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
     """
     exec(3) into the desired program, or return 1 on failure.  Never returns if
     successful.
@@ -129,13 +129,20 @@ def exec_or_return(argv: List[str]) -> int:
     desirable when available as it properly handles file descriptors and
     signals.
 
+    If an *extra_env* mapping is passed, the provided keys and values are
+    overlayed onto the current environment.
+
     ¹ https://bugs.python.org/issue9148
     """
+    env = os.environ.copy()
+
+    if extra_env:
+        env.update(extra_env)
 
     # Use a POSIX exec(3) for file descriptor and signal handling…
     if os.name == "posix":
         try:
-            os.execvp(argv[0], argv)
+            os.execvpe(argv[0], argv, env)
         except OSError as error:
             warn("Error executing into %s: %s" % (argv, error))
             return 1
@@ -143,7 +150,7 @@ def exec_or_return(argv: List[str]) -> int:
     # …or naively emulate one when not available.
     else:
         try:
-            process = subprocess.run(argv)
+            process = subprocess.run(argv, env = env)
         except OSError as error:
             warn("Error running %s: %s" % (argv, error))
             return 1

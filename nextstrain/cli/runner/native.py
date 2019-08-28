@@ -15,11 +15,11 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     if working_volume:
         os.chdir(str(working_volume.src))
 
-    return exec_or_return(argv)
+    return exec_or_return(argv, extra_env)
 
 
 def test_setup() -> RunnerTestResults:
@@ -30,9 +30,8 @@ def test_setup() -> RunnerTestResults:
         ('augur is installed',
             shutil.which("augur") is not None),
 
-        # XXX TODO: Test other programs here too.  auspice, for example, once
-        # it has a native entry point.
-        #   -trs, 31 July 2018
+        ('auspice is installed',
+            shutil.which("auspice") is not None),
     ]
 
 
