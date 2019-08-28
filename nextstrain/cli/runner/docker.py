@@ -364,7 +364,9 @@ def dangling_images(name: str) -> List[str]:
 
 def print_version() -> None:
     print_image_version()
-    print_component_versions()
+
+    if image_exists():
+        print_component_versions()
 
 
 def print_image_version() -> None:
