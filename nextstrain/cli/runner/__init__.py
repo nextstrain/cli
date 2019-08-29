@@ -2,8 +2,9 @@ import argparse
 from argparse import ArgumentParser
 from typing import Any, Mapping, List
 from . import docker, native, aws_batch
+from .. import config
 from ..types import Options
-from ..util import runner_name, runner_help
+from ..util import runner_name, runner_help, warn
 from ..volume import NamedVolume
 
 all_runners = [
@@ -12,7 +13,17 @@ all_runners = [
     aws_batch,
 ]
 
+all_runners_by_name = dict((runner_name(r), r) for r in all_runners)
+
 default_runner = docker
+configured_runner = config.get("core", "runner")
+
+if configured_runner:
+    if configured_runner in all_runners_by_name:
+        default_runner = all_runners_by_name[configured_runner]
+    else:
+        warn("WARNING: Default runner from config file (%s) is invalid.  Using %s.\n"
+            % (configured_runner, runner_name(default_runner)))
 
 
 # The types of "runners" and "default" are left vague because a generic
@@ -34,7 +45,10 @@ def register_runners(parser:  ArgumentParser,
     Register runner selection flags and runner-specific arguments on the given
     ArgumentParser instance.
     """
-    assert default in runners
+    # Not all commands may support the default runner.
+    if default not in runners:
+        default = runners[0]
+
     register_flags(parser, runners, default)
     register_arguments(parser, runners, exec = exec)
 
