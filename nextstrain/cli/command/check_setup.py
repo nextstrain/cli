@@ -19,6 +19,7 @@ Three environments are supported, each of which will be tested:
 
 from functools import partial
 from textwrap import indent
+from .. import config
 from ..types import Options
 from ..util import colored, check_for_new_version, remove_prefix, runner_name
 from ..runner import all_runners
@@ -26,6 +27,12 @@ from ..runner import all_runners
 
 def register_parser(subparser):
     parser = subparser.add_parser("check-setup", help = "Test your local setup")
+
+    parser.add_argument(
+        "--set-default",
+        help   = "Set the default environment to use going forward based on the results of checking your setup",
+        action = "store_true")
+
     return parser
 
 
@@ -94,6 +101,10 @@ def run(opts: Options) -> int:
 
     if supported_runners:
         print("Supported Nextstrain environments:", ", ".join(map(success, supported_runners)))
+
+        if opts.set_default:
+            print("Setting default environment to %s" % supported_runners[0])
+            config.set("core", "runner", supported_runners[0])
     else:
         print(failure("No support for any Nextstrain environment"))
 
