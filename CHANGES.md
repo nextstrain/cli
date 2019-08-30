@@ -1,6 +1,13 @@
 # __NEXT__
 
 
+# 1.11.1 (30 August 2019)
+
+## Bug fixes
+
+* The `check-setup` command no longer errors when Docker isn't installed.
+
+
 # 1.11.0 (30 August 2019)
 
 ## Features
