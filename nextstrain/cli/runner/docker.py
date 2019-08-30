@@ -447,7 +447,7 @@ def image_exists(image: str = DEFAULT_IMAGE) -> bool:
             check = True,
             stdout = subprocess.DEVNULL,
             stderr = subprocess.DEVNULL)
-    except subprocess.CalledProcessError:
+    except:
         return False
     else:
         return True
