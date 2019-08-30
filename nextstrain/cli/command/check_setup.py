@@ -58,12 +58,22 @@ def run(opts: Options) -> int:
             for runner in all_runners
     ]
 
+    runner_status = {
+        runner: False not in [result for test, result in tests]
+            for runner, tests in runner_tests
+    }
+
     # Print test results.  The first print() separates results from the
     # previous header or stderr output, making it easier to read.
     print()
 
     for runner, tests in runner_tests:
-        print(colored("blue", "#"), "%s support" % runner_name(runner))
+        if runner_status[runner]:
+            supported = success("supported")
+        else:
+            supported = failure("not supported")
+
+        print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
 
         for description, result in tests:
             # Indent subsequent lines of any multi-line descriptions so it
@@ -76,21 +86,16 @@ def run(opts: Options) -> int:
         print()
 
     # Print overall status.
-    runner_status = [
-        (runner, False not in [result for test, result in tests])
-            for runner, tests in runner_tests
-    ]
-
     supported_runners = [
         runner_name(runner)
-            for runner, status_ok in runner_status
+            for runner, status_ok in runner_status.items()
              if status_ok
     ]
 
     if supported_runners:
-        print(success("Supported runners: %s" % ", ".join(supported_runners)))
+        print("Supported Nextstrain environments:", ", ".join(map(success, supported_runners)))
     else:
-        print(failure("No support for any runner"))
+        print(failure("No support for any Nextstrain environment"))
 
     # Return a 1 or 0 exit code
     return int(not supported_runners)
