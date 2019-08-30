@@ -7,9 +7,9 @@ Three environments are supported, each of which will be tested:
     be installed and configured on your computer first, but once it is, the
     build environment is robust and reproducible.
 
-  • Your native ambient environment will be tested for snakemake and augur.
-    Their presence implies a working build environment, but does not guarantee
-    it.
+  • Your native ambient environment will be tested for snakemake, augur, and
+    auspice. Their presence implies a working build environment, but does not
+    guarantee it.
 
   • Remote jobs on AWS Batch.  Your AWS account, if credentials are available
     in your environment or via aws-cli configuration, will be tested for the
