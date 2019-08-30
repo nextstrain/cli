@@ -1,6 +1,29 @@
 # __NEXT__
 
 
+# 1.11.0 (30 August 2019)
+
+## Features
+
+* The `view` command now supports `--native` flag to run in the native ambient
+  environment.
+
+* The `check-setup` command now supports a `--set-default` flag to save the
+  first supported environment to the Nextstrain CLI's config file.  This means
+  that you don't have to specify `--native` (or `--aws-batch`) every time if
+  you don't have/want Docker support.
+
+## Bug fixes
+
+* The `--verbose` flag to the `version` command will no longer cause the Docker
+  image to be downloaded when it isn't available locally.
+
+## Documentation
+
+* Describe the somewhat annoying process of how to increase the disk space
+  available to AWS Batch jobs in the AWS Web Console.
+
+
 # 1.10.2 (23 August 2019)
 
 ## Bug fixes
