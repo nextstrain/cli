@@ -1,6 +1,17 @@
 # __NEXT__
 
 
+# 1.11.2 (3 September 2019)
+
+## Bug fixes
+
+* This release fixes a regression in the `view` command which caused
+  "connection reset" or "empty response" errors.  The regression only affected
+  versions 1.11.0 and 1.11.1 of the Nextstrain CLI when used with Auspice 1.38.0
+  via the `nextstrain/base:build-20190828T223744Z` image.  Thanks to Thomas
+  Adams for the excellent bug report!
+
+
 # 1.11.1 (30 August 2019)
 
 ## Bug fixes
