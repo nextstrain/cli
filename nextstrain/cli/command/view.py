@@ -102,6 +102,15 @@ def run(opts):
         # signals.
         "--init",
 
+        # Inside the container, always bind to all interfaces.  This is
+        # required for Docker to forward a port from the container's host into
+        # the container because of how it does port publishing.  Note that
+        # container ports aren't automatically published outside the container,
+        # so this still doesn't allow arbitrary access from the outside world.
+        # The published port on the container's host is still bound to
+        # 127.0.0.1 by default.
+        "--env=HOST=0.0.0.0",
+
         # Publish the port
         "--publish=%s:%d:%d" % (host, port, port),
     ]
