@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.12.0 (5 September 2019)
+
+## Features
+
+* The `deploy` command now supports files other than JSON data files, such as
+  Markdown narratives, by setting the correct content type on upload.
+
+
 # 1.11.2 (3 September 2019)
 
 ## Bug fixes
