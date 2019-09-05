@@ -1,8 +1,9 @@
 """
-Deploys a set of pathogen build JSON data files to a remote location.
+Deploys a set of built pathogen JSON data files or Markdown narratives to a
+remote location.
 
 nextstrain.org, or other instances of the Nextstrain web frontend (auspice),
-fetch the deployed JSON data files for display.
+fetch the deployed JSON data files or Markdown narratives for display.
  
  
 Destinations
@@ -64,7 +65,7 @@ def register_parser(subparser):
     # Files to deploy
     parser.add_argument(
         "files",
-        help    = "JSON data files to deploy",
+        help    = "Files to deploy (e.g. JSON data files)",
         metavar = "<file.json>",
         nargs   = "+")
 

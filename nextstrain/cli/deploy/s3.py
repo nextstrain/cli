@@ -5,6 +5,7 @@ Backend module for the deploy command.
 """
 
 import boto3
+import mimetypes
 import re
 import shutil
 import urllib.parse
@@ -17,6 +18,13 @@ from time import time
 from typing import List
 from .. import aws
 from ..util import warn, remove_prefix
+
+
+# Add these statically so that they're always available, even if there's no
+# system MIME type registry.  These are the most common types of files we
+# expect to deploy.
+mimetypes.add_type("application/json", ".json")
+mimetypes.add_type("text/markdown", ".md")
 
 
 def run(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
@@ -75,7 +83,7 @@ def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
             bucket.upload_fileobj(
                 gzdata,
                 remote_file,
-                { "ContentType": "application/json", "ContentEncoding": "gzip" })
+                { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
 
     return [ remote for local, remote in files ]
 
@@ -95,6 +103,17 @@ def gzip_stream(stream):
     gzstream.seek(0)
 
     return gzstream
+
+
+def content_type(path: Path) -> str:
+    """
+    Guess the content type of *path* from its name.
+
+    If the type is not guessable, returns the generic type
+    ``application/octet-stream``.
+    """
+    type, encoding = mimetypes.guess_type(path.name)
+    return type or "application/octet-stream"
 
 
 def purge_cloudfront(bucket, paths: List[str]) -> None:
