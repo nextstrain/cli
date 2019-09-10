@@ -4,6 +4,7 @@ S3 handling for AWS Batch jobs.
 
 import binascii
 import boto3
+from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
 from pathlib import Path
@@ -179,9 +180,10 @@ def bucket(name: str) -> S3Bucket:
     Load an **existing** bucket from S3.
     """
     bucket = boto3.resource("s3").Bucket(name)
-    bucket.load()
 
-    if not bucket.creation_date:
+    try:
+        boto3.client("s3").head_bucket(Bucket = bucket.name)
+    except ClientError:
         raise ValueError('Bucket named "%s" does not exist' % bucket.name)
 
     return bucket
