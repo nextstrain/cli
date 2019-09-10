@@ -1,6 +1,18 @@
 # __NEXT__
 
 
+# 1.13.0 (10 September 2019)
+
+## Features
+
+* The `deploy` command no longer requires permission to perform the
+  globally-scoped AWS IAM action `s3:ListAllMyBuckets`.  Instead, it uses the
+  `HEAD <bucket>` S3 API which requires either `s3:ListBucket`, which can be
+  scoped to specific buckets in IAM grants, or `s3:HeadBucket`, which is
+  globally-scoped but does not reveal bucket names.  More details on these IAM
+  actions are in the [S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-buckets).
+
+
 # 1.12.0 (5 September 2019)
 
 ## Features
