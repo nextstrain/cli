@@ -1,6 +1,51 @@
 # __NEXT__
 
 
+# 1.14.0b1 (17 September 2019)
+
+## Features
+
+* The `build` command now supports detaching from and re-attaching to builds
+  run on AWS Batch (`--aws-batch`).
+
+  This adds a feature we've wanted from the beginning of the CLI.  By starting
+  the build with `--detach`, a remote job is submitted and the command
+  necessary to `--attach` to the job later is printed.  This command includes
+  the job id and can be used as many times as desired, including while the
+  remote job is running or after it has completed.  It will even work on other
+  computers or for other people, although you may need to modify the local
+  build path to a directory of your choosing.  The directory may be empty, in
+  which case all build context will be restored there from the remote job.
+
+  AWS Batch builds may also be interactively detached by pressing Control-Z.
+  Normally this would suspend a Unix process (which could then be resumed with
+  `fg` or `bg` or SIGCONT), but in the same spirit, `nextstrain build` will
+  detach from the remote job instead and exit the local process.  This also
+  parallels nicely with our existing Control-C job cancellation support.
+
+  There are currently no facilities to track job state locally or list
+  outstanding jobs, but these features may be added later if it seems they'd be
+  useful.  As it stands with this new feature, one pattern for launching
+  multiple detached jobs and picking them up later is:
+
+      # Loop over several `nextstrain build` commands, appending the last
+      # line to a shell script.
+      nextstrain build --aws-batch --detach build-a/ | tail -n1 | tee -a pickup-jobs.sh
+      nextstrain build --aws-batch --detach build-b/ | tail -n1 | tee -a pickup-jobs.sh
+      …
+
+      # Then, sometime later:
+      bash pickup-jobs.sh
+
+* The `--aws-batch` runner for the `build` command no longer requires
+  permission to perform the globally-scoped AWS IAM action
+  `s3:ListAllMyBuckets`.  Instead, it uses the `HEAD <bucket>` S3 API which
+  requires either `s3:ListBucket`, which can be scoped to specific buckets in
+  IAM grants, or `s3:HeadBucket`, which is globally-scoped but does not reveal
+  bucket names.  More details on these IAM actions are in the
+  [S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-buckets).
+
+
 # 1.13.0 (10 September 2019)
 
 ## Features
