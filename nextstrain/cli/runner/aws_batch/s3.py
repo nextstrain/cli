@@ -11,6 +11,7 @@ from pathlib import Path
 from tempfile import TemporaryFile
 from time import struct_time
 from typing import Any, Callable, Generator, Iterable, Optional
+from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 
 
@@ -25,6 +26,18 @@ S3Object = Any
 
 def object_url(object: S3Object) -> str:
     return "s3://{object.bucket_name}/{object.key}".format_map(locals())
+
+
+def object_from_url(s3url: str) -> S3Object:
+    url = urlparse(s3url)
+    key = url.path.lstrip("/")
+
+    assert url.scheme == "s3", \
+        "Object URL %s has scheme %s://, not s3://" % (s3url, url.scheme)
+    assert url.netloc, "Object URL %s is missing a bucket name" % s3url
+    assert key, "Object URL %s is missing an object path/key" % s3url
+
+    return bucket(url.netloc).Object(key)
 
 
 def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:

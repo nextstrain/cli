@@ -40,6 +40,19 @@ def register_parser(subparser):
     # Support --help and --help-all
     add_extended_help_flags(parser)
 
+    parser.add_argument(
+        "--detach",
+        help   = "Run the build in the background, detached from your terminal.  "
+                 "Re-attach later using --attach."
+                 "Currently only supported when also using --aws-batch.",
+        action = "store_true")
+
+    parser.add_argument(
+        "--attach",
+        help = "Re-attach to a --detach'ed build to view output and download results.  "
+               "Currently only supported when also using --aws-batch.",
+        metavar = "<job-id>")
+
     # Positional parameters
     parser.add_argument(
         "directory",
