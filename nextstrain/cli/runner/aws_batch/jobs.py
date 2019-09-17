@@ -33,7 +33,13 @@ class JobState:
         state.
         """
         self.previous_status = self.status
-        self.state = self._client.describe_jobs(jobs = [ self.id ])["jobs"][0]
+
+        jobs = self._client.describe_jobs(jobs = [ self.id ])["jobs"]
+
+        try:
+            self.state = jobs[0]
+        except IndexError as error:
+            raise ValueError("Invalid or unknown job id %s" % self.id) from error
 
     @property
     def status(self) -> str:
