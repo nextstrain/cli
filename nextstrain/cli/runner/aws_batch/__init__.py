@@ -3,7 +3,6 @@ Run commands remotely on AWS Batch inside the Nextstrain container image.
 """
 
 import os
-import shutil
 import subprocess
 from pathlib import Path
 from time import sleep
