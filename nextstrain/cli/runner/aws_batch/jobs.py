@@ -61,10 +61,6 @@ class JobState:
         return self.status in self.INITIAL_STATUS
 
     @property
-    def was_waiting(self) -> bool:
-        return self.previous_status in self.INITIAL_STATUS
-
-    @property
     def is_running(self) -> bool:
         return self.status in self.RUNNING_STATUS
 

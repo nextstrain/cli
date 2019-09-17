@@ -148,7 +148,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
             if job.status_changed and not job.is_complete:
                 print_stage("Job now %s" % job.status)
 
-            if job.is_running and job.was_waiting:
+            if job.is_running and not log_watcher:
                 # Transitioned from waiting → running, so kick off the log watcher.
                 log_watcher = job.log_watcher(consumer = print_job_log)
                 log_watcher.start()
