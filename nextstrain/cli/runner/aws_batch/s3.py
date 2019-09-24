@@ -4,12 +4,14 @@ S3 handling for AWS Batch jobs.
 
 import binascii
 import boto3
+from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
 from pathlib import Path
 from tempfile import TemporaryFile
 from time import struct_time
 from typing import Any, Callable, Generator, Iterable, Optional
+from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 
 
@@ -24,6 +26,18 @@ S3Object = Any
 
 def object_url(object: S3Object) -> str:
     return "s3://{object.bucket_name}/{object.key}".format_map(locals())
+
+
+def object_from_url(s3url: str) -> S3Object:
+    url = urlparse(s3url)
+    key = url.path.lstrip("/")
+
+    assert url.scheme == "s3", \
+        "Object URL %s has scheme %s://, not s3://" % (s3url, url.scheme)
+    assert url.netloc, "Object URL %s is missing a bucket name" % s3url
+    assert key, "Object URL %s is missing an object path/key" % s3url
+
+    return bucket(url.netloc).Object(key)
 
 
 def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
@@ -179,9 +193,10 @@ def bucket(name: str) -> S3Bucket:
     Load an **existing** bucket from S3.
     """
     bucket = boto3.resource("s3").Bucket(name)
-    bucket.load()
 
-    if not bucket.creation_date:
+    try:
+        boto3.client("s3").head_bucket(Bucket = bucket.name)
+    except ClientError:
         raise ValueError('Bucket named "%s" does not exist' % bucket.name)
 
     return bucket

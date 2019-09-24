@@ -21,6 +21,8 @@ class JobState:
     RUNNING_STATUS  = { 'RUNNING' }
     TERMINAL_STATUS = { 'SUCCEEDED', 'FAILED' }
 
+    STOP_REASON = "stopped by user"
+
     def __init__(self, job_id):
         self.id              = job_id
         self.state           = {}
@@ -33,7 +35,13 @@ class JobState:
         state.
         """
         self.previous_status = self.status
-        self.state = self._client.describe_jobs(jobs = [ self.id ])["jobs"][0]
+
+        jobs = self._client.describe_jobs(jobs = [ self.id ])["jobs"]
+
+        try:
+            self.state = jobs[0]
+        except IndexError as error:
+            raise ValueError("Invalid or unknown job id %s" % self.id) from None
 
     @property
     def status(self) -> str:
@@ -61,10 +69,6 @@ class JobState:
         return self.status in self.INITIAL_STATUS
 
     @property
-    def was_waiting(self) -> bool:
-        return self.previous_status in self.INITIAL_STATUS
-
-    @property
     def is_running(self) -> bool:
         return self.status in self.RUNNING_STATUS
 
@@ -86,6 +90,16 @@ class JobState:
     @property
     def exit_code(self) -> Optional[int]:
         return self.state.get("container", {}).get("exitCode")
+
+    @property
+    def workdir(self) -> Optional[str]:
+        env = {
+            var["name"]: var["value"]
+                for var in self.state.get("container", {}).get("environment", []) }
+
+        url = env.get("NEXTSTRAIN_AWS_BATCH_WORKDIR_URL")
+
+        return s3.object_from_url(url) if url else None
 
     def log_entries(self) -> Generator[dict, None, None]:
         """
@@ -109,11 +123,15 @@ class JobState:
 
         return logs.LogWatcher(self.log_stream, consumer)
 
-    def stop(self, reason = "stopped by user") -> None:
+    def stop(self) -> None:
         """
         Stop the job, regardless of if it has started yet or not.
         """
-        self._client.terminate_job(jobId = self.id, reason = reason)
+        self._client.terminate_job(jobId = self.id, reason = self.STOP_REASON)
+
+    @property
+    def stopped(self) -> bool:
+        return self.status_reason == self.STOP_REASON
 
 
 def submit(name: str,
@@ -156,6 +174,17 @@ def submit(name: str,
     job_id = submission["jobId"]
 
     return JobState(job_id)
+
+
+def lookup(job_id: str) -> JobState:
+    """
+    Lookup an AWS Batch job by its id.
+
+    Returns a JobState object.
+    """
+    job = JobState(job_id)
+    job.update()
+    return job
 
 
 def forwarded_environment() -> List[dict]:

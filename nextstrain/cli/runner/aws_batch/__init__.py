@@ -3,12 +3,15 @@ Run commands remotely on AWS Batch inside the Nextstrain container image.
 """
 
 import os
-import shutil
+import shlex
+import signal
 import subprocess
 from pathlib import Path
+from sys import exit
+from textwrap import dedent
 from time import sleep
 from uuid import uuid4
-from ...types import RunnerTestResults
+from ...types import RunnerTestResults, Tuple
 from ...util import colored, resolve_path, warn
 from ... import config
 from . import jobs, logs, s3
@@ -79,57 +82,92 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env = {}) -> int:
-    # Generate our own unique run id since we can't know the AWS Batch job id
-    # until we submit it.  This run id is used for workdir and run results
-    # storage on S3, in a bucket accessible to both Batch jobs and CLI users.
-    run_id = generate_run_id()
-
-    print_stage("Nextstrain Run ID:", run_id)
-
-
-    # Upload workdir to S3 so it can be fetched at the start of the Batch job.
     local_workdir = resolve_path(working_volume.src)
 
-    print_stage("Uploading %s to S3" % local_workdir)
+    if opts.attach:
+        print_stage("Attaching to Nextstrain AWS Batch Job ID:", opts.attach)
+        job = jobs.lookup(opts.attach)
 
-    bucket = s3.bucket(opts.s3_bucket)
-    remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id)
+        # Read remote workdir from the job description
+        remote_workdir = job.workdir
 
-    print("uploaded:", s3.object_url(remote_workdir))
+        if not remote_workdir:
+            warn(dedent("""
+                Error determining remote workdir of job.
+
+                This is probably a bug.  Please open an issue on GitHub
+                <https://github.com/nextstrain/cli/issues/new> or send an
+                email to <hello@nextstrain.org> for help.
+                """))
+            return 1
+    else:
+        # Generate our own unique run id since we can't know the AWS Batch job id
+        # until we submit it.  This run id is used for workdir and run results
+        # storage on S3, in a bucket accessible to both Batch jobs and CLI users.
+        run_id = generate_run_id()
+
+        print_stage("Nextstrain Run ID:", run_id)
+
+        # Upload workdir to S3 so it can be fetched at the start of the Batch job.
+        print_stage("Uploading %s to S3" % local_workdir)
+
+        bucket = s3.bucket(opts.s3_bucket)
+        remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id)
+
+        print("uploaded:", s3.object_url(remote_workdir))
 
 
-    # Submit job.
-    print_stage("Submitting job")
+        # Submit job.
+        print_stage("Submitting job")
 
+        try:
+            job = jobs.submit(
+                name       = run_id,
+                queue      = opts.job_queue,
+                definition = opts.job_definition,
+                cpus       = opts.cpus,
+                memory     = opts.memory,
+                workdir    = remote_workdir,
+                exec       = argv,
+                env        = extra_env)
+        except Exception as error:
+            warn(error)
+            warn("Job submission failed!")
+            return 1
+
+        print_stage("AWS Batch Job ID:", job.id)
+
+        # Optionally detach and return early.
+        if opts.detach:
+            return detach(job, local_workdir)
+
+
+    # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
+    # we guard this non-essential feature.
     try:
-        job = jobs.submit(
-            name       = run_id,
-            queue      = opts.job_queue,
-            definition = opts.job_definition,
-            cpus       = opts.cpus,
-            memory     = opts.memory,
-            workdir    = remote_workdir,
-            exec       = argv,
-            env        = extra_env)
-    except Exception as error:
-        warn(error)
-        warn("Job submission failed!")
-        return 1
+        SIGTSTP = signal.SIGTSTP
+    except AttributeError:
+        SIGTSTP = None # type: ignore
+    else:
+        def handler(sig, frame):
+            exit(detach(job, local_workdir))
+        signal.signal(SIGTSTP, handler)
 
-    print_stage("AWS Batch Job ID:", job.id)
-
-    # XXX TODO: It might be nice in the future to support an --unattended
-    # option which stops at this point and prompts you to download results
-    # later using the run id, e.g.
-    #
-    #    nextstrain build --aws-batch --resume 5d0a102e-df3e-418a-aef7-3283ea77563a zika/
-    #
-    # I planned support for this originally but am punting on it for now in the
-    # interest of getting this feature out the door.
-    #   -trs, 14 Sept 2018
 
     # Watch job status and tail logs.
     print_stage("Watching job status")
+
+    if SIGTSTP:
+        control_hints = """
+            Press Control-C to cancel this job,
+                  Control-Z to detach from it.
+            """
+    else:
+        control_hints = """
+            Press Control-C to cancel this job.
+            """
+
+    print(dedent(control_hints))
 
     log_watcher = None
     stop_sent = False
@@ -149,7 +187,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
             if job.status_changed and not job.is_complete:
                 print_stage("Job now %s" % job.status)
 
-            if job.is_running and job.was_waiting:
+            if job.is_running and not log_watcher:
                 # Transitioned from waiting → running, so kick off the log watcher.
                 log_watcher = job.log_watcher(consumer = print_job_log)
                 log_watcher.start()
@@ -189,7 +227,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
 
 
     # Download results if we didn't stop the job early.
-    if not stop_sent:
+    if not stop_sent and not job.stopped:
         print_stage("Downloading files modified by job to %s" % local_workdir)
 
         s3.download_workdir(remote_workdir, local_workdir)
@@ -197,6 +235,33 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
 
     # Exit with the job's exit code, or assume success
     return job.exit_code or 0
+
+
+def detach(job: jobs.JobState, local_workdir: Path) -> int:
+    """
+    Detach from the specified *job* and print a message about how to re-attach
+    (using the *local_workdir*).
+    """
+    print("")
+    print_stage("Detaching from job, as requested")
+
+    reattach_cmd = " ".join([
+        "nextstrain",
+        "build",
+        "--aws-batch",
+        "--attach", shlex.quote(job.id),
+
+        # Preserve the local workdir, which has been resolved to an absolute path
+        shlex.quote(str(local_workdir))
+    ])
+
+    print(dedent("""
+        Run the following command to re-attach to this job later to see output
+        and download results:
+
+        %s""") % (reattach_cmd,))
+
+    return 0
 
 
 def print_stage(stage, *args):
