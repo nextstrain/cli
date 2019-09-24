@@ -1,6 +1,11 @@
 # __NEXT__
 
 
+# 1.14.0 (24 September 2019)
+
+_No changes since 1.14.0b1, described below._
+
+
 # 1.14.0b1 (17 September 2019)
 
 ## Features
