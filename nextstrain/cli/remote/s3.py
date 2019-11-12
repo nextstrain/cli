@@ -1,7 +1,7 @@
 """
-Deploy to S3 with automatic CloudFront invalidation.
+S3 remote with automatic CloudFront invalidation.
 
-Backend module for the deploy command.
+Backend module for the deploy family of commands.
 """
 
 import boto3
@@ -27,7 +27,7 @@ mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def run(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
+def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     # Require a bucket name
     if not url.netloc:
         warn("No bucket name specified in url (%s)" % url.geturl())

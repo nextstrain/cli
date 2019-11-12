@@ -45,7 +45,7 @@ A persistent credentials file, ~/.aws/credentials, is also supported:
 from pathlib import Path
 from urllib.parse import urlparse
 from ..util import warn
-from ..deploy import s3
+from ..remote import s3
 
 
 SUPPORTED_SCHEMES = {
@@ -81,7 +81,7 @@ def run(opts):
         warn("Supported schemes are: %s" % ", ".join(SUPPORTED_SCHEMES))
         return 1
 
-    deploy = SUPPORTED_SCHEMES[url.scheme]
+    remote = SUPPORTED_SCHEMES[url.scheme]
     files  = [Path(f) for f in opts.files]
 
-    return deploy.run(url, files)
+    return remote.deploy(url, files)
