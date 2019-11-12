@@ -14,10 +14,12 @@ from gzip import GzipFile
 from io import BytesIO
 from os.path import commonprefix
 from pathlib import Path
+from textwrap import dedent
 from time import time
-from typing import List
+from typing import List, Tuple
 from .. import aws
 from ..util import warn, remove_prefix
+from ..errors import UserError
 
 
 # Add these statically so that they're always available, even if there's no
@@ -28,31 +30,10 @@ mimetypes.add_type("text/markdown", ".md")
 
 
 def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
-    # Require a bucket name
-    if not url.netloc:
-        warn("No bucket name specified in url (%s)" % url.geturl())
-        return 1
-
-    # Remove leading slashes from any destination path in order to use it as a
-    # prefix for uploaded files.  Internal and trailing slashes are untouched.
-    prefix = url.path.lstrip("/")
-
     try:
-        bucket = boto3.resource("s3").Bucket(url.netloc)
-
-    except (NoCredentialsError, PartialCredentialsError) as error:
-        warn("Error authenticating with S3: %s" % error)
-        return 1
-
-    # Find the bucket and ensure we have access and that it already exists so
-    # we don't automagically create new buckets.
-    try:
-        boto3.client("s3").head_bucket(Bucket = bucket.name)
-
-    except ClientError as error:
-        warn('No bucket exists with the name "%s".' % bucket.name)
-        warn()
-        warn("Buckets are not automatically created for safety reasons.")
+        bucket, prefix = split_url(url)
+    except UserError as error:
+        warn(error)
         return 1
 
     # Upload files
@@ -62,6 +43,40 @@ def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     purge_cloudfront(bucket, remote_files)
 
     return 0
+
+
+def split_url(url: urllib.parse.ParseResult) -> Tuple:
+    """
+    Splits the given s3:// *url* into a Bucket object and normalized path
+    with some sanity checking.
+    """
+    # Require a bucket name
+    if not url.netloc:
+        raise UserError("No bucket name specified in url (%s)" % url.geturl())
+
+    # Remove leading slashes from any destination path in order to use it as a
+    # prefix for uploaded files.  Internal and trailing slashes are untouched.
+    prefix = url.path.lstrip("/")
+
+    try:
+        bucket = boto3.resource("s3").Bucket(url.netloc)
+
+    except (NoCredentialsError, PartialCredentialsError) as error:
+        raise UserError("Error authenticating with S3: %s" % error) from error
+
+    # Find the bucket and ensure we have access and that it already exists so
+    # we don't automagically create new buckets.
+    try:
+        boto3.client("s3").head_bucket(Bucket = bucket.name)
+
+    except ClientError as error:
+        raise UserError(dedent('''\
+            No bucket exists with the name "%s".
+
+            Buckets are not automatically created for safety reasons.
+            ''' % bucket.name))
+
+    return bucket, prefix
 
 
 def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
