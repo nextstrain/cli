@@ -37,16 +37,17 @@ def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     # prefix for uploaded files.  Internal and trailing slashes are untouched.
     prefix = url.path.lstrip("/")
 
-    bucket = boto3.resource("s3").Bucket(url.netloc)
+    try:
+        bucket = boto3.resource("s3").Bucket(url.netloc)
+
+    except (NoCredentialsError, PartialCredentialsError) as error:
+        warn("Error authenticating with S3: %s" % error)
+        return 1
 
     # Find the bucket and ensure we have access and that it already exists so
     # we don't automagically create new buckets.
     try:
         boto3.client("s3").head_bucket(Bucket = bucket.name)
-
-    except (NoCredentialsError, PartialCredentialsError) as error:
-        warn("Error:", error)
-        return 1
 
     except ClientError as error:
         warn('No bucket exists with the name "%s".' % bucket.name)
