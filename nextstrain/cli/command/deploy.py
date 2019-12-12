@@ -2,8 +2,8 @@
 Deploys a set of built pathogen JSON data files or Markdown narratives to a
 remote location.
 
-nextstrain.org, or other instances of the Nextstrain web frontend (auspice),
-fetch the deployed JSON data files or Markdown narratives for display.
+nextstrain.org, or standalone instances of Auspice, fetch the deployed JSON
+data files or Markdown narratives for display.
  
  
 Destinations
