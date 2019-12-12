@@ -7,17 +7,15 @@ Backend module for the deploy family of commands.
 import boto3
 import mimetypes
 import re
-import shutil
 import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
-from gzip import GzipFile
-from io import BytesIO
 from os.path import commonprefix
 from pathlib import Path
 from textwrap import dedent
 from time import time
 from typing import List, Tuple
 from .. import aws
+from ..gzip import GzipCompressingReader
 from ..util import warn, remove_prefix
 from ..errors import UserError
 
@@ -97,30 +95,13 @@ def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
         print("Deploying", local_file, "as", remote_file)
 
         # Upload compressed data
-        with local_file.open("rb") as data, gzip_stream(data) as gzdata:
+        with GzipCompressingReader(local_file.open("rb")) as gzdata:
             bucket.upload_fileobj(
                 gzdata,
                 remote_file,
                 { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
 
     return [ remote for local, remote in files ]
-
-
-def gzip_stream(stream):
-    """
-    Takes an IO stream and compresses it in-memory with gzip.  Returns a
-    BytesIO stream of compressed data.
-    """
-    gzstream = BytesIO()
-
-    # Pass the original contents through gzip into memory
-    with GzipFile(fileobj = gzstream, mode = "wb") as gzfile:
-        shutil.copyfileobj(stream, gzfile)
-
-    # Re-seek the compressed data to the start
-    gzstream.seek(0)
-
-    return gzstream
 
 
 def content_type(path: Path) -> str:
