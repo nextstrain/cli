@@ -15,7 +15,7 @@ from os.path import commonprefix
 from pathlib import Path
 from textwrap import dedent
 from time import time
-from typing import List, Tuple
+from typing import Iterable, List, Tuple
 from .. import aws
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
@@ -30,7 +30,7 @@ mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, Path]]:
     """
     Upload the *local_files* to the bucket and optional prefix specified by *url*.
     """
@@ -43,7 +43,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
 
     for local_file, remote_file in files:
-        print("Uploading", local_file, "as", remote_file)
+        yield local_file, Path(remote_file)
 
         # Upload compressed data
         with GzipCompressingReader(local_file.open("rb")) as gzdata:
@@ -55,10 +55,8 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     # Purge any CloudFront caches for this bucket
     purge_cloudfront(bucket, [remote for local, remote in files])
 
-    return 0
 
-
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> int:
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[Path, Path]]:
     """
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
@@ -79,33 +77,26 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             return local_path
 
     files = list(zip(objects, [local_file_path(obj) for obj in objects]))
-    downloaded = 0
 
     for remote_object, local_file in files:
-        print("Downloading", remote_object.key, "as", local_file)
+        yield Path(remote_object.key), local_file
 
         encoding = remote_object.content_encoding
 
         with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
             remote_object.download_fileobj(file)
-            downloaded += 1
-
-    return 0 if downloaded == len(files) else 1
 
 
-def ls(url: urllib.parse.ParseResult) -> int:
+def ls(url: urllib.parse.ParseResult) -> Iterable[Path]:
     """
     List the files deployed at the given remote *url*.
     """
     bucket, prefix = split_url(url)
 
-    for object in bucket.objects.filter(Prefix = prefix):
-        print(object.key)
-
-    return 0
+    return [ Path(obj.key) for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Tuple[Iterable[str], Iterable[Tuple[str, ...]]]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
     """
@@ -124,7 +115,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
                  if obj.key == path
         ]
 
-    # Print results.
+    # Collect results.
     def results(response_field, result_fields, responses):
         results_ = (
             chain.from_iterable(
@@ -136,18 +127,10 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
     deleted = results("Deleted", ("Key",), responses)
     errors = results("Errors", ("Key", "Message", "Code"), responses)
 
-    for key in deleted:
-        print("deleted: %s" % key)
-
-    for key, message, code in errors:
-        warn('failed to delete "%s": %s [%s]' % (key, message, code))
-
     if deleted:
         purge_cloudfront(bucket, deleted)
-    else:
-        warn("Nothing deleted!")
 
-    return 0 if deleted and not errors else 1
+    return deleted, errors
 
 
 def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:

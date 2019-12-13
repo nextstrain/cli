@@ -44,4 +44,15 @@ def run(opts):
 
     remote = SUPPORTED_SCHEMES[url.scheme]
 
-    return remote.delete(url, recursively = opts.recursively)
+    deleted, errors = remote.delete(url, recursively = opts.recursively)
+
+    for file in deleted:
+        print("deleted: %s" % file)
+
+    for file, *details in errors:
+        warn('failed to delete "%s": %s' % (file, details))
+
+    if not deleted:
+        warn("Nothing deleted!")
+
+    return 0 if deleted and not errors else 1

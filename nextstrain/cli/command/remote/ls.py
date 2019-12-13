@@ -45,6 +45,10 @@ def run(opts):
 
     remote = SUPPORTED_SCHEMES[url.scheme]
 
-    # XXX FIXME: return list of paths rather than only an int
+    files = remote.ls(url)
+
     # XXX TODO: sort objects by parts
-    return remote.ls(url)
+    for file in files:
+        print(file)
+
+    return 0

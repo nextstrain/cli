@@ -68,4 +68,9 @@ def run(opts):
         warn("Local path must be a directory when using --recursively; «%s» is not" % opts.local_path)
         return 1
 
-    return remote.download(url, opts.local_path, recursively = opts.recursively)
+    downloads = remote.download(url, opts.local_path, recursively = opts.recursively)
+
+    for remote_file, local_file in downloads:
+        print("Downloading", remote_file, "as", local_file)
+
+    return 0

@@ -58,4 +58,9 @@ def run(opts):
     remote = SUPPORTED_SCHEMES[url.scheme]
     files  = [Path(f) for f in opts.files]
 
-    return remote.upload(url, files)
+    uploads = remote.upload(url, files)
+
+    for local_file, remote_file in uploads:
+        print("Uploading", local_file, "as", remote_file)
+
+    return 0
