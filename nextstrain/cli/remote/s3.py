@@ -30,13 +30,29 @@ mimetypes.add_type("text/markdown", ".md")
 
 
 def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
+    """
+    Upload the *local_files* to the bucket and optional prefix specified by *url*.
+    """
     bucket, prefix = split_url(url)
 
-    # Upload files
-    remote_files = upload_(local_files, bucket, prefix)
+    # Create a set of (local name, remote name) tuples.  S3 is a key-value
+    # store, not a filesystem, so this remote name prefixing is intentionally a
+    # pure string prefix instead of a path-based prefix (which assumes
+    # directory structure semantics).
+    files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
+
+    for local_file, remote_file in files:
+        print("Uploading", local_file, "as", remote_file)
+
+        # Upload compressed data
+        with GzipCompressingReader(local_file.open("rb")) as gzdata:
+            bucket.upload_fileobj(
+                gzdata,
+                remote_file,
+                { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
 
     # Purge any CloudFront caches for this bucket
-    purge_cloudfront(bucket, remote_files)
+    purge_cloudfront(bucket, [remote for local, remote in files])
 
     return 0
 
@@ -165,33 +181,6 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple:
             ''' % bucket.name))
 
     return bucket, prefix
-
-
-def upload_(local_files: List[Path], bucket, prefix: str) -> List[str]:
-    """
-    Upload a set of local file paths to the given bucket under a specified
-    prefix.
-
-    Returns a list of remote file names.
-    """
-
-    # Create a set of (local name, remote name) tuples.  S3 is a key-value
-    # store, not a filesystem, so this remote name prefixing is intentionally a
-    # pure string prefix instead of a path-based prefix (which assumes
-    # directory structure semantics).
-    files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
-
-    for local_file, remote_file in files:
-        print("Uploading", local_file, "as", remote_file)
-
-        # Upload compressed data
-        with GzipCompressingReader(local_file.open("rb")) as gzdata:
-            bucket.upload_fileobj(
-                gzdata,
-                remote_file,
-                { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
-
-    return [ remote for local, remote in files ]
 
 
 def content_type(path: Path) -> str:
