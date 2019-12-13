@@ -41,6 +41,15 @@ def register_commands(parser, commands):
         if not subparser.description and cmd.__doc__:
             subparser.description = cmd.__doc__
 
+        # Recursively register any subcommands
+        if getattr(subparser, "subcommands", None):
+            register_commands(subparser, subparser.subcommands)
+
+            # If a command with subcommands doesn't have its own run()
+            # function, then print its help when called without a subcommand.
+            if not getattr(cmd, "run", None):
+                register_default_command(subparser)
+
 
 def add_extended_help_flags(parser):
     """
