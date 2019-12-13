@@ -18,6 +18,11 @@ forwarded_names = [
     # Augur <https://nextstrain-augur.readthedocs.io/en/stable/envvars.html>
     "AUGUR_RECURSION_LIMIT",
     "AUGUR_MINIFY_JSON",
+
+    # ID3C
+    "ID3C_URL",
+    "ID3C_USERNAME",
+    "ID3C_PASSWORD"
 ]
 
 
