@@ -30,11 +30,7 @@ mimetypes.add_type("text/markdown", ".md")
 
 
 def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
-    try:
-        bucket, prefix = split_url(url)
-    except UserError as error:
-        warn(error)
-        return 1
+    bucket, prefix = split_url(url)
 
     # Upload files
     remote_files = upload_(local_files, bucket, prefix)
@@ -50,11 +46,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
     """
-    try:
-        bucket, path = split_url(url)
-    except UserError as error:
-        warn(error)
-        return 1
+    bucket, path = split_url(url)
 
     # Download either all objects sharing a prefix or the sole object (if any)
     # with the given key.
@@ -88,11 +80,7 @@ def ls(url: urllib.parse.ParseResult) -> int:
     """
     List the files deployed at the given remote *url*.
     """
-    try:
-        bucket, prefix = split_url(url)
-    except UserError as error:
-        warn(error)
-        return 1
+    bucket, prefix = split_url(url)
 
     for object in bucket.objects.filter(Prefix = prefix):
         print(object.key)
@@ -104,11 +92,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
     """
-    try:
-        bucket, path = split_url(url)
-    except UserError as error:
-        warn(error)
-        return 1
+    bucket, path = split_url(url)
 
     # Delete either all objects sharing a prefix or the sole object (if any)
     # with the given key.  Both methods return the same results data structure.
