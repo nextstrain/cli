@@ -47,7 +47,6 @@ def run(opts):
 
     files = remote.ls(url)
 
-    # XXX TODO: sort objects by parts
     for file in files:
         print(file)
 
