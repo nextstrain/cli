@@ -82,6 +82,22 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     return 0 if downloaded == len(files) else 1
 
 
+def ls(url: urllib.parse.ParseResult) -> int:
+    """
+    List the files deployed at the given remote *url*.
+    """
+    try:
+        bucket, prefix = split_url(url)
+    except UserError as error:
+        warn(error)
+        return 1
+
+    for object in bucket.objects.filter(Prefix = prefix):
+        print(object.key)
+
+    return 0
+
+
 def split_url(url: urllib.parse.ParseResult) -> Tuple:
     """
     Splits the given s3:// *url* into a Bucket object and normalized path
