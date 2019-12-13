@@ -1,7 +1,7 @@
 """
 S3 remote with automatic CloudFront invalidation.
 
-Backend module for the deploy family of commands.
+Backend module for the remote family of commands.
 """
 
 import boto3
@@ -22,12 +22,12 @@ from ..errors import UserError
 
 # Add these statically so that they're always available, even if there's no
 # system MIME type registry.  These are the most common types of files we
-# expect to deploy.
+# expect to upload.
 mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     try:
         bucket, prefix = split_url(url)
     except UserError as error:
@@ -35,7 +35,7 @@ def deploy(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
         return 1
 
     # Upload files
-    remote_files = upload(local_files, bucket, prefix)
+    remote_files = upload_(local_files, bucket, prefix)
 
     # Purge any CloudFront caches for this bucket
     purge_cloudfront(bucket, remote_files)
@@ -77,7 +77,7 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple:
     return bucket, prefix
 
 
-def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
+def upload_(local_files: List[Path], bucket, prefix: str) -> List[str]:
     """
     Upload a set of local file paths to the given bucket under a specified
     prefix.
@@ -92,7 +92,7 @@ def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
     files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
 
     for local_file, remote_file in files:
-        print("Deploying", local_file, "as", remote_file)
+        print("Uploading", local_file, "as", remote_file)
 
         # Upload compressed data
         with GzipCompressingReader(local_file.open("rb")) as gzdata:

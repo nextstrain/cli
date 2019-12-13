@@ -9,7 +9,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescripti
 from types    import SimpleNamespace
 
 from .argparse    import register_commands, register_default_command
-from .command     import build, view, deploy, shell, update, check_setup, version
+from .command     import build, view, deploy, remote, shell, update, check_setup, version
 from .__version__ import __version__
 
 
@@ -37,6 +37,7 @@ def run(args):
         build,
         view,
         deploy,
+        remote,
         shell,
         update,
         check_setup,
