@@ -55,3 +55,59 @@ class GzipCompressingReader(BufferedIOBase):
                 self.stream.close()
             finally:
                 self.stream = None
+
+
+class GzipDecompressingWriter(BufferedIOBase):
+    """
+    Decompress a gzip data stream as it is being written.
+
+    The constructor takes an existing, writable byte *stream*.  Data written to
+    this class's :meth:`.write` will be decompressed and then passed along to
+    the destination *stream*.
+    """
+    # Offset of 32 means we will accept a zlib or gzip encapsulation, per
+    # <https://docs.python.org/3/library/zlib.html#zlib.decompress>.  Seems no
+    # downside to applying Postel's Law here.
+    #
+    def __init__(self, stream: BinaryIO):
+        if not stream.writable():
+            raise ValueError('"stream" argument must be writable.')
+
+        self.stream = stream
+        self.__gunzip = zlib.decompressobj(32 + zlib.MAX_WBITS)
+
+    def writable(self):
+        return True
+
+    def write(self, data: bytes):
+        return self.stream.write(self.__gunzip.decompress(data))
+
+    def flush(self):
+        super().flush()
+        self.stream.flush()
+
+    def close(self):
+        if self.stream:
+            try:
+                self.stream.write(self.__gunzip.flush())
+                self.stream.close()
+            finally:
+                self.stream = None
+                self.__gunzip = None
+
+
+def ContentDecodingWriter(encoding, stream):
+    """
+    Wrap a writeable *stream* in a layer which decodes *encoding*.
+
+    *encoding* is expected to be a ``Content-Encoding`` HTTP header value.
+    ``gzip`` and ``deflate`` are supported.  Unsupported values will issue a
+    warning and return the *stream* unwrapped.  An *encoding* of ``None`` will
+    also return the stream unwrapped, but without a warning.
+    """
+    if encoding is not None and encoding.lower() in {"gzip", "deflate"}:
+        return GzipDecompressingWriter(stream)
+    else:
+        if encoding is not None:
+            warn("Ignoring unknown content encoding «%s»" % encoding)
+        return stream

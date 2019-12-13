@@ -15,7 +15,7 @@ from textwrap import dedent
 from time import time
 from typing import List, Tuple
 from .. import aws
-from ..gzip import GzipCompressingReader
+from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
 
@@ -41,6 +41,45 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
     purge_cloudfront(bucket, remote_files)
 
     return 0
+
+
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> int:
+    """
+    Download the files deployed at the given remote *url*, optionally
+    *recursively*, saving them into the *local_dir*.
+    """
+    try:
+        bucket, path = split_url(url)
+    except UserError as error:
+        warn(error)
+        return 1
+
+    # Download either all objects sharing a prefix or the sole object (if any)
+    # with the given key.
+    if recursively:
+        objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
+    else:
+        objects = [ bucket.Object(path) ]
+
+    def local_file_path(obj):
+        if local_path.is_dir():
+            return local_path / Path(obj.key).name
+        else:
+            return local_path
+
+    files = list(zip(objects, [local_file_path(obj) for obj in objects]))
+    downloaded = 0
+
+    for remote_object, local_file in files:
+        print("Downloading", remote_object.key, "as", local_file)
+
+        encoding = remote_object.content_encoding
+
+        with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
+            remote_object.download_fileobj(file)
+            downloaded += 1
+
+    return 0 if downloaded == len(files) else 1
 
 
 def split_url(url: urllib.parse.ParseResult) -> Tuple:
