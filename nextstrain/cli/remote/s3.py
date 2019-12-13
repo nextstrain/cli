@@ -20,6 +20,7 @@ from .. import aws
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
+from ..types import S3Bucket
 
 
 # Add these statically so that they're always available, even if there's no
@@ -149,7 +150,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
     return 0 if deleted and not errors else 1
 
 
-def split_url(url: urllib.parse.ParseResult) -> Tuple:
+def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
     """
     Splits the given s3:// *url* into a Bucket object and normalized path
     with some sanity checking.
