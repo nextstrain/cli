@@ -29,7 +29,7 @@ A persistent credentials file, ~/.aws/credentials, is also supported:
 __shortdoc__ = __doc__.strip().splitlines()[0]
 
 
-from . import upload, download, ls
+from . import upload, download, ls, delete
 
 
 def register_parser(subparser):
@@ -39,6 +39,7 @@ def register_parser(subparser):
         upload,
         download,
         ls,
+        delete,
     ]
 
     return parser

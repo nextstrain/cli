@@ -9,6 +9,8 @@ import mimetypes
 import re
 import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
+from itertools import chain
+from operator import itemgetter, methodcaller
 from os.path import commonprefix
 from pathlib import Path
 from textwrap import dedent
@@ -96,6 +98,55 @@ def ls(url: urllib.parse.ParseResult) -> int:
         print(object.key)
 
     return 0
+
+
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> int:
+    """
+    Delete the files deployed at the given remote *url*, optionally *recursively*.
+    """
+    try:
+        bucket, path = split_url(url)
+    except UserError as error:
+        warn(error)
+        return 1
+
+    # Delete either all objects sharing a prefix or the sole object (if any)
+    # with the given key.  Both methods return the same results data structure.
+    objects = bucket.objects.filter(Prefix = path)
+
+    if recursively:
+        responses = objects.delete()
+    else:
+        responses = [
+            { **obj.delete(), "Deleted": [{"Key": obj.key}] }
+                for obj in objects
+                 if obj.key == path
+        ]
+
+    # Print results.
+    def results(response_field, result_fields, responses):
+        results_ = (
+            chain.from_iterable(
+                response.get(response_field, [])
+                    for response in responses))
+
+        return list(map(itemgetter(*result_fields), results_))
+
+    deleted = results("Deleted", ("Key",), responses)
+    errors = results("Errors", ("Key", "Message", "Code"), responses)
+
+    for key in deleted:
+        print("deleted: %s" % key)
+
+    for key, message, code in errors:
+        warn('failed to delete "%s": %s [%s]' % (key, message, code))
+
+    if deleted:
+        purge_cloudfront(bucket, deleted)
+    else:
+        warn("Nothing deleted!")
+
+    return 0 if deleted and not errors else 1
 
 
 def split_url(url: urllib.parse.ParseResult) -> Tuple:
