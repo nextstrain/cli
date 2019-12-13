@@ -10,6 +10,11 @@ from typing import List, Tuple
 # build/runner environments (e.g. the Docker container or AWS Batch job).  This
 # is intended to be a central, authoritative list.
 
+# XXX TODO: Remove build-specific variables below (which don't belong in this
+# generic CLI tool) in favor of another mechanism for consistently passing
+# environment variables into the containers.
+#   -trs, 13 Dec 2019
+
 forwarded_names = [
     # RethinkDB credentials
     "RETHINK_HOST",
