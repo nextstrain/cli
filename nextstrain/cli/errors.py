@@ -7,4 +7,5 @@ class NextstrainCliError(Exception):
     pass
 
 class UserError(NextstrainCliError):
-    pass
+    def __init__(self, message, *args, **kwargs):
+        super().__init__("Error: " + message, *args, **kwargs)

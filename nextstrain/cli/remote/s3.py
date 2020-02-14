@@ -150,7 +150,7 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
         bucket = boto3.resource("s3").Bucket(url.netloc)
 
     except (NoCredentialsError, PartialCredentialsError) as error:
-        raise UserError("Error authenticating with S3: %s" % error) from error
+        raise UserError("Unable to authenticate with S3: %s" % error) from error
 
     # Find the bucket and ensure we have access and that it already exists so
     # we don't automagically create new buckets.
