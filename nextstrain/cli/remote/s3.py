@@ -105,6 +105,12 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Tuple[It
     """
     bucket, path = split_url(url)
 
+    # Prevent unintentionally deleting everything recursively.  It also makes
+    # sense for non-recursive deletion, since we don't support deleting the
+    # bucket itself.
+    if not path:
+        raise UserError("No path specified for deletion.")
+
     # Delete either all objects sharing a prefix or the sole object (if any)
     # with the given key.  Both methods return the same results data structure.
     objects = bucket.objects.filter(Prefix = path)
