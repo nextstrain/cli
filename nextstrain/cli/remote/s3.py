@@ -20,7 +20,7 @@ from .. import aws
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
-from ..types import S3Bucket
+from ..types import S3Bucket, S3Object
 
 
 # Add these statically so that they're always available, even if there's no
@@ -80,6 +80,9 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
     for remote_object, local_file in files:
         yield Path(remote_object.key), local_file
+
+        if not exists(remote_object):
+            raise UserError("The file s3://%s/%s does not exist." % (remote_object.bucket_name, remote_object.key))
 
         encoding = remote_object.content_encoding
 
@@ -165,6 +168,22 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
             ''' % bucket.name))
 
     return bucket, prefix
+
+
+def exists(object: S3Object) -> bool:
+    """
+    Test if the given S3 *object* exists.
+
+    Returns a boolean.
+    """
+    try:
+        object.load()
+        return True
+    except ClientError as error:
+        if 404 == int(error.response['Error']['Code']):
+            return False
+        else:
+            raise
 
 
 def content_type(path: Path) -> str:
