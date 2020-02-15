@@ -67,7 +67,10 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     if recursively:
         objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
     else:
-        objects = [ bucket.Object(path) ]
+        object = bucket.Object(path)
+        assert_exists(object)
+
+        objects = [ object ]
 
     def local_file_path(obj):
         if local_path.is_dir():
@@ -79,9 +82,6 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
     for remote_object, local_file in files:
         yield Path(remote_object.key), local_file
-
-        if not exists(remote_object):
-            raise UserError("The file s3://%s/%s does not exist." % (remote_object.bucket_name, remote_object.key))
 
         encoding = remote_object.content_encoding
 
@@ -117,9 +117,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
         objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
     else:
         object = bucket.Object(path)
-
-        if not exists(object):
-            raise UserError("The file s3://%s/%s does not exist." % (object.bucket_name, object.key))
+        assert_exists(object)
 
         objects = [ object ]
 
@@ -163,6 +161,14 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
             ''' % bucket.name))
 
     return bucket, prefix
+
+
+def assert_exists(object: S3Object):
+    """
+    Raise a :py:class:`UserError` if the given S3 *object* does not exist.
+    """
+    if not exists(object):
+        raise UserError("The file s3://%s/%s does not exist." % (object.bucket_name, object.key))
 
 
 def exists(object: S3Object) -> bool:
