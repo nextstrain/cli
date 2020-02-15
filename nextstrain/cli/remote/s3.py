@@ -9,8 +9,7 @@ import mimetypes
 import re
 import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
-from itertools import chain
-from operator import itemgetter, methodcaller
+from operator import methodcaller
 from os.path import commonprefix
 from pathlib import Path
 from textwrap import dedent
@@ -99,7 +98,7 @@ def ls(url: urllib.parse.ParseResult) -> Iterable[Path]:
     return [ Path(obj.key) for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Tuple[Iterable[str], Iterable[Tuple[str, ...]]]:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[Path]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
     """
@@ -112,34 +111,24 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Tuple[It
         raise UserError("No path specified for deletion.")
 
     # Delete either all objects sharing a prefix or the sole object (if any)
-    # with the given key.  Both methods return the same results data structure.
-    objects = bucket.objects.filter(Prefix = path)
-
+    # with the given key.  This doesn't use the bulk-deletion API in order to
+    # more easily provide a nicer generator API to our caller.
     if recursively:
-        responses = objects.delete()
+        objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
     else:
-        responses = [
-            { **obj.delete(), "Deleted": [{"Key": obj.key}] }
-                for obj in objects
-                 if obj.key == path
-        ]
+        object = bucket.Object(path)
 
-    # Collect results.
-    def results(response_field, result_fields, responses):
-        results_ = (
-            chain.from_iterable(
-                response.get(response_field, [])
-                    for response in responses))
+        if not exists(object):
+            raise UserError("The file s3://%s/%s does not exist." % (object.bucket_name, object.key))
 
-        return list(map(itemgetter(*result_fields), results_))
+        objects = [ object ]
 
-    deleted = results("Deleted", ("Key",), responses)
-    errors = results("Errors", ("Key", "Message", "Code"), responses)
+    for object in objects:
+        yield Path(object.key)
+        object.delete()
 
-    if deleted:
-        purge_cloudfront(bucket, deleted)
-
-    return deleted, errors
+    if objects:
+        purge_cloudfront(bucket, [ obj.key for obj in objects ])
 
 
 def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
