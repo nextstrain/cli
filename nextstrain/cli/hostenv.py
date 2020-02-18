@@ -16,10 +16,6 @@ from typing import List, Tuple
 #   -trs, 13 Dec 2019
 
 forwarded_names = [
-    # RethinkDB credentials
-    "RETHINK_HOST",
-    "RETHINK_AUTH_KEY",
-
     # Augur <https://nextstrain-augur.readthedocs.io/en/stable/envvars.html>
     "AUGUR_RECURSION_LIMIT",
     "AUGUR_MINIFY_JSON",
@@ -27,7 +23,11 @@ forwarded_names = [
     # ID3C
     "ID3C_URL",
     "ID3C_USERNAME",
-    "ID3C_PASSWORD"
+    "ID3C_PASSWORD",
+
+    # RethinkDB credentials
+    "RETHINK_HOST",
+    "RETHINK_AUTH_KEY",
 ]
 
 
