@@ -20,6 +20,11 @@ forwarded_names = [
     "AUGUR_RECURSION_LIMIT",
     "AUGUR_MINIFY_JSON",
 
+    # AWS
+    "AWS_ACCESS_KEY_ID",
+    "AWS_SECRET_ACCESS_KEY",
+    "AWS_SESSION_TOKEN",
+
     # ID3C
     "ID3C_URL",
     "ID3C_USERNAME",
