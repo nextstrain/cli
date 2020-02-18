@@ -1,6 +1,20 @@
 # __NEXT__
 
 
+# 1.15.0 (18 February 2020)
+
+* Environment variables for [AWS
+  credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variables)
+  (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_SESSION_TOKEN`) are
+  now passed through to builds.  This lets builds which use data on S3 to work
+  transparently, for example.
+
+* Environment variables for [ID3C](https://github.com/seattleflu/id3c)
+  (`ID3C_URL`, `ID3C_USERNAME`, and `ID3C_PASSWORD`) are now passed through to
+  builds.  This lets Seattle Flu Study builds which use data in an ID3C
+  instance to work transparently.
+
+
 # 1.14.0 (24 September 2019)
 
 _No changes since 1.14.0b1, described below._
