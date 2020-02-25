@@ -1,7 +1,29 @@
 # __NEXT__
 
 
+# 1.16.0 (25 February 2020)
+
+## Features
+
+* The `deploy` command is now an alias for the `remote upload` command.
+
+* The new `remote list`, `remote download`, and `remote delete` commands allow
+  listing, downloading, and deleting remote datasets and narratives which were
+  uploaded using `deploy` / `remote upload`.  Currently only direct s3://
+  destinations are supported, but its anticipated that Nextstrain Groups will
+  be supported as first-class destinations in the future.
+
+## Bug fixes
+
+* deploy/remote upload: Invalid credentials are now properly caught and messaged about.
+
+* deploy/remote upload: Files are now deployed/uploaded using streaming
+  compression instead of buffering the whole file in memory first.
+
+
 # 1.15.0 (18 February 2020)
+
+## Features
 
 * Environment variables for [AWS
   credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variables)
