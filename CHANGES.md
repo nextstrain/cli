@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.16.1 (25 February 2020)
+
+## Documentation
+
+* Update README to include the latest usage information, which mentions the new
+  `remote` command.
+
+
 # 1.16.0 (25 February 2020)
 
 ## Features
