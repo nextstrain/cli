@@ -26,7 +26,9 @@ run `nextstrain`.  Otherwise, you can run `./bin/nextstrain` from a copy of the
 source code.
 
 ```
-usage: nextstrain [-h] {build,view,deploy,shell,update,check-setup,version} ...
+usage: nextstrain [-h]
+                  {build,view,deploy,remote,shell,update,check-setup,version}
+                  ...
 
 Nextstrain command-line tool
 
@@ -34,13 +36,15 @@ optional arguments:
   -h, --help            show this help message and exit
 
 commands:
-  {build,view,deploy,shell,update,check-setup,version}
+  {build,view,deploy,remote,shell,update,check-setup,version}
     build               Run pathogen build
     view                View pathogen build
     deploy              Deploy pathogen build
+    remote              Upload, download, and manage Nextstrain files on
+                        remote sources.
     shell               Start a new shell in the build environment
-    update              Updates your local image copy
-    check-setup         Tests your local setup
+    update              Update your local image copy
+    check-setup         Test your local setup
     version             Show version information
 ```
 
