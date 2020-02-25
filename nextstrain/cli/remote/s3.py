@@ -1,75 +1,39 @@
 """
-Deploy to S3 with automatic CloudFront invalidation.
+S3 remote with automatic CloudFront invalidation.
 
-Backend module for the deploy command.
+Backend module for the remote family of commands.
 """
 
 import boto3
 import mimetypes
 import re
-import shutil
 import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
-from gzip import GzipFile
-from io import BytesIO
+from operator import methodcaller
 from os.path import commonprefix
 from pathlib import Path
+from textwrap import dedent
 from time import time
-from typing import List
+from typing import Iterable, List, Tuple
 from .. import aws
+from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
+from ..errors import UserError
+from ..types import S3Bucket, S3Object
 
 
 # Add these statically so that they're always available, even if there's no
 # system MIME type registry.  These are the most common types of files we
-# expect to deploy.
+# expect to upload.
 mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def run(url: urllib.parse.ParseResult, local_files: List[Path]) -> int:
-    # Require a bucket name
-    if not url.netloc:
-        warn("No bucket name specified in url (%s)" % url.geturl())
-        return 1
-
-    # Remove leading slashes from any destination path in order to use it as a
-    # prefix for uploaded files.  Internal and trailing slashes are untouched.
-    prefix = url.path.lstrip("/")
-
-    bucket = boto3.resource("s3").Bucket(url.netloc)
-
-    # Find the bucket and ensure we have access and that it already exists so
-    # we don't automagically create new buckets.
-    try:
-        boto3.client("s3").head_bucket(Bucket = bucket.name)
-
-    except (NoCredentialsError, PartialCredentialsError) as error:
-        warn("Error:", error)
-        return 1
-
-    except ClientError as error:
-        warn('No bucket exists with the name "%s".' % bucket.name)
-        warn()
-        warn("Buckets are not automatically created for safety reasons.")
-        return 1
-
-    # Upload files
-    remote_files = upload(local_files, bucket, prefix)
-
-    # Purge any CloudFront caches for this bucket
-    purge_cloudfront(bucket, remote_files)
-
-    return 0
-
-
-def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, Path]]:
     """
-    Upload a set of local file paths to the given bucket under a specified
-    prefix.
-
-    Returns a list of remote file names.
+    Upload the *local_files* to the bucket and optional prefix specified by *url*.
     """
+    bucket, prefix = split_url(url)
 
     # Create a set of (local name, remote name) tuples.  S3 is a key-value
     # store, not a filesystem, so this remote name prefixing is intentionally a
@@ -78,33 +42,149 @@ def upload(local_files: List[Path], bucket, prefix: str) -> List[str]:
     files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
 
     for local_file, remote_file in files:
-        print("Deploying", local_file, "as", remote_file)
+        yield local_file, Path(remote_file)
 
         # Upload compressed data
-        with local_file.open("rb") as data, gzip_stream(data) as gzdata:
+        with GzipCompressingReader(local_file.open("rb")) as gzdata:
             bucket.upload_fileobj(
                 gzdata,
                 remote_file,
                 { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
 
-    return [ remote for local, remote in files ]
+    # Purge any CloudFront caches for this bucket
+    purge_cloudfront(bucket, [remote for local, remote in files])
 
 
-def gzip_stream(stream):
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[Path, Path]]:
     """
-    Takes an IO stream and compresses it in-memory with gzip.  Returns a
-    BytesIO stream of compressed data.
+    Download the files deployed at the given remote *url*, optionally
+    *recursively*, saving them into the *local_dir*.
     """
-    gzstream = BytesIO()
+    bucket, path = split_url(url)
 
-    # Pass the original contents through gzip into memory
-    with GzipFile(fileobj = gzstream, mode = "wb") as gzfile:
-        shutil.copyfileobj(stream, gzfile)
+    # Download either all objects sharing a prefix or the sole object (if any)
+    # with the given key.
+    if recursively:
+        objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
+    else:
+        object = bucket.Object(path)
+        assert_exists(object)
 
-    # Re-seek the compressed data to the start
-    gzstream.seek(0)
+        objects = [ object ]
 
-    return gzstream
+    def local_file_path(obj):
+        if local_path.is_dir():
+            return local_path / Path(obj.key).name
+        else:
+            return local_path
+
+    files = list(zip(objects, [local_file_path(obj) for obj in objects]))
+
+    for remote_object, local_file in files:
+        yield Path(remote_object.key), local_file
+
+        encoding = remote_object.content_encoding
+
+        with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
+            remote_object.download_fileobj(file)
+
+
+def ls(url: urllib.parse.ParseResult) -> Iterable[Path]:
+    """
+    List the files deployed at the given remote *url*.
+    """
+    bucket, prefix = split_url(url)
+
+    return [ Path(obj.key) for obj in bucket.objects.filter(Prefix = prefix) ]
+
+
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[Path]:
+    """
+    Delete the files deployed at the given remote *url*, optionally *recursively*.
+    """
+    bucket, path = split_url(url)
+
+    # Prevent unintentionally deleting everything recursively.  It also makes
+    # sense for non-recursive deletion, since we don't support deleting the
+    # bucket itself.
+    if not path:
+        raise UserError("No path specified for deletion.")
+
+    # Delete either all objects sharing a prefix or the sole object (if any)
+    # with the given key.  This doesn't use the bulk-deletion API in order to
+    # more easily provide a nicer generator API to our caller.
+    if recursively:
+        objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
+    else:
+        object = bucket.Object(path)
+        assert_exists(object)
+
+        objects = [ object ]
+
+    for object in objects:
+        yield Path(object.key)
+        object.delete()
+
+    if objects:
+        purge_cloudfront(bucket, [ obj.key for obj in objects ])
+
+
+def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
+    """
+    Splits the given s3:// *url* into a Bucket object and normalized path
+    with some sanity checking.
+    """
+    # Require a bucket name
+    if not url.netloc:
+        raise UserError("No bucket name specified in url (%s)" % url.geturl())
+
+    # Remove leading slashes from any destination path in order to use it as a
+    # prefix for uploaded files.  Internal and trailing slashes are untouched.
+    prefix = url.path.lstrip("/")
+
+    try:
+        bucket = boto3.resource("s3").Bucket(url.netloc)
+
+    except (NoCredentialsError, PartialCredentialsError) as error:
+        raise UserError("Unable to authenticate with S3: %s" % error) from error
+
+    # Find the bucket and ensure we have access and that it already exists so
+    # we don't automagically create new buckets.
+    try:
+        boto3.client("s3").head_bucket(Bucket = bucket.name)
+
+    except ClientError as error:
+        raise UserError(dedent('''\
+            No bucket exists with the name "%s".
+
+            Buckets are not automatically created for safety reasons.
+            ''' % bucket.name))
+
+    return bucket, prefix
+
+
+def assert_exists(object: S3Object):
+    """
+    Raise a :py:class:`UserError` if the given S3 *object* does not exist.
+    """
+    if not exists(object):
+        raise UserError("The file s3://%s/%s does not exist." % (object.bucket_name, object.key))
+
+
+def exists(object: S3Object) -> bool:
+    """
+    Test if the given S3 *object* exists.
+
+    Returns a boolean.
+    """
+    try:
+        object.load()
+        return True
+    except ClientError as error:
+        if 404 == int(error.response['Error']['Code']):
+            return False
+        else:
+            raise
 
 
 def content_type(path: Path) -> str:

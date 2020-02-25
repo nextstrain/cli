@@ -8,8 +8,10 @@ import argparse
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
 from types    import SimpleNamespace
 
-from .command     import build, view, deploy, shell, update, check_setup, version
-from .util        import format_usage
+from .argparse    import register_commands, register_default_command
+from .command     import build, view, deploy, remote, shell, update, check_setup, version
+from .errors      import NextstrainCliError
+from .util        import warn
 from .__version__ import __version__
 
 
@@ -37,6 +39,7 @@ def run(args):
         build,
         view,
         deploy,
+        remote,
         shell,
         update,
         check_setup,
@@ -48,41 +51,13 @@ def run(args):
     register_version_alias(parser)
 
     opts = parser.parse_args(args)
-    return opts.__command__.run(opts)
 
+    try:
+        return opts.__command__.run(opts)
 
-def register_default_command(parser):
-    """
-    Sets the default command to run when none is provided.
-    """
-    def run(x):
-        parser.print_help()
-        return 2
-
-    # Using a namespace object to mock a module with a run() function
-    parser.set_defaults( __command__ = SimpleNamespace(run = run) )
-
-
-def register_commands(parser, commands):
-    """
-    Lets each command module register a subparser.
-    """
-    subparsers = parser.add_subparsers(title = "commands")
-
-    for cmd in commands:
-        subparser = cmd.register_parser(subparsers)
-        subparser.set_defaults( __command__ = cmd )
-
-        # Ensure all subparsers format like the top-level parser
-        subparser.formatter_class = parser.formatter_class
-
-        # Default usage message to the docstring of register_parser()
-        if not subparser.usage and cmd.register_parser.__doc__:
-            subparser.usage = format_usage(cmd.register_parser.__doc__)
-
-        # Default long description to the docstring of the command
-        if not subparser.description and cmd.__doc__:
-            subparser.description = cmd.__doc__
+    except NextstrainCliError as error:
+        warn(error)
+        return 1
 
 
 def register_version_alias(parser):

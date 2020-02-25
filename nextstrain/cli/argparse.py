@@ -4,6 +4,51 @@ Custom helpers for extending the behaviour of argparse standard library.
 
 from argparse import Action, SUPPRESS
 from itertools import takewhile
+from types import SimpleNamespace
+from .util import format_usage
+
+
+def register_default_command(parser):
+    """
+    Sets the default command to run when none is provided.
+    """
+    def run(x):
+        parser.print_help()
+        return 2
+
+    # Using a namespace object to mock a module with a run() function
+    parser.set_defaults( __command__ = SimpleNamespace(run = run) )
+
+
+def register_commands(parser, commands):
+    """
+    Lets each command module register a subparser.
+    """
+    subparsers = parser.add_subparsers(title = "commands")
+
+    for cmd in commands:
+        subparser = cmd.register_parser(subparsers)
+        subparser.set_defaults( __command__ = cmd )
+
+        # Ensure all subparsers format like the top-level parser
+        subparser.formatter_class = parser.formatter_class
+
+        # Default usage message to the docstring of register_parser()
+        if not subparser.usage and cmd.register_parser.__doc__:
+            subparser.usage = format_usage(cmd.register_parser.__doc__)
+
+        # Default long description to the docstring of the command
+        if not subparser.description and cmd.__doc__:
+            subparser.description = cmd.__doc__
+
+        # Recursively register any subcommands
+        if getattr(subparser, "subcommands", None):
+            register_commands(subparser, subparser.subcommands)
+
+            # If a command with subcommands doesn't have its own run()
+            # function, then print its help when called without a subcommand.
+            if not getattr(cmd, "run", None):
+                register_default_command(subparser)
 
 
 def add_extended_help_flags(parser):

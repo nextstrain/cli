@@ -10,18 +10,13 @@ from os import utime
 from pathlib import Path
 from tempfile import TemporaryFile
 from time import struct_time
-from typing import Any, Callable, Generator, Iterable, Optional
+from typing import Callable, Generator, Iterable, Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
+from ...types import S3Bucket, S3Object
 
 
 PathMatcher = Callable[[Path], bool]
-
-# Cleaner-reading type annotations for boto3 S3 objects, which maybe can be
-# improved later.  The actual types are generated at runtime in
-# boto3.resources.factory, which means we can't use them here easily.  :(
-S3Bucket = Any
-S3Object = Any
 
 
 def object_url(object: S3Object) -> str:
