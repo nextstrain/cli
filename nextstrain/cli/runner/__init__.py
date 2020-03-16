@@ -107,8 +107,10 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         metavar = "<prog>",
         default = exec_cmd)
 
-    # Static exec arguments; never modified by the user invocation
-    parser.set_defaults(exec_args = exec_args)
+    # Static exec arguments; never modified directly by the user invocation,
+    # but they won't be used if --exec is changed.
+    parser.set_defaults(default_exec_cmd = exec_cmd)
+    parser.set_defaults(default_exec_args = exec_args)
 
     # Optional exec arguments, if the calling command indicates they're allowed
     parser.set_defaults(extra_exec_args = [])
@@ -136,7 +138,10 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
     # handling, below.
     argv = [
         opts.exec,
-        *replace_ellipsis(opts.exec_args, opts.extra_exec_args)
+        *replace_ellipsis(
+            opts.default_exec_args if opts.default_exec_cmd == opts.exec else [...],
+            opts.extra_exec_args
+        )
     ]
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env)
