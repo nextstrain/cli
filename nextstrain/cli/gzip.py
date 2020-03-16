@@ -19,6 +19,7 @@ class GzipCompressingReader(BufferedIOBase):
             raise ValueError('"stream" argument must be readable.')
 
         self.stream = stream
+        self.__buffer = b''
         self.__gzip = zlib.compressobj(
             level = zlib.Z_BEST_COMPRESSION,
             wbits = 16 + zlib.MAX_WBITS,    # Offset of 16 is gzip encapsulation
@@ -29,25 +30,36 @@ class GzipCompressingReader(BufferedIOBase):
         return True
 
     def read(self, size = None):
-        return self._compress(self.stream.read(size))
+        assert size != 0
 
-    def read1(self, size = None):
-        return self._compress(self.stream.read1(size)) # type: ignore
+        if size is None:
+            size = -1
 
-    def _compress(self, data: bytes):
-        if self.__gzip:
-            if data:
-                return self.__gzip.compress(data)
-            else:
-                # EOF on underlying stream, flush any remaining compressed
-                # data.  On the next call, we'll return EOF too.
-                try:
-                    return self.__gzip.flush(zlib.Z_FINISH)
-                finally:
-                    self.__gzip = None # type: ignore
+        # Keep reading chunks until we have a bit of compressed data to return,
+        # since returning an empty byte string would be interpreted as EOF.
+        while not self.__buffer and self.__gzip:
+            chunk = self.stream.read(size)
+
+            self.__buffer += self.__gzip.compress(chunk)
+
+            if not chunk or size < 0:
+                # Read to EOF on underlying stream, so flush any remaining
+                # compressed data and return whatever we have.  We'll return an
+                # empty byte string as EOF ourselves on any subsequent calls.
+                self.__buffer += self.__gzip.flush(zlib.Z_FINISH)
+                self.__gzip = None
+
+        if size > 0 and len(self.__buffer) > size:
+            # This should be pretty rare since we're reading N bytes and then
+            # *compressing* to fewer bytes.  It could happen in the rare case
+            # of lots of data still stuck in the buffer from a previous call.
+            compressed = self.__buffer[0:size]
+            self.__buffer = self.__buffer[size:]
         else:
-            # Already hit EOF on the underlying stream and flushed.
-            return b''
+            compressed = self.__buffer
+            self.__buffer = b''
+
+        return compressed
 
     def close(self):
         if self.stream:
