@@ -50,6 +50,9 @@ class GzipCompressingReader(BufferedIOBase):
                 self.__gzip = None
 
         if size > 0 and len(self.__buffer) > size:
+            # This should be pretty rare since we're reading N bytes and then
+            # *compressing* to fewer bytes.  It could happen in the rare case
+            # of lots of data still stuck in the buffer from a previous call.
             compressed = self.__buffer[0:size]
             self.__buffer = self.__buffer[size:]
         else:
