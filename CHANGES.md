@@ -1,6 +1,19 @@
 # __NEXT__
 
 
+# 1.16.2 (16 March 2020)
+
+## Bug fixes
+
+* deploy/remote upload: Some files, but not all, were being truncated during
+  upload due to a bug in gzip compression handling.  Now the whole file makes
+  it to its destination.  More details in
+  [#62](https://github.com/nextstrain/cli/pull/63).
+
+* build: The default arguments for `snakemake` are no longer used if a
+  different program to run is specified with `--exec`.
+
+
 # 1.16.1 (25 February 2020)
 
 ## Documentation
