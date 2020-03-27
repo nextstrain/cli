@@ -176,6 +176,12 @@ The [`typing_extensions`][] module should be used for features added to the
 standard `typings` module after 3.5.  (Currently this isn't necessary since we
 don't use those features.)
 
+We also use [Flake8][] for some static analysis checks focusing on runtime
+safety and correctness.  You can run them like this:
+
+    $ flake8
+    # No output is good!
+
 
 [Semantic Versioning rules]: https://semver.org
 [_signed_ tag]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
@@ -185,3 +191,4 @@ don't use those features.)
 [mypy]: http://mypy-lang.org/
 [editor integrations for mypy]: https://github.com/python/mypy#ide--linter-integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
+[Flake8]: https://flake8.pycqa.org
