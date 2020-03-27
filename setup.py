@@ -28,7 +28,7 @@ def find_namespaced_packages(namespace):
 
 setup(
     name     = "nextstrain-cli",
-    version  = __version__,
+    version  = __version__, # noqa: F821
     packages = find_namespaced_packages("nextstrain"),
 
     data_files = [("", ["LICENSE"])],

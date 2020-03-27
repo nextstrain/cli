@@ -4,6 +4,7 @@ Gzip stream utilities.
 import zlib
 from io import BufferedIOBase
 from typing import BinaryIO
+from .util import warn
 
 
 class GzipCompressingReader(BufferedIOBase):

@@ -24,12 +24,13 @@ matrix:
 
 install:
   - pip3 install .
-  - pip3 install mypy
+  - pip3 install flake8 mypy
 
 before_script:
   - git clone https://github.com/nextstrain/zika-tutorial
 
 script:
+  - flake8
   - mypy nextstrain
   - nextstrain version
   - nextstrain check-setup
