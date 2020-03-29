@@ -5,21 +5,40 @@ services:
 
 language: python
 
+addons:
+  apt:
+    update: true
+
 matrix:
   include:
+    - dist: trusty
+      python: 3.6.1
+
     - dist: xenial
       python: 3.5
 
     - dist: xenial
       python: 3.6
 
-    - dist: trusty
-      python: 3.6.1
-
     - dist: xenial
       python: 3.7
 
     - dist: xenial
+      python: 3.8
+
+    - dist: xenial
+      python: 3.8-dev
+
+    - dist: bionic
+      python: 3.6
+
+    - dist: bionic
+      python: 3.7
+
+    - dist: bionic
+      python: 3.8
+
+    - dist: bionic
       python: 3.8-dev
 
 install:

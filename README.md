@@ -1,5 +1,7 @@
 # nextstrain-cli
 
+[![Build Status](https://travis-ci.com/nextstrain/cli.svg?branch=master)](https://travis-ci.com/nextstrain/cli)
+
 This is the Nextstrain command-line tool.  It aims to provide access to
 Nextstrain components in a local environment with a minimum of fuss.
 
