@@ -4,16 +4,23 @@ services:
   - docker
 
 language: python
+cache: pip
+
+node_js: "12"
 
 addons:
   apt:
     update: true
+    packages:
+      - mafft
+      - iqtree
+      - raxml
+      - fasttree
+      - vcftools
+      - snakemake
 
 matrix:
   include:
-    - dist: trusty
-      python: 3.6.1
-
     - dist: xenial
       python: 3.5
 
@@ -43,7 +50,8 @@ matrix:
 
 install:
   - pip3 install .
-  - pip3 install flake8 mypy
+  - pip3 install flake8 mypy nextstrain-augur
+  - npm install --global auspice
 
 before_script:
   - git clone https://github.com/nextstrain/zika-tutorial
