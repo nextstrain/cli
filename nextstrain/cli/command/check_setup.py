@@ -30,7 +30,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--set-default",
-        help   = "Set the default environment to use going forward based on the results of checking your setup",
+        help   = "Set the default environment to the first which passes check-setup. Checks run in the order: %s." % (", ".join(map(runner_name, all_runners)),),
         action = "store_true")
 
     return parser
