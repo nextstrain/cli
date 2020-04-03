@@ -79,7 +79,6 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     return exec_or_return([
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
-        "--tty",            # Colors, etc.
         "--interactive",    # Pass through control signals (^C, etc.)
 
         # On Unix (POSIX) systems, run the process in the container with the same
