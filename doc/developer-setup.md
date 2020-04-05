@@ -29,9 +29,9 @@ Windows:
 ```python -m pip install -U pip```
 
 ### Install Required Dependencies
-Run pip to install the required dependencies, as found in setup.py.
+Run pip to install the required dependencies found in setup.py.
 
-```pip install boto3 netifaces requests setuptools```
+```pip install .```
 
 ### Running Local Changes
 With the dependencies in place, you can now run `./bin/nextstrain` to run with your local changes without installing them.
