@@ -2,9 +2,11 @@
 Job handling for AWS Batch.
 """
 
+import re
 from time import time
 from typing import Callable, Generator, Iterable, Mapping, List, Optional
 from ... import hostenv, aws
+from ...util import warn
 from . import logs, s3
 
 
@@ -137,8 +139,20 @@ class JobState:
     def stopped(self) -> bool:
         return self.status_reason == self.STOP_REASON
 
+def job_definition_name(definition_name, docker_image):
+    """
+    Format the AWS Batch Job Definition name according to API restriction.
+
+    Returns a string.
+    """
+    docker_image_tag = docker_image.split(':')
+    name = re.sub('[^0-9a-zA-Z-]+', '-', definition_name)
+    image = re.sub('[^0-9a-zA-Z-]+', '-', docker_image_tag[0])
+    tag = re.sub('[^0-9a-zA-Z-]+', '-', docker_image_tag[1])
+    return "%s_%s_%s" % (name, image, tag)
 
 def submit(name: str,
+           image: str,
            queue: str,
            definition: str,
            cpus: Optional[int],
@@ -153,10 +167,30 @@ def submit(name: str,
     """
     batch = aws.client_with_default_region("batch")
 
+    definition_name = job_definition_name(definition, image)
+    try:
+        batch.register_job_definition(
+            jobDefinitionName   = definition_name,
+            type                = "container",
+            containerProperties = {
+                "image":    image,
+                "command":  [],
+            },
+            retryStrategy = {
+                "attempts": 1,
+            },
+            timeout = {
+                "attemptDurationSeconds": 14400,
+            },
+        )
+    except Exception as error:
+        warn(error)
+        raise Exception("Creation of job definition (%s) failed" % definition_name)
+
     submission = batch.submit_job(
         jobName = name,
         jobQueue = queue,
-        jobDefinition = definition,
+        jobDefinition = definition_name,
         containerOverrides = {
             "environment": [
                 {
