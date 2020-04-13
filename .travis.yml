@@ -69,4 +69,5 @@ script:
   - nextstrain version
   - nextstrain check-setup
   - nextstrain update
-  - nextstrain build zika-tutorial
+  - nextstrain build --docker zika-tutorial
+  - nextstrain build --native zika-tutorial -F
