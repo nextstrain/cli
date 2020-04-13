@@ -21,39 +21,39 @@ matrix:
   include:
     - dist: xenial
       python: 3.5
-      name: "Ubuntu Xenial, Python 3.5"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.5"
 
     - dist: xenial
       python: 3.6
-      name: "Ubuntu Xenial, Python 3.6"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.6"
 
     - dist: xenial
       python: 3.7
-      name: "Ubuntu Xenial, Python 3.7"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.7"
 
     - dist: xenial
       python: 3.8
-      name: "Ubuntu Xenial, Python 3.8"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.8"
 
     - dist: xenial
       python: 3.8-dev
-      name: "Ubuntu Xenial, Python 3.8-dev"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.8-dev"
 
     - dist: bionic
       python: 3.6
-      name: "Ubuntu Bionic, Python 3.6"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.6"
 
     - dist: bionic
       python: 3.7
-      name: "Ubuntu Bionic, Python 3.7"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.7"
 
     - dist: bionic
       python: 3.8
-      name: "Ubuntu Bionic, Python 3.8"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8"
 
     - dist: bionic
       python: 3.8-dev
-      name: "Ubuntu Bionic, Python 3.8-dev"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8-dev"
 
 install:
   - pip3 install .
