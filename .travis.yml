@@ -16,58 +16,133 @@ addons:
       - fasttree
       - vcftools
       - snakemake
+      - git
 
-matrix:
+jobs:
   include:
-    - dist: xenial
+    - stage: build
+      dist: xenial
+      python: 2.7
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 2.7, Conda"
+      script: &conda_build
+        - export PATH=$HOME/.local/bin:$PATH
+        # https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/use-conda-with-travis-ci.html
+        - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+            wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+          else
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+          fi
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - source "$HOME/miniconda/etc/profile.d/conda.sh"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        # Useful for debugging any issues with conda
+        - conda info -a
+
+        - cd $HOME
+        # https://github.com/nextstrain/conda
+        - travis_retry curl http://data.nextstrain.org/nextstrain.yml -o nextstrain.yml
+        - conda env create -f nextstrain.yml
+        - travis_retry conda activate nextstrain
+
+        - cd $TRAVIS_BUILD_DIR
+        - travis_retry git clone https://github.com/nextstrain/zika-tutorial
+        - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+            pip install . ; pip install flake8 mypy nextstrain-augur;
+          else
+            pip3 install . ; pip3 install flake8 mypy nextstrain-augur;
+          fi
+        - npm install --global auspice
+
+        - flake8
+        - mypy nextstrain
+        - nextstrain version
+        - nextstrain check-setup
+        - nextstrain update
+        - nextstrain build --docker zika-tutorial
+        - nextstrain build --native zika-tutorial -F
+        
+    - stage: build
+      dist: xenial
       python: 3.5
-      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.5"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.5, Conda"
+      script: *conda_build
 
-    - dist: xenial
+    - stage: build
+      dist: xenial
       python: 3.6
-      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.6"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.6, Conda"
+      script: *conda_build
 
-    - dist: xenial
+    - stage: build
+      dist: xenial
       python: 3.7
-      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.7"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.7, Conda"
+      script: *conda_build
 
-    - dist: xenial
+    - stage: build
+      dist: xenial
       python: 3.8
-      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.8"
+      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.8, Conda"
+      script: *conda_build
 
-    - dist: xenial
-      python: 3.8-dev
-      name: "Ubuntu 16.04 LTS (Xenial Xerus), Python 3.8-dev"
-
-    - dist: bionic
+    - stage: build
+      dist: bionic
       python: 3.6
-      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.6"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.6, Conda"
+      script: *conda_build
 
-    - dist: bionic
+    - stage: build
+      dist: bionic
       python: 3.7
-      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.7"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.7, Conda"
+      script: *conda_build
 
-    - dist: bionic
+    - stage: build
+      dist: bionic
       python: 3.8
-      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8, Conda"
+      script: *conda_build
 
-    - dist: bionic
+    - stage: build
+      dist: bionic
       python: 3.8-dev
-      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8-dev"
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8-dev, Conda"
+      script: *conda_build
 
-install:
-  - pip3 install .
-  - pip3 install flake8 mypy nextstrain-augur
-  - npm install --global auspice
+    - stage: build
+      dist: bionic
+      python: 3.6
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.6, no Conda"
+      script: &non_conda_build
+        - git clone https://github.com/nextstrain/zika-tutorial
+        - pip3 install .
+        - pip3 install flake8 mypy nextstrain-augur
+        - npm install --global auspice
 
-before_script:
-  - git clone https://github.com/nextstrain/zika-tutorial
+        - flake8
+        - mypy nextstrain
+        - nextstrain version
+        - nextstrain check-setup
+        - nextstrain update
+        - nextstrain build --docker zika-tutorial
+        - nextstrain build --native zika-tutorial -F
 
-script:
-  - flake8
-  - mypy nextstrain
-  - nextstrain version
-  - nextstrain check-setup
-  - nextstrain update
-  - nextstrain build --docker zika-tutorial
-  - nextstrain build --native zika-tutorial -F
+    - stage: build
+      dist: bionic
+      python: 3.7
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.7, no Conda"
+      script: *non_conda_build
+
+    - stage: build
+      dist: bionic
+      python: 3.8
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8, no Conda"
+      script: *non_conda_build
+
+    - stage: build
+      dist: bionic
+      python: 3.8-dev
+      name: "Ubuntu 18.04 LTS (Bionic Beaver), Python 3.8-dev, no Conda"
+      script: *non_conda_build
