@@ -222,7 +222,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
             print()
 
             if not stop_sent:
-                now = time()
+                now = int(time())
 
                 if now - ctrl_c_time > CTRL_C_CONFIRMATION_TIMEOUT:
                     ctrl_c_time = now
