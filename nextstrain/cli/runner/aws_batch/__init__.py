@@ -100,6 +100,8 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
                 email to <hello@nextstrain.org> for help.
                 """))
             return 1
+
+        print_stage("Job is %s" % job.status)
     else:
         # Generate our own unique run id since we can't know the AWS Batch job id
         # until we submit it.  This run id is used for workdir and run results
