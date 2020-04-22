@@ -221,7 +221,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
                 job.stop()
 
                 print_stage("Waiting for job to stop…")
-                print("(Press Ctrl-C again if you don't want to wait.)")
+                print("(Press Control-C again if you don't want to wait.)")
 
                 stop_sent = True
             else:
