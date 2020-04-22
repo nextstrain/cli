@@ -1,6 +1,15 @@
 # __NEXT__
 
 
+# 1.16.5 (22 April 2020)
+
+## Features
+
+* build: AWS Batch jobs now require Ctrl-C to be pressed twice _within 10s_ to
+  cancel a job.  This is an additional guard on top of 1.16.4's change so that
+  if you accidentally press Ctrl-C once you can't accidentally press it again
+  30 minutes later and ruin your build.
+
 # 1.16.4 (22 April 2020)
 
 ## Features
