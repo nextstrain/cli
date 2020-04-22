@@ -1,6 +1,19 @@
 # __NEXT__
 
 
+# 1.16.4 (22 April 2020)
+
+## Features
+
+* build: AWS Batch jobs now require Ctrl-C to be pressed twice to cancel the
+  job.  This guards a potentially unwanted action from being used accidentally
+  by requiring confirmation with a second Ctrl-C.
+
+* build: AWS Batch jobs now report the current job status when re-attaching.
+  Previously the current job status was never reported, only the next status
+  transition.  For a PENDING or RUNNING job, it might be some time to the next
+  transition.
+
 # 1.16.3 (22 April 2020)
 
 ## Features
