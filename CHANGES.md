@@ -1,6 +1,31 @@
 # __NEXT__
 
 
+# 1.16.3 (22 April 2020)
+
+## Features
+
+* build: AWS Batch jobs now include more detail about why the container exited
+  when available.  This surfaces useful messages like "OutOfMemoryError:
+  Container killed due to memory usage" in addition to the exit status.
+
+## Documentation
+
+* check-setup: Describe how `--set-default` chooses an environment. Thanks Mary
+  Larrousse!
+
+## Bug fixes
+
+* Fix missing import in our gzip utilities which could cause a runtime error
+  (NameError) when running `nextstrain remote download` on S3 objects with a
+  `Content-Encoding` header set to a value other than `gzip` or `deflate`.
+  This circumstance is unlikely, but not impossible.
+
+## Development
+
+* Use Flake8 for static runtime safety and correctness checks
+
+
 # 1.16.2 (16 March 2020)
 
 ## Bug fixes
