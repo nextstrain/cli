@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 from sys import exit
 from textwrap import dedent
-from time import sleep
+from time import sleep, time
 from uuid import uuid4
 from ...types import RunnerTestResults, Tuple
 from ...util import colored, resolve_path, warn
@@ -36,6 +36,10 @@ DEFAULT_CPUS = os.environ.get("NEXTSTRAIN_AWS_BATCH_CPUS") \
 # defaults to None if enviroment or config is not set
 DEFAULT_MEMORY = os.environ.get("NEXTSTRAIN_AWS_BATCH_MEMORY") \
               or config.get("aws-batch", "memory")
+
+
+CTRL_C_CONFIRMATION_TIMEOUT = 10 # seconds
+
 
 def register_arguments(parser) -> None:
     # AWS Batch development options
@@ -161,19 +165,19 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
 
     if SIGTSTP:
         control_hints = """
-            Press Control-C twice to cancel this job,
+            Press Control-C twice within %d seconds to cancel this job,
                   Control-Z to detach from it.
-            """
+            """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
     else:
         control_hints = """
-            Press Control-C twice to cancel this job.
-            """
+            Press Control-C twice within %d seconds to cancel this job.
+            """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
 
     print(dedent(control_hints))
 
     log_watcher = None
     stop_sent = False
-    ctrl_c_count = 0
+    ctrl_c_time = 0
 
     while True:
         # This try/except won't catch KeyboardInterrupts which happen in the
@@ -216,21 +220,23 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
 
         except KeyboardInterrupt as interrupt:
             print()
-            ctrl_c_count += 1
 
-            if ctrl_c_count < 2:
-                print_stage("Press Control-C a second time to cancel this job.")
-            else:
-                if not stop_sent:
+            if not stop_sent:
+                now = time()
+
+                if now - ctrl_c_time > CTRL_C_CONFIRMATION_TIMEOUT:
+                    ctrl_c_time = now
+                    print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
+                else:
                     print_stage("Canceling job…")
                     job.stop()
 
+                    stop_sent = True
+
                     print_stage("Waiting for job to stop…")
                     print("(Press Control-C one more time if you don't want to wait.)")
-
-                    stop_sent = True
-                else:
-                    raise interrupt from None
+            else:
+                raise interrupt from None
 
 
     # Download results if we didn't stop the job early.
