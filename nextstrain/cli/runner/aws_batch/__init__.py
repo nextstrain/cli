@@ -79,8 +79,8 @@ def register_arguments(parser) -> None:
     development.add_argument(
         "--aws-batch-memory",
         dest    = "memory",
-        help    = "Amount of memory in MB to request for job",
-        metavar = "<megabytes>",
+        help    = "Amount of memory in MiB to request for job",
+        metavar = "<mebibytes>",
         type    = int,
         default = DEFAULT_MEMORY)
 
