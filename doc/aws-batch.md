@@ -60,6 +60,9 @@ c5-xlarge     | 4     | 7400
 c5-2xlarge    | 8     | 15200
 c5-4xlarge    | 16    | 31000
 
+Refer to [Compute Resource Memory Management](https://docs.aws.amazon.com/batch/latest/userguide/memory-management.html)
+in the AWS Batch User Guide for more detailed information on container memory.
+
 ## Configuration on your computer
 
 ### AWS credentials
