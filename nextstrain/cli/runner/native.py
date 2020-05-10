@@ -5,7 +5,8 @@ Run commands on the native host, outside of any container image.
 import os
 import shutil
 from ..types import RunnerTestResults
-from ..util import exec_or_return
+from ..util import exec_or_return, warn
+from .docker import DEFAULT_IMAGE
 
 
 def register_arguments(parser) -> None:
@@ -16,9 +17,10 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env = {}) -> int:
+    if opts.image != DEFAULT_IMAGE:
+        warn("Docker image specified ({}), but it won't be used".format(opts.image()))
     if working_volume:
         os.chdir(str(working_volume.src))
-
     return exec_or_return(argv, extra_env)
 
 

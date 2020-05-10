@@ -85,13 +85,6 @@ def register_arguments(parser) -> None:
         type    = int,
         default = DEFAULT_MEMORY)
 
-    development.add_argument(
-        "--aws-batch-image",
-        dest    = "aws_batch_image",
-        help    = "Docker image to use for the AWS Job Definition",
-        metavar = "<name>",
-        default = docker.DEFAULT_IMAGE)
-
 
 def run(opts, argv, working_volume = None, extra_env = {}) -> int:
     local_workdir = resolve_path(working_volume.src)
@@ -137,7 +130,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
         try:
             job = jobs.submit(
                 name       = run_id,
-                image      = opts.aws_batch_image,
+                image      = opts.image,
                 queue      = opts.job_queue,
                 definition = opts.job_definition,
                 cpus       = opts.cpus,

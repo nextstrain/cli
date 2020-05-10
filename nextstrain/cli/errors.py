@@ -9,3 +9,7 @@ class NextstrainCliError(Exception):
 class UserError(NextstrainCliError):
     def __init__(self, message, *args, **kwargs):
         super().__init__("Error: " + message, *args, **kwargs)
+
+
+class AWSError(NextstrainCliError):
+    """Generic exception when interfacing with AWS."""

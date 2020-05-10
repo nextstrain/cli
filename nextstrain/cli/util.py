@@ -12,6 +12,7 @@ from shutil import which
 from sys import exit, stderr, version_info as python_version
 from textwrap import dedent, indent
 from .__version__ import __version__
+from .runner.docker import split_image_name
 
 
 def warn(*args):
@@ -213,3 +214,16 @@ def resolve_path(path: Path) -> Path:
         return path.resolve(strict = True) # type: ignore
     else:
         return path.resolve()
+
+
+def aws_job_definition_name(definition_name: str, docker_image: str) -> str:
+    """
+    Format the AWS Batch Job Definition name according to API restriction.
+
+    Returns a string.
+    """
+    docker_image_repo, docker_image_tag = split_image_name(docker_image)
+    name = re.sub('[^0-9a-zA-Z-]+', '-', definition_name)
+    image = re.sub('[^0-9a-zA-Z-]+', '-', docker_image_repo)
+    tag = re.sub('[^0-9a-zA-Z-]+', '-', docker_image_tag)
+    return "{}_{}_{}".format(name, image, tag)

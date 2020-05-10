@@ -107,6 +107,13 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         metavar = "<prog>",
         default = exec_cmd)
 
+    # Docker image
+    development.add_argument(
+        "--image",
+        help    = "Docker name to either build or run nextstrain.",
+        metavar = "<image>",
+        default = docker.DEFAULT_IMAGE)
+
     # Static exec arguments; never modified directly by the user invocation,
     # but they won't be used if --exec is changed.
     parser.set_defaults(default_exec_cmd = exec_cmd)
