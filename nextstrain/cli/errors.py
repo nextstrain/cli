@@ -13,3 +13,4 @@ class UserError(NextstrainCliError):
 
 class AWSError(NextstrainCliError):
     """Generic exception when interfacing with AWS."""
+    pass

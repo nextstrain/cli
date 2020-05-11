@@ -12,7 +12,6 @@ from shutil import which
 from sys import exit, stderr, version_info as python_version
 from textwrap import dedent, indent
 from .__version__ import __version__
-from .runner.docker import split_image_name
 
 
 def warn(*args):
@@ -222,6 +221,9 @@ def aws_job_definition_name(definition_name: str, docker_image: str) -> str:
 
     Returns a string.
     """
+    # Import here to avoid cyclic imports
+    from .runner.docker import split_image_name
+
     docker_image_repo, docker_image_tag = split_image_name(docker_image)
     name = re.sub('[^0-9a-zA-Z-]+', '-', definition_name)
     image = re.sub('[^0-9a-zA-Z-]+', '-', docker_image_repo)

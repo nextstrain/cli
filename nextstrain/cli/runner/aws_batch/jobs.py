@@ -140,6 +140,41 @@ class JobState:
     def stopped(self) -> bool:
         return self.status_reason == self.STOP_REASON
 
+
+def get_job_definition(definition_name: str, image: str) -> str:
+    """
+        Get the job definition according to the Docker image name.
+        Create the job definition if it doesn't exist yet.
+
+        Returns the name of the job definition function of the Docker image name.
+    """
+
+    batch = aws.client_with_default_region("batch")
+    base_definition_name = definition_name
+    definition_name = aws_job_definition_name(definition_name, image)
+    try:
+        if definition_exists(definition_name):
+            return definition_name
+
+        base_definition = batch.describe_job_definitions(
+            jobDefinitionName=base_definition_name, status='ACTIVE'
+            ).get("jobDefinitions")
+
+        if not base_definition:
+            raise AWSError("Job definition {} doesn't exist, cannot create {} from it".format(
+                base_definition_name, definition_name))
+
+        # Take the base job definition, change the image and create the image with it
+        base_definition['jobDefinitionName'] = definition_name
+        base_definition['containerProperties']['image'] = image
+        batch.register_job_definition(base_definition)
+
+    except botocore.exceptions.ClientError as error:
+        raise AWSError("Creation of job definition ({}) failed, {}".format(definition_name, error))
+
+    return definition_name
+
+
 def submit(name: str,
            image: str,
            queue: str,
@@ -156,18 +191,7 @@ def submit(name: str,
     """
     batch = aws.client_with_default_region("batch")
 
-    definition_name = aws_job_definition_name(definition, image)
-    try:
-        job_definition = batch.describe_job_definitions(jobDefinitionName=definition_name) \
-                                    .get("jobDefinitions")
-        #TODO: Use job definition here.
-        #   * How does this code behave if a job definition with the name already exists?
-        #   * Does it throw an error? Does it silently do nothing?
-        #   * Does it create a duplicate job definition?
-
-    except botocore.exceptions.ClientError as error:
-        warn(error)
-        raise AWSError("Creation of job definition (%s) failed" % definition_name)
+    definition_name = get_job_definition(definition, image)
 
     submission = batch.submit_job(
         jobName = name,
