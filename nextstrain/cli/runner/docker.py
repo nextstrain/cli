@@ -89,7 +89,7 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
         *(["--user=%d:%d" % (os.getuid(), os.getgid())] if os.name == "posix" else []),
 
         # Map directories to bind mount into the container.
-      *["--volume=%s:/nextstrain/%s" % (resolve_path(v.src), v.name)
+        *["--volume=%s:/nextstrain/%s" % (resolve_path(v.src), v.name)
             for v in opts.volumes
              if v.src is not None],
 
@@ -97,10 +97,10 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
         *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
 
         # Pass through certain environment variables
-      *["--env=%s" % name for name in hostenv.forwarded_names],
+        *["--env=%s" % name for name in hostenv.forwarded_names],
 
         # Plus any extra environment variables provided by us
-      *["--env=%s" % name for name in extra_env.keys()],
+        *["--env=%s" % name for name in extra_env.keys()],
 
         *opts.docker_args,
         opts.image,
