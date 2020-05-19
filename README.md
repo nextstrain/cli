@@ -104,13 +104,27 @@ After installing Docker, run `nextstrain check-setup` to ensure it works:
 
     Testing your setup…
 
-    ✔ docker is installed
-    ✔ docker run works
+    # docker is supported
+    ✔ yes: docker is installed
+    ✔ yes: docker run works
+    ✔ yes: containers have access to >2 GiB of memory
+    ✔ yes: image is new enough for this CLI version
 
-    All good!
+    # native is not supported
+    ✔ yes: snakemake is installed
+    ✘ no: augur is installed
+    ✘ no: auspice is installed
 
-If the final message doesn't indicate success (as with "All good!" in the
-example above), something may be wrong with your Docker installation.
+    # aws-batch is not supported
+    ✘ no: job description "nextstrain-job" exists
+    ✘ no: job queue "nextstrain-job-queue" exists
+    ✘ no: S3 bucket "nextstrain-jobs" exists
+
+    All good!  Supported Nextstrain environments: docker
+
+If the output doesn't say "All good!" and list at least one supported
+Nextstrain environment (typically Docker or native), then something may be
+wrong with your installation.
 
 
 ## Big picture

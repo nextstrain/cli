@@ -100,13 +100,14 @@ def run(opts: Options) -> int:
     ]
 
     if supported_runners:
-        print("Supported Nextstrain environments:", ", ".join(map(success, supported_runners)))
+        print("All good!  Supported Nextstrain environments:", ", ".join(map(success, supported_runners)))
 
         if opts.set_default:
-            print("Setting default environment to %s" % supported_runners[0])
+            print()
+            print("Setting default environment to %s." % supported_runners[0])
             config.set("core", "runner", supported_runners[0])
     else:
-        print(failure("No support for any Nextstrain environment"))
+        print(failure("No good.  No support for any Nextstrain environment."))
 
     # Return a 1 or 0 exit code
     return int(not supported_runners)
