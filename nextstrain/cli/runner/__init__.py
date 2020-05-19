@@ -57,10 +57,14 @@ def register_flags(parser: ArgumentParser, runners: List, default: Any) -> None:
     """
     Register runner selection flags on the given ArgumentParser instance.
     """
+    runner_selection = parser.add_argument_group(
+        "runner selection options",
+        "Select the method for running a Nextstrain computing environment, if the\n"
+        "default is not suitable.")
 
     # We use a different flag for each runner for a simpler UX, but only one
     # runner may be selected from the group.
-    flags = parser.add_mutually_exclusive_group()
+    flags = runner_selection.add_mutually_exclusive_group()
 
     # The selected runner is stored in __runner__ (a la __command__).  The
     # run() function below calls __runner__.
