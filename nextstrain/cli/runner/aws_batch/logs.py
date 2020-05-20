@@ -3,7 +3,7 @@ Log handling for AWS Batch jobs.
 """
 
 import threading
-from typing import Callable, Generator, Mapping, MutableSet
+from typing import Callable, Generator, MutableSet
 from ... import aws
 
 
