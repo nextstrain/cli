@@ -1,6 +1,14 @@
 # __NEXT__
 
 
+# 1.16.7 (20 May 2020)
+
+## Bug fixes
+
+* AWS Batch builds are now more resilient in the face of transient network or
+  client errors when uploading the build directory and following build logs.
+  Thanks Tony Tung!
+
 # 1.16.6 (20 May 2020)
 
 ## Bug fixes
