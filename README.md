@@ -132,7 +132,7 @@ On Linux, install Docker with the standard package manager.  For example, on
 Ubuntu, you can install Docker with `sudo apt install docker.io`.
 
 On Windows, there are still significant obstacles to running with Docker, as
-documented in [our issue tracking the problems][windows-issue].  However, if
+documented in [our issue tracking the problems][windows issue].  However, if
 you have access to [WSL2][], you should be able to use Docker inside it by
 following the Linux install instructions.  Alternatively, you can use the
 [native](#native) or [AWS Batch](#aws-batch) runners.
