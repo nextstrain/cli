@@ -25,7 +25,11 @@ usage: nextstrain [-h]
                   {build,view,deploy,remote,shell,update,check-setup,version}
                   ...
 
-Nextstrain command-line tool
+Nextstrain command-line interface (CLI)
+
+The `nextstrain` program and its subcommands aim to provide a consistent way to
+run and visualize pathogen builds and access Nextstrain components like Augur
+and Auspice across computing environments such as Docker, Conda, and AWS Batch.
 
 optional arguments:
   -h, --help            show this help message and exit
