@@ -3,11 +3,12 @@ Log handling for AWS Batch jobs.
 """
 
 import threading
-from typing import Callable, Generator, Mapping, MutableSet
+from typing import Callable, Generator, MutableSet
 from ... import aws
 
 
 LOG_GROUP = "/aws/batch/job"
+MAX_FAILURES = 10
 
 
 def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, None]:
@@ -78,11 +79,28 @@ class LogWatcher(threading.Thread):
         # watch for new entries.
         consumed = set()    # type: MutableSet
 
+        # How many successful vs failed fetch_stream calls.  If we consistently see
+        # failures but we never see a successful attempt, we should raise an exception
+        # and stop.
+        num_successful = 0
+        num_failures = 0
+
         while not self.stopped.wait(0.2):
-            for entry in fetch_stream(self.stream, start_time = last_timestamp):
-                if entry["eventId"] not in consumed:
-                    consumed.add(entry["eventId"])
+            generator = fetch_stream(self.stream, start_time = last_timestamp)
+            while True:
+                try:
+                    entry = next(generator)
+                except StopIteration:
+                    break
+                except:
+                    num_failures += 1
+                    if num_failures > MAX_FAILURES and num_successful == 0:
+                        raise
+                else:
+                    num_successful += 1
+                    if entry["eventId"] not in consumed:
+                        consumed.add(entry["eventId"])
 
-                    last_timestamp = entry["timestamp"]
+                        last_timestamp = entry["timestamp"]
 
-                    self.consumer(entry)
+                        self.consumer(entry)
