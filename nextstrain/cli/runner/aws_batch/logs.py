@@ -3,11 +3,13 @@ Log handling for AWS Batch jobs.
 """
 
 import threading
+from botocore.exceptions import ClientError, ConnectionError as BotocoreConnectionError
 from typing import Callable, Generator, MutableSet
 from ... import aws
 
 
 LOG_GROUP = "/aws/batch/job"
+MAX_FAILURES = 10
 
 
 def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, None]:
@@ -78,11 +80,24 @@ class LogWatcher(threading.Thread):
         # watch for new entries.
         consumed = set()    # type: MutableSet
 
+        # How many successful vs failed fetch_stream calls.  If we consistently see
+        # failures but we never see a successful attempt, we should raise an exception
+        # and stop.
+        success_count = 0
+        failure_count = 0
+
         while not self.stopped.wait(0.2):
-            for entry in fetch_stream(self.stream, start_time = last_timestamp):
-                if entry["eventId"] not in consumed:
-                    consumed.add(entry["eventId"])
+            try:
+                for entry in fetch_stream(self.stream, start_time = last_timestamp):
+                    if entry["eventId"] not in consumed:
+                        consumed.add(entry["eventId"])
 
-                    last_timestamp = entry["timestamp"]
+                        last_timestamp = entry["timestamp"]
 
-                    self.consumer(entry)
+                        self.consumer(entry)
+            except (ClientError, BotocoreConnectionError):
+                failure_count += 1
+                if failure_count > MAX_FAILURES and not success_count:
+                    raise
+            else:
+                success_count += 1
