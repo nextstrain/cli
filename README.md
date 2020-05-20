@@ -125,16 +125,23 @@ platforms.  When you use Docker with the Nextstrain CLI, you don't need to
 install any other Nextstrain software dependencies as validated versions are
 already bundled into a container image by the Nextstrain team.
 
-On Windows or a Mac you should download and install [Docker Desktop][] (also
-known as "Docker for Mac" and "Docker for Windows").
+On macOS, download and install [Docker Desktop][], also known previously as
+"Docker for Mac".
 
-On Linux, your package manager should include a Docker package.  For example,
-on Ubuntu, you can install Docker with `sudo apt install docker.io`.
+On Linux, install Docker with the standard package manager.  For example, on
+Ubuntu, you can install Docker with `sudo apt install docker.io`.
+
+On Windows, there are still significant obstacles to running with Docker, as
+documented in [our issue tracking the problems][windows-issue].  However, if
+you have access to [WSL2][], you should be able to use Docker inside it by
+following the Linux install instructions.  Alternatively, you can use the
+[native](#native) or [AWS Batch](#aws-batch) runners.
 
 Once you've installed Docker, proceed with [checking your
 setup](#checking-your-setup).
 
-[Docker Desktop]: https://www.docker.com/products/docker-desktop
+[windows issue]: https://github.com/nextstrain/cli/issues/31
+[WSL2]: https://docs.microsoft.com/en-us/windows/wsl/wsl2-index
 
 #### Native
 
