@@ -140,6 +140,7 @@ following the Linux install instructions.  Alternatively, you can use the
 Once you've installed Docker, proceed with [checking your
 setup](#checking-your-setup).
 
+[Docker Desktop]: https://www.docker.com/products/docker-desktop
 [windows issue]: https://github.com/nextstrain/cli/issues/31
 [WSL2]: https://docs.microsoft.com/en-us/windows/wsl/wsl2-index
 
