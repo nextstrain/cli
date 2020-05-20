@@ -8,7 +8,7 @@ import requests
 import shutil
 import subprocess
 from textwrap import dedent
-from typing import List, Tuple
+from typing import Iterable, List, Tuple
 from .. import runner, hostenv, config
 from ..types import RunnerTestResults
 from ..util import warn, colored, capture_output, exec_or_return, resolve_path
@@ -20,7 +20,7 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
              or config.get("docker", "image") \
              or "nextstrain/base"
 
-COMPONENTS = ["sacra", "fauna", "augur", "auspice"]
+COMPONENTS = ["augur", "auspice", "fauna", "sacra"]
 
 
 def register_arguments(parser) -> None:
@@ -365,14 +365,14 @@ def dangling_images(name: str) -> List[str]:
     ])
 
 
-def print_version() -> None:
-    print_image_version()
+def versions() -> Iterable[str]:
+    yield image_version()
 
     if image_exists():
-        print_component_versions()
+        yield from component_versions()
 
 
-def print_image_version() -> None:
+def image_version() -> str:
     """
     Print the Docker image name and version.
     """
@@ -386,7 +386,7 @@ def print_image_version() -> None:
 
     image_ids = capture_output([
         "docker", "image", "ls",
-            "--format={{.ID}} ({{.CreatedAt}})", qualified_image])
+            "--format=({{.ID}}, {{.CreatedAt}})", qualified_image])
 
     assert len(image_ids) <= 1
 
@@ -396,10 +396,10 @@ def print_image_version() -> None:
     #
     # This function (via the version command), may be run before the image is
     # downloaded, so we handle finding no image ids.
-    print("%s docker image %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present"))
+    return "%s %s" % (DEFAULT_IMAGE, image_ids[0] if image_ids else "not present")
 
 
-def print_component_versions() -> None:
+def component_versions() -> Iterable[str]:
     """
     Print the git ids of the Nextstrain components in the image.
     """
@@ -419,10 +419,7 @@ def print_component_versions() -> None:
         done
     """ % " ".join(COMPONENTS)
 
-    versions = run_bash(report_versions)
-
-    for version in versions:
-        print("  " + version)
+    yield from run_bash(report_versions)
 
 
 def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:

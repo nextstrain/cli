@@ -4,8 +4,10 @@ Run commands on the native host, outside of any container image.
 
 import os
 import shutil
+from subprocess import CalledProcessError
+from typing import Iterable
 from ..types import RunnerTestResults
-from ..util import exec_or_return
+from ..util import capture_output, exec_or_return
 
 
 def register_arguments(parser) -> None:
@@ -42,9 +44,13 @@ def update() -> bool:
     return True
 
 
-def print_version() -> None:
-    # XXX TODO: Show the versions of augur and auspice once those have
-    # command-line interfaces to printing their versions (and the versions of
-    # tools like mafft, FastTree, etc).
-    #   -trs, 17 August 2018
-    pass
+def versions() -> Iterable[str]:
+    try:
+        yield capture_output(["augur", "--version"])[0]
+    except (OSError, CalledProcessError):
+        pass
+
+    try:
+        yield "auspice " + capture_output(["auspice", "--version"])[0]
+    except (OSError, CalledProcessError):
+        pass

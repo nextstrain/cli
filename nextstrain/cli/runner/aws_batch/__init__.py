@@ -10,6 +10,7 @@ from pathlib import Path
 from sys import exit
 from textwrap import dedent
 from time import sleep, time
+from typing import Iterable
 from uuid import uuid4
 from ...types import RunnerTestResults, Tuple
 from ...util import colored, resolve_path, warn
@@ -323,10 +324,10 @@ def update() -> bool:
     return True
 
 
-def print_version() -> None:
+def versions() -> Iterable[str]:
     """
     No-op.  Since batch jobs are non-interactive, there's no good way to
     extract meaningful versions from them.  Perhaps the job definition
     revision would be useful, but maybe not?
     """
-    pass
+    return []

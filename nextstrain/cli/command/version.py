@@ -5,6 +5,7 @@ Prints the version of the Nextstrain CLI.
 from ..__version__ import __version__
 from .. import __package__ as __top_package__
 from ..runner import all_runners
+from ..util import runner_name
 
 def register_parser(subparser):
     parser = subparser.add_parser("version", help = "Show version information")
@@ -21,5 +22,11 @@ def run(opts):
     print(__top_package__, __version__)
 
     if opts.verbose:
+        print()
         for runner in all_runners:
-            runner.print_version()
+            versions = list(runner.versions())
+            if versions:
+                print(runner_name(runner))
+                for version in versions:
+                    print("  " + version)
+                print()
