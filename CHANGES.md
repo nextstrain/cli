@@ -1,6 +1,41 @@
 # __NEXT__
 
 
+# 1.16.6 (20 May 2020)
+
+## Bug fixes
+
+* The previous release did not pass mypy's type checks due to a technicality;
+  mypy has now been placated.
+
+## Documentation
+
+* check-setup: Success or failure is (hopefully) more clearly messaged now.
+  This was muddied over time by adding support for the native and AWS Batch
+  runners, and we've seen several support requests because of confusion here.
+
+* Installation instructions in the README now document all supported computing
+  environments, or "runners".  Pipx is also mentioned as a nice alternative to
+  Pip.
+
+* Detaching from AWS Batch builds with `--detach` and Control-Z is now
+  mentioned in the AWS Batch documentation.
+
+* A direct reference to the AWS Batch User Guide on memory management details
+  was added, because AWS docs can be hard to navigate.
+
+* The units documented to be used by the `--aws-batch-memory` option are now
+  correct.
+
+* Runner-selection options (`--docker`, `--native`, `--aws-batch`) are now in
+  their own option group to reduce clutter among the help output.  They are
+  only visible with `--help-all` now, like development options.  With the use
+  of `nextstrain check-setup --set-default` now emphasized, these options need
+  not be as prominent.
+
+* The top-level description in `nextstrain --help` output now says more than
+  three words.  :D
+
 # 1.16.5 (22 April 2020)
 
 ## Features
