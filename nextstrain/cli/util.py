@@ -5,7 +5,7 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import Mapping, List
+from typing import Mapping, List, Tuple
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
@@ -213,3 +213,15 @@ def resolve_path(path: Path) -> Path:
         return path.resolve(strict = True) # type: ignore
     else:
         return path.resolve()
+
+
+def split_image_name(name: str) -> Tuple[str, str]:
+    """
+    Split the image *name* into a (repository, tag) tuple.
+    """
+    if ":" in name:
+        repository, tag = name.split(":", maxsplit = 2)
+    else:
+        repository, tag = name, "latest"
+
+    return (repository, tag)
