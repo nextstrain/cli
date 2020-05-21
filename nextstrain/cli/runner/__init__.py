@@ -139,7 +139,7 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         runner.register_arguments(parser)
 
 
-def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = {}) -> int:
+def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = {}, cpus: int = None, memory: int = None) -> int:
     """
     Inspect the given options object and call the selected runner's run()
     function with appropriate arguments.
@@ -156,7 +156,7 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
         )
     ]
 
-    return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env)
+    return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 
 
 def replace_ellipsis(items, elided_items):

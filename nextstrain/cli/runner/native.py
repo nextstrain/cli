@@ -17,9 +17,13 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None, extra_env = {}) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
     if working_volume:
         os.chdir(str(working_volume.src))
+
+    # XXX TODO: In the future we might want to set rlimits based on cpus and
+    # memory, at least on POSIX systems.
+    #   -trs, 21 May 2020
 
     return exec_or_return(argv, extra_env)
 

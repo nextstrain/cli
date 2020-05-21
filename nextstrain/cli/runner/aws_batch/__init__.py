@@ -71,7 +71,7 @@ def register_arguments(parser) -> None:
 
     development.add_argument(
         "--aws-batch-cpus",
-        dest    = "cpus",
+        dest    = "aws_batch_cpus",
         help    = "Number of vCPUs to request for job",
         metavar = "<count>",
         type    = int,
@@ -79,14 +79,14 @@ def register_arguments(parser) -> None:
 
     development.add_argument(
         "--aws-batch-memory",
-        dest    = "memory",
+        dest    = "aws_batch_memory",
         help    = "Amount of memory in MiB to request for job",
         metavar = "<mebibytes>",
         type    = int,
         default = DEFAULT_MEMORY)
 
 
-def run(opts, argv, working_volume = None, extra_env = {}) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
     local_workdir = resolve_path(working_volume.src)
 
     if opts.attach:
@@ -127,13 +127,25 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
         # Submit job.
         print_stage("Submitting job")
 
+        # Our own --aws-batch-cpus and --aws-batch-memory options take
+        # precedence over whatever was passed from the command (e.g. the build
+        # command's --cpus and --memory options).
+        if opts.aws_batch_cpus:
+            cpus = opts.aws_batch_cpus
+
+        if opts.aws_batch_memory:
+            memory = opts.aws_batch_memory
+        elif memory:
+            # Memory from our caller is in bytes, but AWS expects MiB.
+            memory //= 1024**2
+
         try:
             job = jobs.submit(
                 name       = run_id,
                 queue      = opts.job_queue,
                 definition = opts.job_definition,
-                cpus       = opts.cpus,
-                memory     = opts.memory,
+                cpus       = cpus,
+                memory     = memory,
                 workdir    = remote_workdir,
                 exec       = argv,
                 env        = extra_env)
