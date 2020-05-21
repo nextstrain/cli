@@ -232,6 +232,20 @@ increased to 3.6 in the future.
 
 Versions for this project follow the [Semantic Versioning rules][].
 
+### Setup
+
+You can use [Pipenv](https://pipenv.pypa.io) to spin up an isolated development
+environment:
+
+    pipenv sync --dev
+    pipenv run nextstrain --help
+
+The Pipenv development environment includes our dev tools (described below):
+
+    pipenv run pytest           # runs doctests as well as mypy and flake8
+    pipenv run mypy nextstrain
+    pipenv run flake8
+
 ### Running with local changes
 
 From within a clone of the git repository you can run `./bin/nextstrain` to
@@ -249,6 +263,14 @@ There is a `./devel/release` script which will prepare a new release from your
 local repository.  It ends with instructions for you on how to push the release
 commit/tag and how to upload the built distributions to PyPi.  You'll need [a
 PyPi account][] and [twine][] installed.
+
+### Tests
+
+Tests are run with [pytest](https://pytest.org).  To run everything, use:
+
+    pytest
+
+This includes the type annotation and static analysis checks described below.
 
 ### Type annotations and static analysis
 

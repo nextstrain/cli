@@ -23,15 +23,13 @@ matrix:
       python: 3.8-dev
 
 install:
-  - pip3 install .
-  - pip3 install flake8 mypy
+  - pip3 install '.[dev]'
 
 before_script:
   - git clone https://github.com/nextstrain/zika-tutorial
 
 script:
-  - flake8
-  - mypy nextstrain
+  - pytest -v
   - nextstrain version
   - nextstrain check-setup
   - nextstrain update
