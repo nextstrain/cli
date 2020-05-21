@@ -217,7 +217,13 @@ def resolve_path(path: Path) -> Path:
 
 def split_image_name(name: str) -> Tuple[str, str]:
     """
-    Split the image *name* into a (repository, tag) tuple.
+    Split the Docker image *name* into a (repository, tag) tuple.
+
+    >>> split_image_name("nextstrain/base:build-20200424T101900Z")
+    ('nextstrain/base', 'build-20200424T101900Z')
+
+    >>> split_image_name("nextstrain/base")
+    ('nextstrain/base', 'latest')
     """
     if ":" in name:
         repository, tag = name.split(":", maxsplit = 2)
