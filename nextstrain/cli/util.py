@@ -213,3 +213,79 @@ def resolve_path(path: Path) -> Path:
         return path.resolve(strict = True) # type: ignore
     else:
         return path.resolve()
+
+
+def byte_quantity(quantity: str) -> int:
+    """
+    Parses a string *quantity* consisting of a number, optional whitespace, and
+    a unit of bytes.
+
+    Returns the number of bytes in *quantity*, as an integer.
+
+    Supported units:
+
+    * ``b`` (bytes)
+    * ``kb`` (kilobytes)
+    * ``mb`` (megabytes)
+    * ``gb`` (gigabytes)
+    * ``kib`` (kibibytes)
+    * ``mib`` (mebibytes)
+    * ``gib`` (gibibytes)
+
+    Units are not case sensitive.  If no unit is given, bytes is assumed.
+
+    Raises a :py:class:`ValueError` if *quantity* is not parseable.
+
+    >>> byte_quantity("2Kb")
+    2000
+    >>> byte_quantity("2 kib")
+    2048
+    >>> byte_quantity("1.5GB")
+    1500000000
+    >>> byte_quantity("1024")
+    1024
+    >>> byte_quantity("hello mb")
+    Traceback (most recent call last):
+        ...
+    ValueError: Unparseable byte quantity value: 'hello'
+    """
+    match = re.search(r"""
+        ^
+        # The numeric value.  We rely on float() to parse this, so don't
+        # restrict it here.
+        (\S+?)
+
+        \s*
+
+        # The optional unit.
+        ( [kmg]b
+        | [kmg]ib
+        | b
+        )?
+        $
+        """, quantity.strip(), re.VERBOSE | re.IGNORECASE)
+
+    if not match:
+        raise ValueError("Unrecognized byte quantity: %s" % repr(quantity))
+
+    value_str, units = match.groups()
+
+    try:
+        value = float(value_str)
+    except ValueError:
+        raise ValueError("Unparseable byte quantity value: %s" % repr(value_str)) from None
+
+    if not units:
+        units = "b"
+
+    unit_factor = {
+        'b': 1,
+        'kb': 1000,
+        'mb': 1000**2,
+        'gb': 1000**3,
+        'kib': 1024,
+        'mib': 1024**2,
+        'gib': 1024**3,
+    }
+
+    return int(value * unit_factor[units.lower()])

@@ -23,9 +23,11 @@ is as easy as possible.  It also lets us more seamlessly make environment
 changes in the future as desired or necessary.
 """
 
+import re
+from textwrap import dedent
 from .. import runner
 from ..argparse import add_extended_help_flags
-from ..util import warn
+from ..util import byte_quantity, warn
 from ..volume import store_volume
 
 
@@ -53,6 +55,25 @@ def register_parser(subparser):
                "Currently only supported when also using --aws-batch.",
         metavar = "<job-id>")
 
+    parser.add_argument(
+        "--cpus",
+        help    = "Number of CPUs/cores/threads/jobs to utilize at once.  "
+                  "Limits containerized (Docker, AWS Batch) builds to this amount.  "
+                  "Informs Snakemake's resource scheduler when applicable.  "
+                  "Informs the AWS Batch instance size selection.",
+        metavar = "<count>",
+        type    = int)
+
+    parser.add_argument(
+        "--memory",
+        help    = "Amount of memory to make available to the build.  "
+                  "Units of b, kb, mb, gb, kib, mib, gib are supported.  "
+                  "Limits containerized (Docker, AWS Batch) builds to this amount.  "
+                  "Informs Snakemake's resource scheduler when applicable.  "
+                  "Informs the AWS Batch instance size selection.  ",
+        metavar = "<quantity>",
+        type    = byte_quantity)
+
     # Positional parameters
     parser.add_argument(
         "directory",
@@ -77,4 +98,94 @@ def run(opts):
 
         return 1
 
-    return runner.run(opts, working_volume = opts.build)
+    # Automatically pass thru appropriate resource options to Snakemake to
+    # avoid the user having to repeat themselves (once for us, once for
+    # snakemake).
+    if opts.exec == "snakemake":
+        snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
+
+        if opts.cpus:
+            if not snakemake_opts["--cores"]:
+                opts.extra_exec_args += ["--cores=%d" % opts.cpus]
+            else:
+                warn(dedent("""
+                    Warning: The explicit %s option passed to Snakemake prevents
+                    the Nextstrain CLI from automatically providing one based on its
+                    --cpus option.  This may or may not be what you expect.
+                    """ % (snakemake_opts["--cores"][0],)))
+
+        if opts.memory:
+            if not snakemake_opts["--resources"]:
+                # Named MB but is really MiB, so convert our count of bytes to MiB
+                opts.extra_exec_args += ["--resources=mem_mb=%d" % (opts.memory // 1024**2)]
+            else:
+                # XXX TODO: Support parsing of --resources to see if "mem_mb" is
+                # provided.  If it's not, we could add our own "mem_mb" constraint
+                # alongside the other values of --resources.  Punting on this
+                # because it's not as simple as appending an additional argument.
+                # So for now, if folks are specifying their own --resources,
+                # they'll also need to explicitly provide "mem_mb", which may mean
+                # repeating a previous --memory argument they provided us.
+                #   -trs, 20 May 2020
+                warn(dedent("""
+                    Warning: The explicit %s option passed to Snakemake prevents
+                    the Nextstrain CLI from automatically providing a "mem_mb" resource
+                    based on its --memory option.  This may or may not be what you expect.
+                    """ % (snakemake_opts["--resources"][0],)))
+
+    return runner.run(opts, working_volume = opts.build, cpus = opts.cpus, memory = opts.memory)
+
+
+def parse_snakemake_args(args):
+    """
+    Inspects a tiny subset of Snakemake's CLI arguments in order to determine
+    their presence or absence in our invocation.
+
+    >>> parse_snakemake_args(["--cores"])
+    {'--cores': ['--cores'], '--resources': []}
+
+    >>> parse_snakemake_args(["--resources=mem_mb=100"])
+    {'--cores': [], '--resources': ['--resources']}
+
+    >>> parse_snakemake_args(["-j", "8", "--res", "mem_mb=100"])
+    {'--cores': ['-j'], '--resources': ['--res']}
+
+    >>> parse_snakemake_args(["-j8"])
+    {'--cores': ['-j'], '--resources': []}
+
+    >>> parse_snakemake_args([])
+    {'--cores': [], '--resources': []}
+    """
+    # XXX TODO: Consider using a small ArgumentParser() for this in the
+    # future, when we can require Python 3.7 and use parse_intermixed_args().
+    #   -trs, 20 May 2020
+
+    opts = {
+        "-j" if re.search(r"^-j\d+$", arg) else arg
+            for arg in map(lambda arg: arg.split("=", 1)[0], args)
+    }
+
+    # These prefix lists statically embed the unambiguous option prefixes
+    # accepted as of Snakemake 5.17.0.
+    cores = {
+        "--cores", # documented
+        "--core",
+        "--cor",
+        "--jobs", # documented
+        "-j", # documented
+    }
+
+    resources = {
+        "--resources", # documented
+        "--resource",
+        "--resourc",
+        "--resour",
+        "--resou",
+        "--reso",
+        "--res", # documented
+    }
+
+    return {
+        "--cores": list(cores & opts),
+        "--resources": list(resources & opts),
+    }
