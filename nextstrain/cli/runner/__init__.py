@@ -105,6 +105,14 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         "These should generally be unnecessary unless you're developing Nextstrain.")
 
     # Program to execute
+    #
+    # XXX TODO: We could make this nargs = "*" to accept more than one arg and
+    # thus provide a way to override default_exec_args.  This would resolve
+    # some weirdness below re: the interplay of default exec args, the
+    # Ellipsis, and extra_exec_args.  However, it would require --exec's last
+    # value is followed by either another option or "--" to separate the --exec
+    # values from other positional arguments like the build workdir.
+    #   -trs, 21 May 2020
     development.add_argument(
         "--exec",
         help    = "Program to run inside the build environment",
