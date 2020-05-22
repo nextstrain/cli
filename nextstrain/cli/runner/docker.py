@@ -36,12 +36,6 @@ def register_arguments(parser) -> None:
     development = parser.add_argument_group(
         "development options for --docker")
 
-    development.add_argument(
-        "--image",
-        help    = "Container image in which to run the pathogen build",
-        metavar = "<name>",
-        default = DEFAULT_IMAGE)
-
     development.set_defaults(volumes = [])
 
     for name in COMPONENTS:

@@ -2,9 +2,15 @@
 Job handling for AWS Batch.
 """
 
+import re
+from botocore.exceptions import ClientError
+from copy import deepcopy
+from operator import itemgetter
 from time import time
 from typing import Callable, Generator, Iterable, Mapping, List, Optional
 from ... import hostenv, aws
+from ...errors import UserError
+from ...util import split_image_name
 from . import logs, s3
 
 
@@ -139,6 +145,7 @@ class JobState:
 
 
 def submit(name: str,
+           image: str,
            queue: str,
            definition: str,
            cpus: Optional[int],
@@ -156,7 +163,7 @@ def submit(name: str,
     submission = batch.submit_job(
         jobName = name,
         jobQueue = queue,
-        jobDefinition = definition,
+        jobDefinition = override_definition(definition, image),
         containerOverrides = {
             "environment": [
                 {
@@ -219,16 +226,116 @@ def forwarded_environment() -> List[dict]:
     ]
 
 
+def override_definition(base_definition_name: str, image: str) -> str:
+    """
+    Find or create a job definition based on *base_definition_name* but which
+    uses *image*.
+
+    *base_definition_name* must already exist.  If it uses *image* itself, it
+    will be returned as-is.  Otherwise, a new derived job definition will be
+    created to override *image*.
+
+    This function only exists because the ``containerOverrides`` data structure
+    used in job submission doesn't support overriding the image.
+
+    Returns a job definition name.
+    """
+    # XXX TODO: We only create derived job definitions from an existing base
+    # definition, which is minimally modified.  This is a conservative choice
+    # that avoids hardcoding a default definition.  In the future, we might
+    # consider relaxing this to auto-create a default base definition.  The
+    # advantage there is one less piece of initial AWS setup.  The challenge is
+    # choosing defaults that work for everyone's taste for resources/spending,
+    # as well as using the right job roles and other details.
+    #   -trs, 22 May 2020
+    batch = aws.client_with_default_region("batch")
+
+    base_definition = lookup_definition(base_definition_name)
+
+    if not base_definition:
+        raise UserError("AWS Batch job definition «%s» does not exist" % base_definition_name)
+
+    # The base definition might already use this image, in which case we avoid
+    # creating anything.  This lets admins not grant job definition creation to
+    # users if they want; users will instead have to specify matching
+    # --aws-batch-job and --image values.
+    #
+    # Split the image name in order to normalize the implicit :latest tag.
+    base_image = base_definition["containerProperties"]["image"]
+
+    if split_image_name(base_image) == split_image_name(image):
+        return base_definition_name
+
+    # The revision of the base definition is included in the derived image name
+    # so that changes to the base definition cause derived definitions to be
+    # re-created.  Unfortunately, we can't explicitly set the revision of new
+    # definitions.
+    derived_definition_name = sanitize_name(
+        "_".join((
+            base_definition_name,
+            str(base_definition["revision"]),
+            *split_image_name(image))))
+
+    derived_definition = lookup_definition(derived_definition_name)
+
+    if not derived_definition:
+        derived_definition = deepcopy(base_definition)
+        derived_definition["jobDefinitionName"] = derived_definition_name
+        derived_definition["containerProperties"]["image"] = image
+
+        # These are AWS-assigned keys returned by describe_job_definitions() which
+        # aren't supported as keyword arguments by register_job_definition().
+        for key in {'jobDefinitionArn', 'revision', 'status'}:
+            del derived_definition[key]
+
+        batch.register_job_definition(**derived_definition)
+    else:
+        derived_image = derived_definition["containerProperties"]["image"]
+
+        assert split_image_name(derived_image) == split_image_name(image), (
+            "Expected job definition «%s», derived from «%s», to use image «%s», "
+            "but it uses «%s» instead"
+            % (derived_definition_name, base_definition_name, image, derived_image))
+
+    return derived_definition_name
+
+
+def lookup_definition(name: str) -> Optional[dict]:
+    """
+    Lookup an AWS Batch job definition by its *name*.
+
+    Always returns the latest active revision.
+
+    Returns a dict if found, ``None`` if not.
+    """
+    batch = aws.client_with_default_region("batch")
+
+    active = batch.describe_job_definitions(jobDefinitionName = name, status = 'ACTIVE')
+
+    revisions = sorted(
+        active["jobDefinitions"],
+        key = itemgetter("revision"),
+        reverse = True)
+
+    return revisions[0] if revisions else None
+
+
+def sanitize_name(name: str) -> str:
+    """
+    Mangles *name* to fit within a job or job definition name.
+
+    * Replaces any invalid character with a hyphen ``-``
+    * Truncates to 128 characters in length
+    """
+    return re.sub(r"[^A-Za-z0-9_-]", "-", name)[0:128]
+
+
 def definition_exists(name: str) -> bool:
     """
     Test if an AWS Batch job definition exists.
     """
     try:
-        batch = aws.client_with_default_region("batch")
-
-        return bool(
-            batch.describe_job_definitions(jobDefinitionName = name, status = 'ACTIVE') \
-                 .get("jobDefinitions"))
+        return bool(lookup_definition(name))
     except:
         return False
 
