@@ -23,7 +23,7 @@ matrix:
       python: 3.8-dev
 
 install:
-  - pip3 install '.[dev]'
+  - pip3 install --upgrade '.[dev]'
 
 before_script:
   - git clone https://github.com/nextstrain/zika-tutorial
