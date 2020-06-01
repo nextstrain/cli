@@ -5,7 +5,7 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import Mapping, List
+from typing import Mapping, List, Tuple
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
@@ -289,3 +289,21 @@ def byte_quantity(quantity: str) -> int:
     }
 
     return int(value * unit_factor[units.lower()])
+
+
+def split_image_name(name: str) -> Tuple[str, str]:
+    """
+    Split the Docker image *name* into a (repository, tag) tuple.
+
+    >>> split_image_name("nextstrain/base:build-20200424T101900Z")
+    ('nextstrain/base', 'build-20200424T101900Z')
+
+    >>> split_image_name("nextstrain/base")
+    ('nextstrain/base', 'latest')
+    """
+    if ":" in name:
+        repository, tag = name.split(":", maxsplit = 2)
+    else:
+        repository, tag = name, "latest"
+
+    return (repository, tag)

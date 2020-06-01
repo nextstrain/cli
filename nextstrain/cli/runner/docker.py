@@ -8,10 +8,10 @@ import requests
 import shutil
 import subprocess
 from textwrap import dedent
-from typing import Iterable, List, Tuple
+from typing import Iterable, List
 from .. import runner, hostenv, config
 from ..types import RunnerTestResults
-from ..util import warn, colored, capture_output, exec_or_return, resolve_path
+from ..util import warn, colored, capture_output, exec_or_return, resolve_path, split_image_name
 from ..volume import store_volume
 from ..__version__ import __version__
 
@@ -35,12 +35,6 @@ def register_arguments(parser) -> None:
     #   -trs, 15 August 2018
     development = parser.add_argument_group(
         "development options for --docker")
-
-    development.add_argument(
-        "--image",
-        help    = "Container image in which to run the pathogen build",
-        metavar = "<name>",
-        default = DEFAULT_IMAGE)
 
     development.set_defaults(volumes = [])
 
@@ -253,18 +247,6 @@ def update() -> bool:
         warn()
 
     return True
-
-
-def split_image_name(name: str) -> Tuple[str, str]:
-    """
-    Split the image *name* into a (repository, tag) tuple.
-    """
-    if ":" in name:
-        repository, tag = name.split(":", maxsplit = 2)
-    else:
-        repository, tag = name, "latest"
-
-    return (repository, tag)
 
 
 def is_build_tag(tag: str) -> bool:

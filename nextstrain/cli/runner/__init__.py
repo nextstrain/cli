@@ -1,5 +1,6 @@
 import argparse
 from argparse import ArgumentParser
+from textwrap import dedent
 from typing import Any, Mapping, List
 from . import docker, native, aws_batch
 from .. import config
@@ -104,6 +105,13 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         "development options",
         "These should generally be unnecessary unless you're developing Nextstrain.")
 
+    # Image to use; shared by Docker and AWS Batch runners
+    development.add_argument(
+        "--image",
+        help    = "Container image name to use for the Nextstrain computing environment",
+        metavar = "<image>",
+        default = docker.DEFAULT_IMAGE)
+
     # Program to execute
     #
     # XXX TODO: We could make this nargs = "*" to accept more than one arg and
@@ -155,6 +163,11 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
             opts.extra_exec_args
         )
     ]
+
+    if opts.image != docker.DEFAULT_IMAGE and opts.__runner__ is native:
+        warn(dedent("""
+            Warning: The specified --image=%s option is not used by --native.
+            """ % opts.image))
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 

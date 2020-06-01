@@ -142,6 +142,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         try:
             job = jobs.submit(
                 name       = run_id,
+                image      = opts.image,
                 queue      = opts.job_queue,
                 definition = opts.job_definition,
                 cpus       = cpus,
