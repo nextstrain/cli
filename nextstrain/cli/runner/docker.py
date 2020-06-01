@@ -60,7 +60,7 @@ def register_arguments(parser) -> None:
         action  = "append")
 
 
-def run(opts, argv, working_volume = None, extra_env = {}) -> int:
+def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
     # Ensure all volume source paths exist.  Docker will auto-create missing
     # directories in the path, which, while desirable under some circumstances,
     # doesn't match up well with our use case.  We're aiming to not surprise or
@@ -101,6 +101,13 @@ def run(opts, argv, working_volume = None, extra_env = {}) -> int:
 
         # Plus any extra environment variables provided by us
         *["--env=%s" % name for name in extra_env.keys()],
+
+        # Set resource limits if any
+        *(["--cpus=%d" % cpus]
+            if cpus is not None else []),
+
+        *(["--memory=%db" % memory]
+            if memory is not None else []),
 
         *opts.docker_args,
         opts.image,

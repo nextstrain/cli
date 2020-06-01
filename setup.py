@@ -91,4 +91,14 @@ setup(
         # missing!
         "setuptools >=8.0.3",
     ],
+
+    extras_require = {
+        "dev": [
+            "flake8",
+            "mypy",
+            "pytest",
+            "pytest-flake8",
+            "pytest-mypy",
+        ],
+    },
 )
