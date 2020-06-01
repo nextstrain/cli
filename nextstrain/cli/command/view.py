@@ -23,7 +23,7 @@ from typing import Iterable
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker, native
-from ..util import colored, warn
+from ..util import colored, remove_suffix, warn
 from ..volume import store_volume
 
 
@@ -155,10 +155,14 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
             for path in data_dir.glob("*.json")
             if not sidecar_file(path))
 
-    # v1: All *_tree.json files.
+    # v1: All *_tree.json files with corresponding *_meta.json files.
+    def meta_exists(path):
+        return path.with_name(remove_suffix("_tree.json", path.name) + "_meta.json").exists()
+
     datasets_v1 = set(
         re.sub(r"_tree$", "", path.stem).replace("_", "/")
-            for path in data_dir.glob("*_tree.json"))
+            for path in data_dir.glob("*_tree.json")
+            if meta_exists(path))
 
     return datasets_v2 | datasets_v1
 
