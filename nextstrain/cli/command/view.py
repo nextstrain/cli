@@ -1,17 +1,25 @@
 """
-Visualizes a completed pathogen build in auspice, the Nextstrain web frontend.
+Visualizes a completed pathogen build in Auspice, the Nextstrain visualization app.
 
-The data directory should contain sets of files with at least two files:
+The data directory should contain sets of Auspice JSON¹ files like
 
-    <prefix>_tree.json
-    <prefix>_meta.json
+    <name>.json
+
+or
+
+    <name>_tree.json
+    <name>_meta.json
 
 The viewer runs inside a container, which requires Docker.  Run `nextstrain
 check-setup` to check if Docker is installed and works.
+
+¹ <https://nextstrain.github.io/auspice/introduction/how-to-run#input-file-formats>
 """
 
 import re
 import netifaces as net
+from pathlib import Path
+from typing import Iterable
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker, native
@@ -71,11 +79,8 @@ def run(opts):
 
         return 1
 
-    # Try to find the available dataset paths since we may not have a manifest
-    datasets = [
-        re.sub(r"_tree$", "", path.stem).replace("_", "/")
-            for path in data_dir.glob("*_tree.json")
-    ]
+    # Find the available dataset paths
+    datasets = dataset_paths(data_dir)
 
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
@@ -132,6 +137,30 @@ def run(opts):
     print_url(host, port, datasets)
 
     return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
+
+
+def dataset_paths(data_dir: Path) -> Iterable[str]:
+    """
+    Returns a :py:class:`set` of Auspice (not filesystem) paths for datasets in
+    *data_dir*.
+    """
+    # v2: All *.json files which don't end with a known sidecar or v1 suffix.
+    sidecar_suffixes = {"meta", "tree", "root-sequence", "seq", "sequences", "tip-frequencies", "entropy"}
+
+    def sidecar_file(path):
+        return any(path.name.endswith("_%s.json" % suffix) for suffix in sidecar_suffixes)
+
+    datasets_v2 = set(
+        path.stem.replace("_", "/")
+            for path in data_dir.glob("*.json")
+            if not sidecar_file(path))
+
+    # v1: All *_tree.json files.
+    datasets_v1 = set(
+        re.sub(r"_tree$", "", path.stem).replace("_", "/")
+            for path in data_dir.glob("*_tree.json"))
+
+    return datasets_v2 | datasets_v1
 
 
 def print_url(host, port, datasets):
