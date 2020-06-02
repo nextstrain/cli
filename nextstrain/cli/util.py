@@ -71,8 +71,11 @@ def check_for_new_version():
         print()
         print("Upgrade by running:")
         print()
-        print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-              "    " + python + " -m pip install --upgrade nextstrain-cli")
+        if "/pipx/venvs/nextstrain-cli/" in python:
+            print("    pipx upgrade nextstrain-cli")
+        else:
+            print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+                  "    " + python + " -m pip install --upgrade nextstrain-cli")
         print()
     else:
         print("nextstrain-cli is up to date!")
