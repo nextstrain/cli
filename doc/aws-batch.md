@@ -34,13 +34,14 @@ By default, each AWS Batch job will have available to it the number of vCPUs
 and amount of memory configured in your [job definition](#job-definition).  To
 take full advantage of multiple CPUs available, [Snakemake's `--jobs` (or
 `-j`)](https://snakemake.readthedocs.io/en/stable/executable.html#EXECUTION)
-option should generally be matched to the configured number of vCPUs.
+option should generally be matched to the configured number of vCPUs.  Using
+`nextstrain build`'s `--cpus` and `--memory` options will both scale the Batch
+instance size and inform Snakemake's resource scheduler for you.
 
 The resources configured in the job definition can be overridden on a per-build
-basis using the `--aws-batch-cpus` and/or `--aws-batch-memory` options, for
-example:
+basis using the `--cpus` and/or `--memory` options, for example:
 
-    nextstrain build --aws-batch --aws-batch-cpus=8 --aws-batch-memory=14800 zika-tutorial/ --jobs 8
+    nextstrain build --aws-batch --cpus=8 --memory=14gib zika-tutorial/
 
 Alternatively, default resource overrides can be set via the
 `~/.nextstrain/config` file:
@@ -51,6 +52,11 @@ Alternatively, default resource overrides can be set via the
 
 Or via the environment variables `NEXTSTRAIN_AWS_BATCH_CPUS` and
 `NEXTSTRAIN_AWS_BATCH_MEMORY`.
+
+When using config or environment variables, however, note that Snakemake's
+resource scheduler will not be automatically informed.  This means you should
+include `--jobs=…` yourself (and possibly `--resources=mem_mb=…`) as an extra
+argument to Snakemake.
 
 Note that requesting more CPUs or memory than available in a compute
 environment will result in a job that is queued but is never started.
@@ -173,7 +179,8 @@ into the JSON editor in the web console.
                 "batch:DescribeJobs",
                 "batch:CancelJob",
                 "batch:SubmitJob",
-                "batch:DescribeJobDefinitions"
+                "batch:DescribeJobDefinitions",
+                "batch:RegisterJobDefinition"
             ],
             "Resource": "*"
         }
