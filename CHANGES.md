@@ -1,6 +1,50 @@
 # __NEXT__
 
 
+# 2.0.0 (2 June 2020)
+
+## Features
+
+* build: The AWS Batch runner now supports overriding the image hardcoded in
+  the Batch job definition.  Use the `--image` command-line option, the
+  `NEXTSTRAIN_DOCKER_IMAGE` environment variable, or the `docker.image` config
+  setting.  This means that both `--docker` and `--aws-batch` builds will now
+  use the same container image, increasing reproducibility and customizability.
+
+  This is a **potentially-breaking change**, as it requires your AWS IAM users
+  are allowed to perform the `batch:RegisterJobDefinition` action.
+
+* build: The new `--cpus` and `--memory` options allow limits to be specified
+  for containerized (Docker, AWS Batch) builds.  These both automatically
+  inform Snakemake's resource scheduler and the AWS Batch instance size
+  selection.  If your builds use Snakemake-based workflows, using these new
+  options is better than specifying `--cores …` or `--resources mem_mb=…`
+  directly.
+
+* version: Verbose output now includes the "native" versions of Augur and
+  Auspice, if available.
+
+## Bug fixes
+
+* view: Auspice v2 dataset JSONs are now detected and included in the list of
+  available datasets message printed to the console.
+
+* view: Auspice v1 datasets are now only listed if both the tree and meta JSON
+  files exist.  Previously, incomplete datasets with only the tree JSON were
+  listed.
+
+## Documentation
+
+* The README now documents known issues with Windows.
+
+## Development
+
+* Pipenv is now used to provide an easier and more consistent development
+  environment.
+
+* pytest is now used to run mypy, flake8, and doctests.
+
+
 # 1.16.7 (20 May 2020)
 
 ## Bug fixes
