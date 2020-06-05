@@ -32,6 +32,7 @@ author = 'Thomas Sibley and the rest of the Nextstrain team'
 extensions = [
     'recommonmark',
     'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
     'sphinx_markdown_tables',
     'sphinxarg.ext',
 ]
@@ -56,3 +57,10 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+# -- Cross-project references ------------------------------------------------
+
+intersphinx_mapping = {
+    'augur': ('https://docs.nextstrain.org/projects/augur/en/latest', None),
+}
