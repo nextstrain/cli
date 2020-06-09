@@ -1,0 +1,25 @@
+#!/bin/bash
+base="$(realpath "$(dirname "$0")/..")"
+doc="$base/doc"
+
+main() {
+    pushd "$doc"
+        rebuild
+        while inotifywait -e attrib -r .; do
+            rebuild
+        done
+    popd
+}
+
+rebuild() {
+    pipenv run make clean
+    pipenv run make dirhtml
+
+    pushd _build/dirhtml
+        kill %
+        python3 -m http.server &
+        trap 'kill %' EXIT
+    popd
+}
+
+main "$@"
