@@ -7,6 +7,7 @@ verify_ssl = true
 
 [packages]
 nextstrain-cli = {editable = true,extras = ["dev"],path = "."}
+sphinx-argparse = {file = "https://github.com/alex-rudakov/sphinx-argparse/archive/b3b649743d4f8854349a2416ccdd770f41739c35.tar.gz"}
 
 [requires]
 python_version = "3.6"

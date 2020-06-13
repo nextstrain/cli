@@ -99,6 +99,11 @@ setup(
             "pytest",
             "pytest-flake8",
             "pytest-mypy",
+            "recommonmark",
+            "sphinx>=3",
+            "sphinx-argparse",
+            "sphinx-markdown-tables",
+            "sphinx_rtd_theme",
         ],
     },
 )
