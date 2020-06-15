@@ -1,6 +1,15 @@
 # __NEXT__
 
 
+# 2.0.0.post1 (15 June 2020)
+
+## Documentation
+
+* The AWS Batch documentation and 2.0.0 release notes (below) now include
+  information about the additional necessity of granting users the ability to
+  `iam:PassRole` for the role used by Batch jobs.
+
+
 # 2.0.0 (2 June 2020)
 
 ## Features
