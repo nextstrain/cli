@@ -183,6 +183,12 @@ into the JSON editor in the web console.
                 "batch:RegisterJobDefinition"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "iam:PassRole",
+            "Resource": "arn:aws:iam::*:role/NextstrainJobsRole"
         }
     ]
 }
@@ -247,7 +253,8 @@ When creating the role in the web console, choose _AWS service_ as the type of
 trusted entity, the _Elastic Container Service_ as the specific trusted
 service, and the _Elastic Container Service Task_ as the use case.  Attach the
 _NextstrainJobsAccessToBucket_ policy you created above.  Finally, give the
-role a name and description of your choosing.
+role a name and description of your choosing.  This document assumes the role
+ name is _NextstrainJobsRole_.
 
 ### Group
 

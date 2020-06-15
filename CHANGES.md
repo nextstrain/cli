@@ -12,7 +12,11 @@
   use the same container image, increasing reproducibility and customizability.
 
   This is a **potentially-breaking change**, as it requires your AWS IAM users
-  are allowed to perform the `batch:RegisterJobDefinition` action.
+  are allowed to perform the `batch:RegisterJobDefinition` action and
+  `iam:PassRole` for the your configured job role (typically
+  _NextstrainJobsRole_).  The [example _NextstrainJobsAccessToBatch_ IAM
+  policy](doc/aws-batch.md#nextstrainjobsaccesstobatch) in the [AWS Batch
+  docs](doc/aws-batch.md) is updated to reflect these new privileges.
 
 * build: The new `--cpus` and `--memory` options allow limits to be specified
   for containerized (Docker, AWS Batch) builds.  These both automatically
