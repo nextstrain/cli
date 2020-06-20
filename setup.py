@@ -96,6 +96,7 @@ setup(
         "dev": [
             "flake8",
             "mypy",
+            "nextstrain-sphinx-theme",
             "pytest",
             "pytest-flake8",
             "pytest-mypy",
