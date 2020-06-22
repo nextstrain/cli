@@ -19,7 +19,7 @@
 
 from datetime import date
 
-project = 'Nextstrain CLI'
+project = 'CLI'
 copyright = '2018–%d, Trevor Bedford and Richard Neher' % (date.today().year)
 author = 'Thomas Sibley and the rest of the Nextstrain team'
 
@@ -57,10 +57,6 @@ html_theme = 'nextstrain-sphinx-theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-
-html_theme_options = {
-    'logo_only': True,
-}
 
 
 # -- Cross-project references ------------------------------------------------
