@@ -141,20 +141,20 @@ def parse_snakemake_args(args):
     Inspects a tiny subset of Snakemake's CLI arguments in order to determine
     their presence or absence in our invocation.
 
-    >>> parse_snakemake_args(["--cores"])
-    {'--cores': ['--cores'], '--resources': []}
+    >>> sorted(parse_snakemake_args(["--cores"]).items())
+    [('--cores', ['--cores']), ('--resources', [])]
 
-    >>> parse_snakemake_args(["--resources=mem_mb=100"])
-    {'--cores': [], '--resources': ['--resources']}
+    >>> sorted(parse_snakemake_args(["--resources=mem_mb=100"]).items())
+    [('--cores', []), ('--resources', ['--resources'])]
 
-    >>> parse_snakemake_args(["-j", "8", "--res", "mem_mb=100"])
-    {'--cores': ['-j'], '--resources': ['--res']}
+    >>> sorted(parse_snakemake_args(["-j", "8", "--res", "mem_mb=100"]).items())
+    [('--cores', ['-j']), ('--resources', ['--res'])]
 
-    >>> parse_snakemake_args(["-j8"])
-    {'--cores': ['-j'], '--resources': []}
+    >>> sorted(parse_snakemake_args(["-j8"]).items())
+    [('--cores', ['-j']), ('--resources', [])]
 
-    >>> parse_snakemake_args([])
-    {'--cores': [], '--resources': []}
+    >>> sorted(parse_snakemake_args([]).items())
+    [('--cores', []), ('--resources', [])]
     """
     # XXX TODO: Consider using a small ArgumentParser() for this in the
     # future, when we can require Python 3.7 and use parse_intermixed_args().
