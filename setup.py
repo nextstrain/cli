@@ -110,6 +110,8 @@ setup(
         # by setuptools.  setuptools is nearly ever-present, but it can be
         # missing!
         "setuptools >=8.0.3",
+
+        "pycognito",
     ],
 
     extras_require = {

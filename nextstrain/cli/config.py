@@ -19,6 +19,10 @@ except:
 CONFIG = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
             HOME / ".nextstrain/config")
 
+# Path to our secrets file
+SECRETS = Path(os.environ.get("NEXTSTRAIN_SECRETS") or
+            HOME / ".nextstrain/secrets")
+
 
 def load(path: Path = CONFIG) -> ConfigParser:
     """

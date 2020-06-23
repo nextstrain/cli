@@ -14,7 +14,7 @@ from types    import SimpleNamespace
 
 from .argparse    import register_commands, register_default_command
 from .command     import (
-    build, view, deploy, remote, shell, update, check_setup, version
+    build, view, deploy, remote, shell, update, check_setup, version, login
 )
 from .errors      import NextstrainCliError
 from .util        import warn
@@ -61,6 +61,7 @@ def make_parser():
         shell,
         update,
         check_setup,
+        login,
         version,
     ]
 
