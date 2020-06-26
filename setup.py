@@ -94,6 +94,7 @@ setup(
 
     extras_require = {
         "dev": [
+            "docutils<0.16",
             "flake8",
             "mypy",
             "nextstrain-sphinx-theme",
