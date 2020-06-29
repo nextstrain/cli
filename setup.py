@@ -93,6 +93,8 @@ setup(
     ],
 
     extras_require = {
+        # Documentation-generation deps should also be updated in the
+        # .readthedocs-requirements.txt file used by the RTD build.
         "dev": [
             "docutils<0.16",
             "flake8",
