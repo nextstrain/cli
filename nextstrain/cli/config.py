@@ -51,14 +51,14 @@ def save(config, path: Path = PATH):
         config.write(file)
 
 
-def get(section: str, field: str, fallback: str = None) -> Optional[str]:
+def get(section: str, field: str, fallback: str = None, path: Path = PATH) -> Optional[str]:
     """
-    Return *field* from *section* in the default config file.
+    Return *field* from *section* in the config file at the given *path*.
 
     If *section* or *field* does not exist, returns *fallback* (which defaults
     to None).
     """
-    config = load()
+    config = load(path)
 
     if section in config:
         return config[section].get(field, fallback)
@@ -66,17 +66,17 @@ def get(section: str, field: str, fallback: str = None) -> Optional[str]:
         return fallback
 
 
-def set(section: str, field: str, value: str):
+def set(section: str, field: str, value: str, path: Path = PATH):
     """
-    Set *field* in *section* to *value* in the default config file.
+    Set *field* in *section* to *value* in the config file at the given *path*.
 
     If *section* does not exist, it is automatically created.
     """
-    config = load()
+    config = load(path)
 
     if section not in config:
         config.add_section(section)
 
     config.set(section, field, value)
 
-    save(config)
+    save(config, path)
