@@ -20,7 +20,8 @@ PATH = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
             HOME / ".nextstrain/config")
 
 
-def load(path = PATH) -> ConfigParser:
+
+def load(path: Path = PATH) -> ConfigParser:
     """
     Load the config file at *path* and return a ConfigParser object.
     """
@@ -29,7 +30,7 @@ def load(path = PATH) -> ConfigParser:
     return config
 
 
-def save(config, path = PATH):
+def save(config, path: Path = PATH):
     """
     Write the *config* object to *path*.
 
