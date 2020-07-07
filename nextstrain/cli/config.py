@@ -16,12 +16,11 @@ except:
     HOME = Path(".")
 
 # Path to our config file
-PATH = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
+CONFIG = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
             HOME / ".nextstrain/config")
 
 
-
-def load(path: Path = PATH) -> ConfigParser:
+def load(path: Path = CONFIG) -> ConfigParser:
     """
     Load the config file at *path* and return a ConfigParser object.
     """
@@ -30,7 +29,7 @@ def load(path: Path = PATH) -> ConfigParser:
     return config
 
 
-def save(config, path: Path = PATH):
+def save(config, path: Path = CONFIG):
     """
     Write the *config* object to *path*.
 
@@ -46,7 +45,7 @@ def save(config, path: Path = PATH):
 
 
 def get(section: str, field: str, fallback: str = None,
-    path: Path = PATH) -> Optional[str]:
+    path: Path = CONFIG) -> Optional[str]:
     """
     Return *field* from *section* in the config file at the given *path*.
 
@@ -61,7 +60,7 @@ def get(section: str, field: str, fallback: str = None,
         return fallback
 
 
-def set(section: str, field: str, value: str, path: Path = PATH):
+def set(section: str, field: str, value: str, path: Path = CONFIG):
     """
     Set *field* in *section* to *value* in the config file at the given *path*.
 
