@@ -78,3 +78,19 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
     config.set(section, field, value)
 
     save(config, path)
+
+
+def clear(section: str, path: Path):
+    """
+    Clear the *section* in the config file at the given *path*.
+
+    If *section* does not exist, it does nothing.
+    """
+    config = load(path)
+
+    if section not in config:
+        return
+
+    config[section].clear()
+
+    save(config, path)
