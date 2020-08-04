@@ -69,8 +69,10 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     else:
         if not path:
             raise UserError(dedent("""\
-                download: -r not specified; omitting directory '%s://%s'
-                """ % (str(url.scheme), str(url.netloc))))
+                No file path specified in URL (%s); nothing to download.
+
+                Did you mean to use --recursively?
+                """ % (str(url.geturl()))))
 
         object = bucket.Object(path)
         assert_exists(object)
