@@ -67,6 +67,13 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     if recursively:
         objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
     else:
+        if not path:
+            raise UserError(dedent("""\
+                No file path specified in URL (%s); nothing to download.
+
+                Did you mean to use --recursively?
+                """ % (str(url.geturl()))))
+
         object = bucket.Object(path)
         assert_exists(object)
 
