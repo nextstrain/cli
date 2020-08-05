@@ -5,7 +5,7 @@ import getpass
 from pycognito import Cognito
 from typing import Dict
 from .. import config
-from ..errors import UserError
+from ..errors import AuthnError, UserError
 
 
 COGNITO_CLIENT_ID='2vmc93kj4fiul8uv40uqge93m5'
@@ -14,6 +14,17 @@ COGNITO_USER_POOL_ID='us-east-1_Cg5rcTged'
 
 def register_parser(subparser):
     parser = subparser.add_parser("login", help = "Login as a Nextstrain.org Groups user")
+
+    register_arguments(parser)
+
+    return parser
+
+
+def register_arguments(parser):
+    parser.add_argument(
+        "--no-prompt",
+        help    = "Log into nextstrain.org without prompting for credentials",
+        action  = 'store_true')
 
     return parser
 
@@ -27,6 +38,9 @@ def run(opts):
     }
 
     if not tokens['username']:
+        if opts.no_prompt:
+            raise AuthnError("No Nextstrain.org Groups credentials found.")
+
         login()
         return 0
 
@@ -35,6 +49,8 @@ def run(opts):
 
     except Exception as e:
         error_message = "Failed to log in with saved credentials: %s" % e
+        if opts.no_prompt:
+            raise AuthnError(error_message)
 
         print(error_message)
         print()

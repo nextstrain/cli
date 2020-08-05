@@ -9,3 +9,7 @@ class NextstrainCliError(Exception):
 class UserError(NextstrainCliError):
     def __init__(self, message, *args, **kwargs):
         super().__init__("Error: " + message, *args, **kwargs)
+
+class AuthnError(NextstrainCliError):
+    def __init__(self, message, *args, **kwargs):
+        super().__init__("Error: " + message, *args, **kwargs)
