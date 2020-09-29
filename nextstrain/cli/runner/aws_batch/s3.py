@@ -96,7 +96,8 @@ def upload_workdir_individually(workdir: Path, bucket: S3Bucket, run_id: str) ->
     remote_files = []
     for path in walk(workdir, excluded):
         filename = os_path.basename(str(path))
-        remote_file = bucket.Object(f"{run_id}/{filename}.zip")
+        remote_filename = "{run_id}/{filename}.zip".format(run_id=run_id, filename=filename)
+        remote_file = bucket.Object(remote_filename)
         remote_files.append(remote_file)
         with TemporaryFile() as tmpfile:
             with ZipFile(tmpfile, "w") as zipfile:
