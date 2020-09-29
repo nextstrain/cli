@@ -123,6 +123,10 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
 
         print("uploaded:", s3.object_url(remote_workdir))
 
+        remote_files = s3.upload_workdir_individually(local_workdir, bucket, run_id)
+
+        for remote_file in remote_files:
+            print("uploaded:", s3.object_url(remote_file))
 
         # Submit job.
         print_stage("Submitting job")

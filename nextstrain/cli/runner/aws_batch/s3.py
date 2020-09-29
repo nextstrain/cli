@@ -7,7 +7,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from calendar import timegm
-from os import utime
+from os import utime, path as os_path
 from pathlib import Path
 from tempfile import TemporaryFile
 from time import struct_time
@@ -72,6 +72,39 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
 
     return remote_workdir
 
+def upload_workdir_individually(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
+    """
+    Upload individual files of the local *workdir*, each in a ZIP archive,
+    to the remote S3 *bucket* for the given *run_id*.
+
+    Returns the S3.Object instances of the uploaded archives.
+    """
+
+    excluded = path_matcher([
+        # Jobs don't use .git, so save the bandwidth/space/time.  It may also
+        # contain information in history that shouldn't be uploaded.
+        ".git/",
+
+        # Don't let the local Snakemake's state interfere with the remote job or
+        # vice versa.
+        ".snakemake/",
+
+        # Sensitive data is often stored in environment.sh files
+        "environment*"
+    ])
+
+    remote_files = []
+    for path in walk(workdir, excluded):
+        filename = os_path.basename(str(path))
+        remote_file = bucket.Object(f"{run_id}/{filename}.zip")
+        remote_files.append(remote_file)
+        with TemporaryFile() as tmpfile:
+            with ZipFile(tmpfile, "w") as zipfile:
+                zipfile.write(str(path), filename)
+            tmpfile.seek(0)
+            remote_file.upload_fileobj(tmpfile)
+
+    return remote_files
 
 def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
     """
