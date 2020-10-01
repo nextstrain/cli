@@ -2,6 +2,9 @@
 Nextstrain CLI
 ==============
 
+.. warning::
+   This is the Nextstrain CLI's reference documentation. For the general Nextstrain docs, go here: :doc:`docs.nextstrain.org:index`
+
 This is the documentation for the `Nextstrain <https://nextstrain.org>`__
 command-line interface (CLI)---a program called ``nextstrain``---which aims to
 provide a consistent way to run and visualize pathogen builds and access
