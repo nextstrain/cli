@@ -24,7 +24,6 @@ as `Docker <https://docker.com>`__, `Conda
     Introduction <self>
     installation
     commands/index
-    development
 
 
 Big Picture
