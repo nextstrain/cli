@@ -1,4 +1,4 @@
-# Development
+# Nextstrain CLI Development
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
 
