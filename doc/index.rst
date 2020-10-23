@@ -8,8 +8,8 @@ Nextstrain CLI
 This is the documentation for the `Nextstrain <https://nextstrain.org>`__
 command-line interface (CLI)---a program called ``nextstrain``---which aims to
 provide a consistent way to run and visualize pathogen builds and access
-Nextstrain components like :doc:`Augur <augur:index>` and `Auspice
-<https://nextstrain.github.io/auspice/>`__ across computing environments such
+Nextstrain components like :doc:`Augur <augur:index>` and :doc:`Auspice
+<auspice:index>` across computing environments such
 as `Docker <https://docker.com>`__, `Conda
 <https://docs.conda.io/en/latest/miniconda.html>`__, and `AWS Batch
 <https://aws.amazon.com/batch/>`__.
