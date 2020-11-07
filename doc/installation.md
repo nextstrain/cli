@@ -116,7 +116,7 @@ making your builds more reproducible, and builds have access to computers with
 very large CPU and memory allocations if necessary.
 
 The initial setup is quite a bit more involved, but [detailed
-instructions](aws-batch) are available.
+instructions](https://docs.nextstrain.org/projects/cli/en/migrate-docs/aws-batch/) are available.
 
 Once you've setup AWS, proceed with [checking your
 setup](#checking-your-setup).
