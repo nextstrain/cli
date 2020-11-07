@@ -27,6 +27,7 @@ as `Docker <https://docker.com>`__, `Conda
     Introduction <self>
     installation
     commands/index
+    aws-batch
 
 
 Big Picture
