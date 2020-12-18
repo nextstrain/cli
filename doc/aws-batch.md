@@ -247,7 +247,8 @@ S3 bucket name.
 ### Roles
 
 A role is required to allow the Batch jobs to access S3.  The code running
-inside of each job will have access to this role to talk to AWS services.
+inside of each job will have access to this role (via the EC2 instance
+metadata) to talk to AWS services.
 
 When creating the role in the web console, choose _AWS service_ as the type of
 trusted entity, the _Elastic Container Service_ as the specific trusted
@@ -255,6 +256,16 @@ service, and the _Elastic Container Service Task_ as the use case.  Attach the
 _NextstrainJobsAccessToBucket_ policy you created above.  Finally, give the
 role a name and description of your choosing.  This document assumes the role
  name is _NextstrainJobsRole_.
+
+Most AWS libraries and utilities (e.g. the `aws` command) will automatically
+use the instance role by default unless you've customized the credential
+provider.  Note that if you have AWS credentials set in environment variables
+on the local computer when running `nextstrain build --aws-batch`, then those
+will be passed into the job, where they'll be used instead of the role by most
+libraries and utilities.  If this is undesirable, you can unset the environment
+variables when launching builds or provision your local credentials via the
+standard files instead of environment variables.
+
 
 ### Group
 
