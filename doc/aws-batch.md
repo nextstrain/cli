@@ -79,12 +79,12 @@ in the AWS Batch User Guide for more detailed information on container memory.
 
 Your computer must be configured with credentials to access AWS.
 
-Credentials can be provided via the [standard AWS environment variables](https://boto3.readthedocs.io/en/latest/guide/configuration.html#environment-variables)
+Credentials can be provided via the [standard AWS environment variables](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables)
 
     export AWS_ACCESS_KEY_ID=...
     export AWS_SECRET_ACCESS_KEY=...
 
-or in the [`~/.aws/credentials` file](https://boto3.readthedocs.io/en/latest/guide/configuration.html#shared-credentials-file)
+or in the [`~/.aws/credentials` file](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file)
 
     [default]
     aws_access_key_id=...
@@ -96,11 +96,11 @@ environment variables in every terminal where you want to use AWS.
 ### AWS region
 
 If you plan to use an AWS region other than `us-east-1`, then you'll want to
-set your selected region as a default, either via [the environment](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration)
+set your selected region as a default, either via [the environment](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables)
 
     export AWS_DEFAULT_REGION=...
 
-or in the [`~/.aws/config` file](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#configuration-file)
+or in the [`~/.aws/config` file](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-a-configuration-file)
 
     [default]
     region=...

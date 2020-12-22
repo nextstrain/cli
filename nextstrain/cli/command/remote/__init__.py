@@ -18,11 +18,11 @@ Amazon S3
 
 More information at:
 
-    https://boto3.readthedocs.io/en/latest/guide/configuration.html#environment-variables
+    https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables
 
 A persistent credentials file, ~/.aws/credentials, is also supported:
 
-    https://boto3.readthedocs.io/en/latest/guide/configuration.html#shared-credentials-file
+    https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
  
 """
 
