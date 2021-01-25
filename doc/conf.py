@@ -43,7 +43,9 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
+    'development.md'
+]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -62,5 +64,8 @@ html_static_path = ['_static']
 # -- Cross-project references ------------------------------------------------
 
 intersphinx_mapping = {
-    'augur': ('https://docs.nextstrain.org/projects/augur/en/latest', None),
+    'augur': ('https://docs.nextstrain.org/projects/augur/en/stable', None),
+    'auspice': ('https://docs.nextstrain.org/projects/auspice/en/stable', None),
+    'docs.nextstrain.org': ('https://docs.nextstrain.org/en/latest/', None)
 }
+

@@ -1,4 +1,6 @@
-# Running Nextstrain builds on AWS Batch
+# Nextstrain CLI and AWS
+
+## Running Nextstrain builds on AWS Batch
 
 The Nextstrain CLI supports launching pathogen builds on [AWS Batch][] from
 your own computer.  No local computational infrastructure is required when
@@ -28,7 +30,7 @@ to detach at any point once the build is submitted.
 [AWS Batch]: https://aws.amazon.com/batch/
 [`zika-tutorial/` directory]: https://github.com/nextstrain/zika-tutorial
 
-### Using and requesting resources
+#### Using and requesting resources
 
 By default, each AWS Batch job will have available to it the number of vCPUs
 and amount of memory configured in your [job definition](#job-definition).  To
@@ -73,9 +75,9 @@ c5-4xlarge    | 16    | 31000
 Refer to [Compute Resource Memory Management](https://docs.aws.amazon.com/batch/latest/userguide/memory-management.html)
 in the AWS Batch User Guide for more detailed information on container memory.
 
-## Configuration on your computer
+### Configuration on your computer
 
-### AWS credentials
+#### AWS credentials
 
 Your computer must be configured with credentials to access AWS.
 
@@ -93,7 +95,7 @@ or in the [`~/.aws/credentials` file](https://boto3.amazonaws.com/v1/documentati
 The credentials file is useful because it does not require you to `export` the
 environment variables in every terminal where you want to use AWS.
 
-### AWS region
+#### AWS region
 
 If you plan to use an AWS region other than `us-east-1`, then you'll want to
 set your selected region as a default, either via [the environment](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables)
@@ -108,7 +110,7 @@ or in the [`~/.aws/config` file](https://boto3.amazonaws.com/v1/documentation/ap
 Again, the latter option is useful because it does not require you to remember
 to `export` the environment variable.
 
-### Nextstrain CLI configuration
+#### Nextstrain CLI configuration
 
 The Nextstrain CLI's AWS Batch support must be told, at a minimum, the name of
 your S3 bucket (which you'll create below).
@@ -124,7 +126,7 @@ or in the `~/.nextstrain/config` file
 
 or passing the `--aws-batch-s3-bucket=...` option to `nextstrain build`.
 
-# Setting up AWS to run Nextstrain builds
+## Setting up AWS to run Nextstrain builds
 
 The rest of this document describes the one-time AWS configuration necessary to
 run Nextstrain builds on AWS Batch.  It assumes you have an existing AWS
@@ -135,7 +137,7 @@ account owner or their delegated administrator to complete these setup tasks.
 account and they have already set it up for you to support Nextstrain jobs.**
 
 
-## S3
+### S3
 
 Create a new private bucket with a name of your choosing in the [S3 web
 console](https://console.aws.amazon.com/s3).  This document will use the name
@@ -154,17 +156,17 @@ but Amazon's prorated billing uses a minimum duration of one month.
 [lifecycle retention policy]: https://docs.aws.amazon.com/AmazonS3/latest/user-guide/create-lifecycle.html
 
 
-## IAM
+### IAM
 
 The easiest place to create the necessary policies, role, and group is the [IAM
 web console](https://console.aws.amazon.com/iam).
 
-### Policies
+#### Policies
 
 Create three policies using the policy documents below.  You can paste these
 into the JSON editor in the web console.
 
-#### NextstrainJobsAccessToBatch
+##### NextstrainJobsAccessToBatch
 
 ```json
 {
@@ -194,7 +196,7 @@ into the JSON editor in the web console.
 }
 ```
 
-#### NextstrainJobsAccessToBucket
+##### NextstrainJobsAccessToBucket
 
 You must replace `nextstrain-jobs` in the policy document below with your own
 S3 bucket name.
@@ -221,7 +223,7 @@ S3 bucket name.
 }
 ```
 
-#### NextstrainJobsAccessToLogs
+##### NextstrainJobsAccessToLogs
 
 ```json
 {
@@ -244,7 +246,7 @@ S3 bucket name.
 }
 ```
 
-### Roles
+#### Roles
 
 A role is required to allow the Batch jobs to access S3.  The code running
 inside of each job will have access to this role (via the EC2 instance
@@ -267,7 +269,7 @@ variables when launching builds or provision your local credentials via the
 standard files instead of environment variables.
 
 
-### Group
+#### Group
 
 If your AWS account will be used by other people to run jobs, you should create
 an IAM group to give those users the necessary permissions.
@@ -277,7 +279,7 @@ you created above.  Any users you add to this group will be able to use their
 own credentials to launch Nextstrain jobs.
 
 
-## Batch
+### Batch
 
 If you're not familiar with AWS Batch, first familiarize yourself with [what it
 is][], and then use the [getting started guide][] and [AWS Batch wizard][] to
@@ -287,7 +289,7 @@ setup the job definition, compute environment, and job queue described below.
 [getting started guide]: https://docs.aws.amazon.com/batch/latest/userguide/Batch_GetStarted.html
 [AWS Batch wizard]: https://console.aws.amazon.com/batch/home#/wizard
 
-### Job definition
+#### Job definition
 
 Create a new job definition with the name `nextstrain-job`.  If you use a
 different name, you'll need to use the `--aws-batch-job` option to `nextstrain
@@ -311,7 +313,7 @@ builds.
 
 No job parameters or job environment variables are required.
 
-### Compute environment
+#### Compute environment
 
 Create a _managed_ compute environment with a name of your choosing.
 
@@ -323,7 +325,7 @@ can adjust many of the resources at a later time.
 Make sure to set the minimum number of vCPUs to _0_ so that you won't incur EC2
 costs when no jobs are running.
 
-### Job queue
+#### Job queue
 
 Create a job queue named `nextstrain-job-queue`.  If you use a different name,
 you'll need to use the `--aws-batch-queue` option to `nextstrain build`, set
@@ -334,7 +336,7 @@ If you're not using the wizard, make sure you connect the job queue to the
 compute environment you created above.
 
 
-## CloudWatch Logs
+### CloudWatch Logs
 
 AWS Batch jobs automatically send the output of each job to individual log
 streams in the `/aws/batch/job` log group.  This log group won't exist until
@@ -349,7 +351,7 @@ but Amazon's prorated billing uses a minimum duration of one month.
 [log retention policy]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention
 
 
-## Disk space for your jobs
+### Disk space for your jobs
 
 By default, your Batch jobs will each have access to 10 GiB of scratch space.
 This is enough for most Nextstrain builds, but yours may require more.
@@ -425,7 +427,7 @@ If all goes well, you should see that the container has access to more space!
 [ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#multi-part_user_data
 
 
-## Security
+### Security
 
 A full analysis of the security implications of the above configuration depends
 on your existing AWS resources and specific use cases.  As such, it is beyond
