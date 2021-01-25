@@ -1,6 +1,5 @@
 *.pyc
 __pycache__/
-environment*
 
 # Package build dirs
 /build/
