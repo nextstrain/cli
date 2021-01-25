@@ -5,8 +5,7 @@
 <!-- So, if you edit it after it is fetched into docs.nextstrain.org, your changes will be lost. -->
 <!-- Instead, edit this file in its own repository and commit your changes there. -->
 <!-- For more details on this (temporary) implementation, see https://github.com/nextstrain/docs.nextstrain.org#fetching-of-documents-from-other-repositories -->
-<!-- This file is fetched from: https://github.com/nextstrain/cli/blob/migrate-docs/doc/installation.md -->
-<!-- The branch for the above URL will be updated to 'master' upon merging https://github.com/nextstrain/cli/pull/102 -->
+<!-- This file is fetched from: https://github.com/nextstrain/cli/blob/master/doc/installation.md -->
 <!-- WARNING -->
 <!-- WARNING -->
 
@@ -126,7 +125,7 @@ making your builds more reproducible, and builds have access to computers with
 very large CPU and memory allocations if necessary.
 
 The initial setup is quite a bit more involved, but [detailed
-instructions](https://docs.nextstrain.org/projects/cli/en/migrate-docs/aws-batch/) are available.
+instructions](https://docs.nextstrain.org/projects/cli/en/latest/aws-batch/) are available.
 
 Once you've setup AWS, proceed with [checking your
 setup](#checking-your-setup).

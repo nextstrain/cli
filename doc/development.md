@@ -6,7 +6,6 @@
 <!-- Instead, edit this file in its own repository and commit your changes there. -->
 <!-- For more details on this (temporary) implementation, see https://github.com/nextstrain/docs.nextstrain.org#fetching-of-documents-from-other-repositories -->
 <!-- This file is fetched from: https://github.com/nextstrain/cli/blob/master/doc/development.md -->
-<!-- The branch for the above URL will be updated to 'master' upon merging https://github.com/nextstrain/cli/pull/102 -->
 <!-- WARNING -->
 <!-- WARNING -->
 
