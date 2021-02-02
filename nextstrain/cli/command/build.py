@@ -45,7 +45,7 @@ def register_parser(subparser):
     parser.add_argument(
         "--detach",
         help   = "Run the build in the background, detached from your terminal.  "
-                 "Re-attach later using --attach."
+                 "Re-attach later using --attach.  "
                  "Currently only supported when also using --aws-batch.",
         action = "store_true")
 
