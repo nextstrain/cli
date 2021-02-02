@@ -56,7 +56,11 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
         ".snakemake/",
 
         # Sensitive data is often stored in environment.sh files
-        "environment*"
+        "environment*",
+
+        # Ignore Python bytecode
+        "*.pyc",
+        "__pycache__/",
     ])
 
     # Create a temporary zip file of the workdir…
@@ -87,6 +91,10 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
 
         # We don't want the remote Snakemake state to interfere locally…
         ".snakemake/",
+
+        # Ignore Python bytecode
+        "*.pyc",
+        "__pycache__/",
     ])
 
     included = path_matcher([
