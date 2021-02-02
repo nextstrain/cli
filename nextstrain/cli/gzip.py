@@ -92,7 +92,7 @@ class GzipDecompressingWriter(BufferedIOBase):
     def writable(self):
         return True
 
-    def write(self, data: bytes):
+    def write(self, data: bytes): # type: ignore[override]
         return self.stream.write(self.__gunzip.decompress(data))
 
     def flush(self):
