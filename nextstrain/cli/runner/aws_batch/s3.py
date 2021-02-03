@@ -4,12 +4,12 @@ S3 handling for AWS Batch jobs.
 
 import binascii
 import boto3
+import fsspec
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
 from pathlib import Path
-from tempfile import TemporaryFile
 from time import struct_time
 from typing import Callable, Generator, Iterable, Optional
 from urllib.parse import urlparse
@@ -63,16 +63,12 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
         "__pycache__/",
     ])
 
-    # Create a temporary zip file of the workdir…
-    with TemporaryFile() as tmpfile:
-        with ZipFile(tmpfile, "w") as zipfile:
+    # Stream writes directly to the remote ZIP file
+    with fsspec.open(object_url(remote_workdir), "wb", auto_mkdir = False) as remote_file:
+        with ZipFile(remote_file, "w") as zipfile:
             for path in walk(workdir, excluded):
                 print("zipping:", path)
                 zipfile.write(str(path), str(path.relative_to(workdir)))
-
-        # …and upload it to S3
-        tmpfile.seek(0)
-        remote_workdir.upload_fileobj(tmpfile)
 
     return remote_workdir
 
@@ -102,13 +98,11 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
         ".snakemake/log/",
     ])
 
-    # Download remote zip to temporary file…
-    with TemporaryFile() as tmpfile:
-        remote_workdir.download_fileobj(tmpfile)
-        tmpfile.seek(0)
+    # Open a seekable handle to the remote ZIP file…
+    with fsspec.open(object_url(remote_workdir)) as remote_file:
 
         # …and extract its contents to the workdir.
-        with ZipFile(tmpfile) as zipfile:
+        with ZipFile(remote_file) as zipfile:
             for member in zipfile.infolist():
                 path = Path(member.filename)
 

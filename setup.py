@@ -82,6 +82,7 @@ setup(
 
     install_requires = [
         "boto3",
+        "fsspec",
         "netifaces >=0.10.6",
         "requests",
 

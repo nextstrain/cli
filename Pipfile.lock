@@ -101,6 +101,14 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==3.8.4"
         },
+        "fsspec": {
+            "hashes": [
+                "sha256:5629dc945800873cb2092df806c854e74c2799f4854247bce37ca7171000a7ec",
+                "sha256:890c6ce9325030f03bd2eae81389ddcbcee53bdd475334ca064595e1e45f92a6"
+            ],
+            "markers": "python_version >= '3.7'",
+            "version": "==0.8.5"
+        },
         "idna": {
             "hashes": [
                 "sha256:b307872f855b18632ce0c21c5e45be78c0ea7ae4c15c828c20788b26921eb3f6",
