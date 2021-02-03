@@ -11,7 +11,7 @@ from calendar import timegm
 from os import utime
 from pathlib import Path
 from time import struct_time
-from typing import Callable, Generator, Iterable, Optional
+from typing import Callable, Generator, Iterable, List, Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ...types import S3Bucket, S3Object
@@ -73,11 +73,14 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
     return remote_workdir
 
 
-def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
+def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str] = None) -> None:
     """
     Download the *remote_workdir* archive into the local *workdir*.
 
     The remote workdir's files **overwrite** local files!
+
+    An optional list of *patterns* (shell-style globs) can be passed to
+    selectively download only part of the remote workdir.
     """
 
     excluded = path_matcher([
@@ -98,6 +101,11 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
         ".snakemake/log/",
     ])
 
+    if patterns:
+        selected = path_matcher(patterns)
+    else:
+        selected = lambda path: True
+
     # Open a seekable handle to the remote ZIP file…
     with fsspec.open(object_url(remote_workdir)) as remote_file:
 
@@ -108,7 +116,7 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
 
                 # Inclusions negate exclusions but aren't an exhaustive
                 # list of what is included.
-                if included(path) or not excluded(path):
+                if selected(path) and (included(path) or not excluded(path)):
 
                     # Only extract files which are different, replacing the
                     # local file with the zipped file.  Note that this means

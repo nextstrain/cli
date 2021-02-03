@@ -254,10 +254,17 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
 
 
     # Download results if we didn't stop the job early.
-    if not stop_sent and not job.stopped:
-        print_stage("Downloading files modified by job to %s" % local_workdir)
+    if opts.download and not stop_sent and not job.stopped:
+        patterns = opts.download if isinstance(opts.download, list) else None
 
-        s3.download_workdir(remote_workdir, local_workdir)
+        if patterns:
+            print_stage("Downloading select files modified by job to %s" % local_workdir)
+            for pattern in patterns:
+                print("  - %s" % pattern)
+        else:
+            print_stage("Downloading all files modified by job to %s" % local_workdir)
+
+        s3.download_workdir(remote_workdir, local_workdir, patterns)
 
 
     # Exit with the job's exit code, or assume success

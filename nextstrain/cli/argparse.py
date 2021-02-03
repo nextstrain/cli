@@ -117,3 +117,20 @@ class ShowBriefHelp(Action):
         lines = full_help.splitlines(keepends = True)
 
         return "".join(list(takewhile(before_extra_argument_groups, lines)))
+
+
+class AppendOverwriteDefault(Action):
+    """
+    Similar to the core argparse ``append`` action, but overwrites the argument
+    ``default``, if any, instead of appending to it.
+
+    Thus, the ``default`` value is not included when the option is given and
+    may be a non-list value if desired.
+    """
+    def __call__(self, parser, namespace, value, option_string = None):
+        current = getattr(namespace, self.dest, None)
+
+        if current is parser.get_default(self.dest):
+            current = []
+
+        setattr(namespace, self.dest, [*current, value])
