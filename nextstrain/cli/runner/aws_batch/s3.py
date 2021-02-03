@@ -67,8 +67,8 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
     with TemporaryFile() as tmpfile:
         with ZipFile(tmpfile, "w") as zipfile:
             for path in walk(workdir, excluded):
+                print("zipping:", path)
                 zipfile.write(str(path), str(path.relative_to(workdir)))
-                print("zipped:", path)
 
         # …and upload it to S3
         tmpfile.seek(0)
@@ -121,6 +121,8 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
                     # that empty directories present in the archive but not
                     # locally are never created.
                     if member.CRC != crc32(workdir / path):
+                        print("unzipping:", workdir / path)
+
                         zipfile.extract(member, str(workdir))
 
                         # Update atime and mtime from the zip member; it's a
@@ -128,8 +130,6 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
                         # even optionally.
                         mtime = zipinfo_mtime(member)
                         utime(str(workdir / path), (mtime, mtime))
-
-                        print("unzipped:", workdir / path)
 
 
 def walk(path: Path, excluded: PathMatcher = lambda x: False) -> Generator[Path, None, None]:
