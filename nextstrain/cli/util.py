@@ -108,7 +108,7 @@ def capture_output(argv):
     lines.
 
     This wrapper around subprocess.run() exists because its own capture_output
-    parameter wasn't added until Python 3.7 and we aim for compat with 3.5.
+    parameter wasn't added until Python 3.7 and we aim for compat with 3.6.
     When we bump our minimum Python version, we can remove this wrapper.
     """
     result = subprocess.run(

@@ -9,13 +9,13 @@
 <!-- WARNING -->
 <!-- WARNING -->
 
-## Python 3.5 or newer
+## Python 3.6 or newer
 
-This program is written in Python 3 and requires at least Python 3.5.  There are
+This program is written in Python 3 and requires at least Python 3.6.  There are
 many ways to install Python 3 on Windows, macOS, or Linux, including the
 [official packages][], [Homebrew][] for macOS, and the [Anaconda
 Distribution][].  Details are beyond the scope of this guide, but make sure you
-install Python 3.5 or higher.  You may already have Python 3 installed,
+install Python 3.6 or higher.  You may already have Python 3 installed,
 especially if you're on Linux.  Check by running `python --version` or `python3
 --version`.
 
