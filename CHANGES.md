@@ -1,6 +1,70 @@
 # __NEXT__
 
 
+# 3.0.0 (11 February 2021)
+
+The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
+
+## Features
+
+* build: Uploads and downloads for remote AWS Batch builds are now streamed
+  without the use of temporary local files.  This halves the local storage
+  overhead needed and also speeds up the transfer of large builds since:
+
+   1. Uploading can start immediately without first writing the whole archive locally
+   2. Unmodified files do not need to be downloaded, just their metadata
+
+* build: The results of remote builds may now be selectively downloaded (or not
+  downloaded at all).  Two new `nextstrain build` options are available:
+
+      --download <pattern>
+      --no-download
+
+  The former may be given multiple times and specifies patterns to match
+  against build dir files which were modified by the remote build.  The
+  latter skips downloading results entirely, which is useful if all you
+  care about are the logs (such as when re-attaching to a build or when a
+  build uploads results itself elsewhere).  The default is still to
+  download every modified file.
+
+  Currently this functionality is limited to AWS Batch (`--aws-batch`) builds,
+  as it is the only remote environment supported.
+
+## Bug fixes
+
+* build: Python bytecode files (`__pycache__` and `*.pyc`) are no longer
+  uploaded or downloaded from remote builds on AWS Batch.
+
+* build: Log messages about individual file uploads/downloads to AWS Batch are
+  now printed _before_ each operation, instead _after_, so you can see what
+  files are taking a while instead of being in the dark until it completes.
+
+* remote download: A better error message is now produced when a prefix-less
+  `s3://` URL is provided without the `--recursively` option.
+
+## Documentation
+
+* Clarify how remote builds on AWS Batch acquire AWS credentials.
+
+* Fix broken links into AWS documentation for boto3.
+
+* Switch to our [Nextstrain theme for
+  Sphinx](https://github.com/nextstrain/sphinx-theme)
+
+* Some documentation has been shuffled around to better fit within the larger
+  [docs.nextstrain.org](https://docs.nextstrain.org) effort.  Redirects were
+  put into place for any moved RTD URLs.
+
+## Development
+
+* Various improvements to the Read The Docs and Sphinx setup.
+
+* Upgrade locked Pipenv development environment.
+
+* Fix type checking failures under newer versions of mypy.
+
+
+
 # 2.0.0.post1 (15 June 2020)
 
 ## Documentation
