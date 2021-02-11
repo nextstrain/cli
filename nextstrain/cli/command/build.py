@@ -26,7 +26,7 @@ changes in the future as desired or necessary.
 import re
 from textwrap import dedent
 from .. import runner
-from ..argparse import add_extended_help_flags
+from ..argparse import add_extended_help_flags, AppendOverwriteDefault
 from ..util import byte_quantity, warn
 from ..volume import store_volume
 
@@ -73,6 +73,23 @@ def register_parser(subparser):
                   "Informs the AWS Batch instance size selection.  ",
         metavar = "<quantity>",
         type    = byte_quantity)
+
+    parser.add_argument(
+        "--download",
+        metavar = "<pattern>",
+        help    = "Only download modified files matching <pattern> from the remote build. "
+                  "Basic shell-style globbing is supported. "
+                  "May be passed more than once. "
+                  "Currently only supported when also using --aws-batch.",
+        default = True,
+        action  = AppendOverwriteDefault)
+
+    parser.add_argument(
+        "--no-download",
+        help   = "Do not download any files from the remote build when it completes. "
+                 "Currently only supported when also using --aws-batch.",
+        dest   = "download",
+        action = "store_false")
 
     # Positional parameters
     parser.add_argument(

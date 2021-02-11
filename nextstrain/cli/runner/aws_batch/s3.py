@@ -4,14 +4,14 @@ S3 handling for AWS Batch jobs.
 
 import binascii
 import boto3
+import fsspec
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
 from pathlib import Path
-from tempfile import TemporaryFile
 from time import struct_time
-from typing import Callable, Generator, Iterable, Optional
+from typing import Callable, Generator, Iterable, List, Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ...types import S3Bucket, S3Object
@@ -63,25 +63,24 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
         "__pycache__/",
     ])
 
-    # Create a temporary zip file of the workdir…
-    with TemporaryFile() as tmpfile:
-        with ZipFile(tmpfile, "w") as zipfile:
+    # Stream writes directly to the remote ZIP file
+    with fsspec.open(object_url(remote_workdir), "wb", auto_mkdir = False) as remote_file:
+        with ZipFile(remote_file, "w") as zipfile:
             for path in walk(workdir, excluded):
+                print("zipping:", path)
                 zipfile.write(str(path), str(path.relative_to(workdir)))
-                print("zipped:", path)
-
-        # …and upload it to S3
-        tmpfile.seek(0)
-        remote_workdir.upload_fileobj(tmpfile)
 
     return remote_workdir
 
 
-def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
+def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str] = None) -> None:
     """
     Download the *remote_workdir* archive into the local *workdir*.
 
     The remote workdir's files **overwrite** local files!
+
+    An optional list of *patterns* (shell-style globs) can be passed to
+    selectively download only part of the remote workdir.
     """
 
     excluded = path_matcher([
@@ -102,25 +101,30 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
         ".snakemake/log/",
     ])
 
-    # Download remote zip to temporary file…
-    with TemporaryFile() as tmpfile:
-        remote_workdir.download_fileobj(tmpfile)
-        tmpfile.seek(0)
+    if patterns:
+        selected = path_matcher(patterns)
+    else:
+        selected = lambda path: True
+
+    # Open a seekable handle to the remote ZIP file…
+    with fsspec.open(object_url(remote_workdir)) as remote_file:
 
         # …and extract its contents to the workdir.
-        with ZipFile(tmpfile) as zipfile:
+        with ZipFile(remote_file) as zipfile:
             for member in zipfile.infolist():
                 path = Path(member.filename)
 
                 # Inclusions negate exclusions but aren't an exhaustive
                 # list of what is included.
-                if included(path) or not excluded(path):
+                if selected(path) and (included(path) or not excluded(path)):
 
                     # Only extract files which are different, replacing the
                     # local file with the zipped file.  Note that this means
                     # that empty directories present in the archive but not
                     # locally are never created.
                     if member.CRC != crc32(workdir / path):
+                        print("unzipping:", workdir / path)
+
                         zipfile.extract(member, str(workdir))
 
                         # Update atime and mtime from the zip member; it's a
@@ -128,8 +132,6 @@ def download_workdir(remote_workdir: S3Object, workdir: Path) -> None:
                         # even optionally.
                         mtime = zipinfo_mtime(member)
                         utime(str(workdir / path), (mtime, mtime))
-
-                        print("unzipped:", workdir / path)
 
 
 def walk(path: Path, excluded: PathMatcher = lambda x: False) -> Generator[Path, None, None]:

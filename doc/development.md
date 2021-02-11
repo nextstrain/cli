@@ -11,8 +11,7 @@
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
 
-We currently target compatibility with Python 3.5 and higher.  This may be
-increased to 3.6 in the future.
+We currently target compatibility with Python 3.6 and higher.
 
 Versions for this project follow the [Semantic Versioning rules][].
 
@@ -70,17 +69,8 @@ During development you can run static type checks using [mypy][]:
 
 There are also many [editor integrations for mypy][].
 
-Note that our goal of compatibility with Python 3.5 means that type comments
-are necessary to annotate variable declarations:
-
-    # Not available in Python 3.5:
-    foo: int = 3
-
-    # Instead, use trailing type hint comments:
-    foo = 3  # type: int
-
 The [`typing_extensions`][] module should be used for features added to the
-standard `typings` module after 3.5.  (Currently this isn't necessary since we
+standard `typings` module after 3.6.  (Currently this isn't necessary since we
 don't use those features.)
 
 We also use [Flake8][] for some static analysis checks focusing on runtime

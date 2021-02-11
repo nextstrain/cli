@@ -65,9 +65,8 @@ setup(
         # License
         "License :: OSI Approved :: MIT License",
 
-        # Python 3 only; subprocess.run is >=3.5
+        # Python 3 only
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
     ],
 
@@ -79,10 +78,11 @@ setup(
         ],
     },
 
-    python_requires = '>=3.5',
+    python_requires = '>=3.6',
 
     install_requires = [
         "boto3",
+        "fsspec",
         "netifaces >=0.10.6",
         "requests",
 
