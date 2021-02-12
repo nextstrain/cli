@@ -20,6 +20,7 @@ matrix:
       python: 3.8-dev
 
 install:
+  - pip3 install --upgrade pip setuptools wheel
   - pip3 install --upgrade '.[dev]'
 
 before_script:
