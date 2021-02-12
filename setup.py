@@ -31,8 +31,6 @@ setup(
     version  = __version__, # noqa: F821
     packages = find_namespaced_packages("nextstrain"),
 
-    data_files = [("", ["LICENSE"])],
-
     description      = "Nextstrain command-line tool",
     long_description = long_description,
     long_description_content_type = "text/markdown",
