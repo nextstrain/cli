@@ -81,10 +81,32 @@ setup(
     python_requires = '>=3.6',
 
     install_requires = [
-        "boto3",
-        "fsspec",
         "netifaces >=0.10.6",
         "requests",
+
+        # We use fsspec's S3 support, which has a runtime dep on s3fs.  s3fs
+        # itself requires aiobotocore, which in turn requires very specific
+        # versions of botocore (because aiobotocore is a giant monkey-patch).
+        #
+        # We also use boto3, which also requires botocore, usually with minimum
+        # versions closely matching the boto3 version (they're released in near
+        # lock step).
+        #
+        # If we declare a dep on boto3 directly, this leads to conflicts during
+        # dependency resolution when a newer boto3 (from our declaration here)
+        # requires a newer botocore than is supported by s3fs → aiobotocore's
+        # declarations.
+        #
+        # Resolve the issue by using a specially-provided package extra from
+        # aiobotocore which causes them to declare explicit dependencies on
+        # boto3 so that the dependency resolver can figure it out properly.
+        #
+        # See <https://github.com/dask/s3fs/issues/357> for more background.
+        #
+        # What a mess.
+        "fsspec",
+        "s3fs",
+        "aiobotocore[boto3]",
 
         # We use pkg_resources.parse_version(), which (confusingly) is provided
         # by setuptools.  setuptools is nearly ever-present, but it can be
