@@ -1,6 +1,12 @@
 # __NEXT__
 
 
+# 3.0.1 (12 February 2021)
+
+Hotfix for a missing transitive dependency on s3fs via fsspec, which caused
+`nextstrain build --aws-batch` invocations to fail when s3fs was not installed.
+
+
 # 3.0.0 (11 February 2021)
 
 The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
