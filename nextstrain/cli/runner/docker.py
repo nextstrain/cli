@@ -226,7 +226,7 @@ def update() -> bool:
         subprocess.run(
             ["docker", "image", "pull", latest_image],
             check = True)
-    except subprocess.CalledProcessError:
+    except (OSError, subprocess.CalledProcessError):
         return False
 
     # Update the config file to point to the new image so we use it by default
@@ -249,7 +249,7 @@ def update() -> bool:
             subprocess.run(
                 ["docker", "image", "rm", *images],
                 check = True)
-    except subprocess.CalledProcessError as error:
+    except (OSError, subprocess.CalledProcessError) as error:
         warn()
         warn("Update succeeded, but an error occurred pruning old image versions:")
         warn("  ", error)
