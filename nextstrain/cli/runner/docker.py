@@ -364,10 +364,16 @@ def dangling_images(name: str) -> List[str]:
 
 
 def versions() -> Iterable[str]:
-    yield image_version()
+    try:
+        yield image_version()
+    except (OSError, subprocess.CalledProcessError):
+        pass
 
-    if image_exists():
-        yield from component_versions()
+    try:
+        if image_exists():
+            yield from component_versions()
+    except (OSError, subprocess.CalledProcessError):
+        pass
 
 
 def image_version() -> str:

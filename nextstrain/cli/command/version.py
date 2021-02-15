@@ -32,9 +32,11 @@ def run(opts):
 
         print("Runners")
         for runner in all_runners:
+            print("  " + runner_name(runner))
             versions = list(runner.versions())
             if versions:
-                print("  " + runner_name(runner))
                 for version in versions:
                     print("    " + version)
-                print()
+            else:
+                print("    unknown")
+            print()
