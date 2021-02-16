@@ -1,6 +1,38 @@
 # __NEXT__
 
 
+# 3.0.2 (16 February 2021)
+
+## Bug fixes
+
+* `update` more gracefully handles Docker not being installed.  Although the
+  command still exits with error (as it currently serves only to pull the
+  latest Docker image), an uncaught exception isn't thrown.  More improvements
+  to come later with [#87](https://github.com/nextstrain/cli/issues/87).
+
+* `version` now gracefully handles Docker not being installed when `--verbose`
+  is given instead of throwing an uncaught exception.
+
+* `version` now includes Python information when `--verbose` is given, which is
+  helpful for debugging Python issues, e.g. which Python install is being used.
+
+* The Docker (`--docker`) runner for `build`, `shell`, and `view` no longer
+  requests a TTY connected to the container when stdin is not itself a TTY
+  (e.g. run from a non-interactive shell).  This avoids a fatal error from
+  Docker ("the input device is not a TTY").
+
+* Distribution metadata was fixed so that the LICENSE file is no longer
+  attempted to be installed under the Python installation prefix (e.g.
+  `/usr/local`).  It is instead included inside the "egg-info" directory
+  alongside the code in the Python site libraries.
+
+## Development
+
+* Revamp CI by switching from Travis CI to GitHub Actions, expanding the test
+  matrix to macOS and Python 3.9, and adding an integration test for the
+  "native" build runner.
+
+
 # 3.0.1 (12 February 2021)
 
 Hotfix for a missing transitive dependency on s3fs via fsspec, which caused
