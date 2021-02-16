@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test:
+    name: python=${{ matrix.python }} os=${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        python:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Upgrade Python toolchain
+        run: python3 -m pip install --upgrade pip setuptools wheel
+
+      - name: Setup test environment
+        run: |
+          # Install required external programs for --native.
+          conda create -p ~/ci -c bioconda \
+              fasttree \
+              iqtree \
+              mafft \
+              nodejs=10 \
+              raxml \
+              vcftools
+
+          # Add Conda env to PATH for this and subsequent steps
+          export PATH="$HOME/ci/bin:$PATH"
+          tee -a "$GITHUB_PATH" <<<"$HOME/ci/bin"
+
+          # Install required Python programs for --native, intentionally
+          # outside of the Conda env since otherwise they'll drag Python into
+          # the Conda env and shadow our desired Python version from the matrix
+          # and setup-python above.
+          python3 -m pip install \
+              nextstrain-augur \
+              snakemake
+
+          # Installs into Conda env to avoid version/permissions issues.
+          npm install --global auspice
+
+          # The small build we'll use as an integration test case.
+          git clone https://github.com/nextstrain/zika-tutorial
+        env:
+          CONDA_PKGS_DIRS: /tmp
+
+      - name: Install Nextstrain CLI
+        run: |
+          # Assert that we're on the expected Python version, in case the GH
+          # Actions environment is messed up.
+          python3 --version | grep -F 'Python ${{ matrix.python }}.'
+          python3 -m pip install --upgrade '.[dev]'
+
+          nextstrain version --verbose
+          nextstrain check-setup
+
+          # XXX TODO: Stop ignoring errors once `update` is improved.  See
+          # <https://github.com/nextstrain/cli/issues/87>.
+          nextstrain update || true
+
+          nextstrain version --verbose
+
+      - name: Run pytest
+        run: pytest -v
+
+      - if: runner.os != 'macOS'
+        name: Build zika-tutorial with --docker
+        run: |
+          git -C zika-tutorial clean -dfqx
+          nextstrain build --docker --cpus 2 zika-tutorial
+
+      - name: Build zika-tutorial with --native
+        run: |
+          git -C zika-tutorial clean -dfqx
+          nextstrain build --native --cpus 2 zika-tutorial

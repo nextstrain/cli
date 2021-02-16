@@ -7,6 +7,7 @@ import json
 import requests
 import shutil
 import subprocess
+from sys import stdin
 from textwrap import dedent
 from typing import Iterable, List
 from .. import runner, hostenv, config
@@ -73,8 +74,16 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     return exec_or_return([
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
-        "--tty",            # Colors, etc.
         "--interactive",    # Pass through control signals (^C, etc.)
+
+        # Colors, etc.  As documented in `man docker-run`:
+        #
+        #    The -t option is incompatible with a redirection of the docker
+        #    client standard input.
+        #
+        # so only set it when our stdin is a TTY too.
+        *(["--tty"]
+            if stdin.isatty() else []),
 
         # On Unix (POSIX) systems, run the process in the container with the same
         # UID/GID so that file ownership is correct in the bind mount directories.
@@ -217,7 +226,7 @@ def update() -> bool:
         subprocess.run(
             ["docker", "image", "pull", latest_image],
             check = True)
-    except subprocess.CalledProcessError:
+    except (OSError, subprocess.CalledProcessError):
         return False
 
     # Update the config file to point to the new image so we use it by default
@@ -240,7 +249,7 @@ def update() -> bool:
             subprocess.run(
                 ["docker", "image", "rm", *images],
                 check = True)
-    except subprocess.CalledProcessError as error:
+    except (OSError, subprocess.CalledProcessError) as error:
         warn()
         warn("Update succeeded, but an error occurred pruning old image versions:")
         warn("  ", error)
@@ -355,10 +364,16 @@ def dangling_images(name: str) -> List[str]:
 
 
 def versions() -> Iterable[str]:
-    yield image_version()
+    try:
+        yield image_version()
+    except (OSError, subprocess.CalledProcessError):
+        pass
 
-    if image_exists():
-        yield from component_versions()
+    try:
+        if image_exists():
+            yield from component_versions()
+    except (OSError, subprocess.CalledProcessError):
+        pass
 
 
 def image_version() -> str:
@@ -418,7 +433,7 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
     Returns the output of the script as a list of strings.
     """
     return capture_output([
-        "docker", "run", "--rm", "-it", image,
+        "docker", "run", "--rm", image,
             "bash", "-c", script
     ])
 

@@ -2,6 +2,8 @@
 Prints the version of the Nextstrain CLI.
 """
 
+import sys
+from textwrap import indent
 from ..__version__ import __version__
 from .. import __package__ as __top_package__
 from ..runner import all_runners
@@ -23,10 +25,18 @@ def run(opts):
 
     if opts.verbose:
         print()
+        print("Python")
+        print("  " + sys.executable)
+        print(indent(sys.version, "  "))
+        print()
+
+        print("Runners")
         for runner in all_runners:
+            print("  " + runner_name(runner))
             versions = list(runner.versions())
             if versions:
-                print(runner_name(runner))
                 for version in versions:
-                    print("  " + version)
-                print()
+                    print("    " + version)
+            else:
+                print("    unknown")
+            print()
