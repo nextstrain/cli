@@ -26,7 +26,7 @@ changes in the future as desired or necessary.
 import re
 from textwrap import dedent
 from .. import runner
-from ..argparse import add_extended_help_flags, AppendOverwriteDefault
+from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..util import byte_quantity, warn
 from ..volume import store_volume
 
@@ -81,14 +81,17 @@ def register_parser(subparser):
                   "Basic shell-style globbing is supported, but be sure to escape wildcards "
                   "or quote the whole pattern so your shell doesn't expand them. "
                   "May be passed more than once. "
-                  "Currently only supported when also using --aws-batch.",
+                  "Currently only supported when also using --aws-batch. "
+                  "Default is to download every new or modified file."
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         default = True,
         action  = AppendOverwriteDefault)
 
     parser.add_argument(
         "--no-download",
         help   = "Do not download any files from the remote build when it completes. "
-                 "Currently only supported when also using --aws-batch.",
+                 "Currently only supported when also using --aws-batch."
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         dest   = "download",
         action = "store_false")
 

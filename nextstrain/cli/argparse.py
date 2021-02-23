@@ -8,6 +8,17 @@ from types import SimpleNamespace
 from .util import format_usage
 
 
+# Include this in an argument help string to suppress the automatic appending
+# of the default value by argparse.ArgumentDefaultsHelpFormatter.  This works
+# because the automatic appending is conditional on the presence of %(default),
+# so we include it but then format it as a zero-length string .0s.  🙃
+#
+# Another solution would be to add an extra attribute to the argument (the
+# argparse.Action instance) and then subclass ArgumentDefaultsHelpFormatter to
+# condition on that new attribute, but that seems more brittle.
+SKIP_AUTO_DEFAULT_IN_HELP = "%(default).0s"
+
+
 def register_default_command(parser):
     """
     Sets the default command to run when none is provided.
