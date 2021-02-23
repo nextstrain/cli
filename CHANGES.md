@@ -1,6 +1,18 @@
 # __NEXT__
 
 
+# 3.0.3 (23 February 2021)
+
+## Documentation
+
+* The help output for `build` now correctly describes the default behaviour of
+  the `--download` and `--no-download` options.
+
+* The help output for `build` now warns about the need to escape wildcards or
+  quote the whole pattern when using `--download` so as to avoid expansion by
+  the shell.
+
+
 # 3.0.2 (16 February 2021)
 
 ## Bug fixes
