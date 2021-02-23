@@ -77,8 +77,9 @@ def register_parser(subparser):
     parser.add_argument(
         "--download",
         metavar = "<pattern>",
-        help    = "Only download modified files matching <pattern> from the remote build. "
-                  "Basic shell-style globbing is supported. "
+        help    = "Only download new or modified files matching <pattern> from the remote build. "
+                  "Basic shell-style globbing is supported, but be sure to escape wildcards "
+                  "or quote the whole pattern so your shell doesn't expand them. "
                   "May be passed more than once. "
                   "Currently only supported when also using --aws-batch.",
         default = True,
