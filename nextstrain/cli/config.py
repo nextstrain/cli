@@ -86,6 +86,29 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
         save(config, path)
 
 
+def remove(section: str, path: Path) -> bool:
+    """
+    Remove the *section* in the config file at the given *path*.
+
+    Returns ``True`` when *section* is removed.  Returns ``False`` if *section*
+    or *path* does not exist.
+    """
+    if not path.exists():
+        return False
+
+    with write_lock(path):
+        config = load(path)
+
+        if section not in config:
+            return False
+
+        del config[section]
+
+        save(config, path)
+
+    return True
+
+
 @contextmanager
 def read_lock(path: Path):
     """
