@@ -23,6 +23,10 @@ PATH = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
 def load(path = PATH) -> ConfigParser:
     """
     Load the config file at *path* and return a ConfigParser object.
+
+    If *path* does not exist, no error is raised, but an empty ConfigParser
+    object is returned.  This is the default behaviour of ConfigParser and
+    intended so that a missing config file isn't fatal.
     """
     config = ConfigParser()
     config.read(str(path), encoding = "utf-8")
