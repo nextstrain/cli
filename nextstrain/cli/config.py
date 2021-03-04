@@ -4,6 +4,8 @@ Configuration file handling.
 
 import os
 from configparser import ConfigParser
+from contextlib import contextmanager
+from fasteners import InterProcessReaderWriterLock
 from pathlib import Path
 from typing import Optional
 
@@ -41,6 +43,7 @@ def save(config, path: Path = CONFIG):
     ``.nextstrain``, then that directory will be created if it does not already
     exist.
     """
+    # See also the handling of parents in write_lock().
     path = path.resolve(strict = False)
 
     if path.parent.name == ".nextstrain":
@@ -57,12 +60,13 @@ def get(section: str, field: str, fallback: str = None, path: Path = CONFIG) -> 
     If *section* or *field* does not exist, returns *fallback* (which defaults
     to None).
     """
-    config = load(path)
+    with read_lock(path):
+        config = load(path)
 
-    if section in config:
-        return config[section].get(field, fallback)
-    else:
-        return fallback
+        if section in config:
+            return config[section].get(field, fallback)
+        else:
+            return fallback
 
 
 def set(section: str, field: str, value: str, path: Path = CONFIG):
@@ -71,11 +75,50 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
 
     If *section* does not exist, it is automatically created.
     """
-    config = load(path)
+    with write_lock(path):
+        config = load(path)
 
-    if section not in config:
-        config.add_section(section)
+        if section not in config:
+            config.add_section(section)
 
-    config.set(section, field, value)
+        config.set(section, field, value)
 
-    save(config, path)
+        save(config, path)
+
+
+@contextmanager
+def read_lock(path: Path):
+    """
+    Lock *path* for reading across processes (but not within).
+
+    Uses advisory/cooperative locks.  Avoids creating *path* if it does not
+    exist.
+    """
+    if path.exists():
+        with InterProcessReaderWriterLock(path).read_lock():
+            yield
+    else:
+        yield
+
+
+@contextmanager
+def write_lock(path: Path):
+    """
+    Lock *path* for writing across processes (but not within).
+
+    Uses advisory/cooperative locks.  Avoids creating *path* if the parent does
+    not exist.
+    """
+    # We only care if the parent exists, as the file is expected to be written
+    # and created if it does not exist.
+    parent = path.resolve(strict = False).parent
+
+    if parent.name == ".nextstrain":
+        # save() will auto-create in this case, so look one parent higher.
+        parent = parent.parent
+
+    if parent.exists():
+        with InterProcessReaderWriterLock(path).write_lock():
+            yield
+    else:
+        yield

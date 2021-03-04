@@ -79,6 +79,7 @@ setup(
     python_requires = '>=3.6',
 
     install_requires = [
+        "fasteners",
         "netifaces >=0.10.6",
         "requests",
 
