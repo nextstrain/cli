@@ -41,6 +41,8 @@ def save(config, path = PATH):
     ``.nextstrain``, then that directory will be created if it does not already
     exist.
     """
+    path = path.resolve(strict = False)
+
     if path.parent.name == ".nextstrain":
         path.parent.mkdir(exist_ok = True)
 
