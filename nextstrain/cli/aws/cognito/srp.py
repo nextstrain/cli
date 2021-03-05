@@ -117,6 +117,7 @@ class CognitoSRP:
 
     def __init__(
         self,
+        *,
         username,
         password,
         pool_id,
