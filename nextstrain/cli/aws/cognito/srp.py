@@ -17,8 +17,6 @@ import hmac
 import os
 import re
 
-import six
-
 # https://github.com/aws/amazon-cognito-identity-js/blob/master/src/AuthenticationHelper.js#L22
 N_HEX = (
     "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
@@ -72,7 +70,7 @@ def pad_hex(long_int):
     :param {Long integer|String} long_int Number or string to pad.
     :return {String} Padded hex string.
     """
-    if not isinstance(long_int, six.string_types):
+    if not isinstance(long_int, str):
         hash_str = long_to_hex(long_int)
     else:
         hash_str = long_int
