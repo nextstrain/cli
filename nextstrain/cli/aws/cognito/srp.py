@@ -17,7 +17,6 @@ import hmac
 import os
 import re
 
-import boto3
 import six
 
 # https://github.com/aws/amazon-cognito-identity-js/blob/master/src/AuthenticationHelper.js#L22
@@ -124,24 +123,15 @@ class AWSSRP:
         password,
         pool_id,
         client_id,
-        pool_region=None,
-        client=None,
+        client,
         client_secret=None,
     ):
-        if pool_region is not None and client is not None:
-            raise ValueError(
-                "pool_region and client should not both be specified "
-                "(region should be passed to the boto3 client instead)"
-            )
-
         self.username = username
         self.password = password
         self.pool_id = pool_id
         self.client_id = client_id
         self.client_secret = client_secret
-        self.client = (
-            client if client else boto3.client("cognito-idp", region_name=pool_region)
-        )
+        self.client = client
         self.big_n = hex_to_long(N_HEX)
         self.val_g = hex_to_long(G_HEX)
         self.val_k = hex_to_long(hex_hash("00" + N_HEX + "0" + G_HEX))
