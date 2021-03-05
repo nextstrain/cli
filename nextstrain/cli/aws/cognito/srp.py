@@ -5,6 +5,9 @@ Originally copied from "pycognito/aws_srp.py" in the pyCognito project, which
 itself originally copied it with modification from the Warrant project.  The
 original copy is licensed under the Apache 2.0 license.  See the
 LICENSE.cognito-srp file distributed alongside this project's own LICENSE file.
+
+Subsequent modifications have been made.  These and any future modifications
+are licensed under the MIT license of this project.
 """
 import base64
 import binascii
@@ -16,8 +19,6 @@ import re
 
 import boto3
 import six
-
-from .exceptions import ForceChangePasswordException
 
 # https://github.com/aws/amazon-cognito-identity-js/blob/master/src/AuthenticationHelper.js#L22
 N_HEX = (
@@ -106,6 +107,10 @@ def calculate_u(big_a, big_b):
     """
     u_hex_hash = hex_hash(pad_hex(big_a) + pad_hex(big_b))
     return hex_to_long(u_hex_hash)
+
+
+class NewPasswordRequiredError(Exception):
+    pass
 
 
 class AWSSRP:
@@ -268,7 +273,7 @@ class AWSSRP:
             )
 
             if tokens.get("ChallengeName") == self.NEW_PASSWORD_REQUIRED_CHALLENGE:
-                raise ForceChangePasswordException(
+                raise NewPasswordRequiredError(
                     "Change password before authenticating"
                 )
 
