@@ -110,7 +110,7 @@ class NewPasswordRequiredError(Exception):
     pass
 
 
-class AWSSRP:
+class CognitoSRP:
 
     NEW_PASSWORD_REQUIRED_CHALLENGE = "NEW_PASSWORD_REQUIRED"
     PASSWORD_VERIFIER_CHALLENGE = "PASSWORD_VERIFIER"
