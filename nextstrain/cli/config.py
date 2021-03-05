@@ -3,6 +3,7 @@ Configuration file handling.
 """
 
 import os
+import stat
 from configparser import ConfigParser
 from contextlib import contextmanager
 from fasteners import InterProcessReaderWriterLock
@@ -20,6 +21,16 @@ except:
 # Path to our config file
 CONFIG = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
               HOME / ".nextstrain/config")
+
+# Path to our secrets file
+SECRETS = Path(os.environ.get("NEXTSTRAIN_SECRETS") or
+               HOME / ".nextstrain/secrets")
+
+# Permissions to use for the secrets file if we have to create it.
+SECRETS_PERMS = \
+    ( stat.S_IRUSR  # u+r
+    | stat.S_IWUSR  # u+w
+    )               # u=rw,go=
 
 
 def load(path: Path = CONFIG) -> ConfigParser:
@@ -43,11 +54,19 @@ def save(config, path: Path = CONFIG):
     ``.nextstrain``, then that directory will be created if it does not already
     exist.
     """
+    secrets = path is SECRETS
+
     # See also the handling of parents in write_lock().
     path = path.resolve(strict = False)
 
     if path.parent.name == ".nextstrain":
         path.parent.mkdir(exist_ok = True)
+
+    if secrets:
+        if path.exists():
+            path.chmod(SECRETS_PERMS)
+        else:
+            path.touch(SECRETS_PERMS)
 
     with path.open(mode = "w", encoding = "utf-8") as file:
         config.write(file)

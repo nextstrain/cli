@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 from types    import SimpleNamespace
 
 from .argparse    import HelpFormatter, register_commands, register_default_command
-from .command     import build, view, deploy, remote, shell, update, check_setup, version
+from .command     import build, view, deploy, remote, shell, update, check_setup, login, logout, version
 from .errors      import NextstrainCliError
 from .util        import warn
 from .__version__ import __version__
@@ -55,6 +55,8 @@ def make_parser():
         shell,
         update,
         check_setup,
+        login,
+        logout,
         version,
     ]
 
