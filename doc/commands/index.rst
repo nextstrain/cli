@@ -16,4 +16,5 @@ The ``nextstrain`` program provides the following commands:
     check-setup
     login
     logout
+    whoami
     version
