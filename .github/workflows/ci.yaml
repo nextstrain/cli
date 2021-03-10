@@ -88,3 +88,23 @@ jobs:
         run: |
           git -C zika-tutorial clean -dfqx
           nextstrain build --native --cpus 2 zika-tutorial
+
+  doc:
+    name: doc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - name: Upgrade Python toolchain
+        run: python3 -m pip install --upgrade pip setuptools wheel
+
+      - name: Setup docs build environment
+        run: python3 -m pip install -r .readthedocs-requirements.txt
+
+      - name: Make docs with warnings fatalized
+        run: make -C doc dirhtml
+        env:
+          SPHINXOPTS: -W --keep-going
