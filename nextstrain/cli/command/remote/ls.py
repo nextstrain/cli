@@ -5,7 +5,7 @@ URLs support optional path prefixes for restricting the files listed.
 
     nextstrain remote list s3://my-bucket/some/prefix/
 
-will list files named "some/prefix/*".
+will list files named `some/prefix/*`.
 
 See `nextstrain remote --help` for more information on remote sources.
 """

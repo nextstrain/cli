@@ -2,7 +2,7 @@
 Custom helpers for extending the behaviour of argparse standard library.
 """
 
-from argparse import Action, SUPPRESS
+from argparse import Action, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter, SUPPRESS
 from itertools import takewhile
 from types import SimpleNamespace
 from .util import format_usage
@@ -17,6 +17,10 @@ from .util import format_usage
 # argparse.Action instance) and then subclass ArgumentDefaultsHelpFormatter to
 # condition on that new attribute, but that seems more brittle.
 SKIP_AUTO_DEFAULT_IN_HELP = "%(default).0s"
+
+
+class HelpFormatter(ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter):
+    pass
 
 
 def register_default_command(parser):

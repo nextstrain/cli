@@ -9,18 +9,14 @@ and Auspice across computing environments such as Docker, Conda, and AWS Batch.
 
 import sys
 import argparse
-from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter
+from argparse import ArgumentParser
 from types    import SimpleNamespace
 
-from .argparse    import register_commands, register_default_command
+from .argparse    import HelpFormatter, register_commands, register_default_command
 from .command     import build, view, deploy, remote, shell, update, check_setup, version
 from .errors      import NextstrainCliError
 from .util        import warn
 from .__version__ import __version__
-
-
-class HelpFormatter(ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter):
-    pass
 
 
 def run(args):
