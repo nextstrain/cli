@@ -14,4 +14,7 @@ The ``nextstrain`` program provides the following commands:
     shell
     update
     check-setup
+    login
+    logout
+    whoami
     version

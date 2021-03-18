@@ -79,7 +79,9 @@ setup(
     python_requires = '>=3.6',
 
     install_requires = [
+        "fasteners",
         "netifaces >=0.10.6",
+        "pyjwt[crypto] >=2.0.0",
         "requests",
 
         # We use fsspec's S3 support, which has a runtime dep on s3fs.  s3fs
