@@ -17,7 +17,7 @@ email to <hello@nextstrain.org>.
 
 
 [Augur]: https://docs.nextstrain.org/projects/augur/
-[Auspice]: https://nextstrain.github.io/auspice/
+[Auspice]: https://docs.nextstrain.org/projects/auspice/
 [AWS Batch]: https://aws.amazon.com/batch/
 [Docker]: https://docker.com
 [Conda]: https://docs.conda.io/en/latest/miniconda.html
