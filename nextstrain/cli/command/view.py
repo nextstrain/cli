@@ -10,9 +10,6 @@ or
     <name>_tree.json
     <name>_meta.json
 
-The viewer runs inside a container, which requires Docker.  Run `nextstrain
-check-setup` to check if Docker is installed and works.
-
 ¹ <https://nextstrain.github.io/auspice/introduction/how-to-run#input-file-formats>
 """
 
