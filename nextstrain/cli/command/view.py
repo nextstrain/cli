@@ -10,7 +10,7 @@ or
     <name>_tree.json
     <name>_meta.json
 
-¹ <https://nextstrain.github.io/auspice/introduction/how-to-run#input-file-formats>
+¹ <https://docs.nextstrain.org/projects/auspice/en/latest/introduction/how-to-run.html#input-file-formats>
 """
 
 import re
