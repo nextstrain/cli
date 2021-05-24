@@ -406,7 +406,13 @@ you understand [Batch's support for them][batch-launch-template].
 Create the launch template and note its id or name.
 
 Finally, create a new Batch compute environment that uses your launch template
-and associate that new compute environment with your Batch job queue.
+and associate that new compute environment with your Batch job queue.  Note
+that you'll need to create a new compute environment even if your existing
+compute environment is set to use the `$Latest` version of an existing launch
+template you modified as above.  Compute environments set to use the `$Latest`
+version of a launch template are frozen to the latest template version that
+exists at the time the environment was created, per [AWS Batch
+documentation][compute environment launch template].
 
 To check if it worked, create an empty directory on your computer, make a
 Snakefile containing the rule below, and run it on AWS Batch using the
@@ -425,6 +431,7 @@ If all goes well, you should see that the container has access to more space!
 [create-launch-template]: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchTemplates:
 [batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
 [ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#multi-part_user_data
+[compute environment launch template]: https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment.html#create-compute-environment-managed-ec2
 
 
 ### Security
