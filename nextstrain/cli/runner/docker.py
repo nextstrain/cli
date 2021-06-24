@@ -279,19 +279,24 @@ def latest_build_image(image_name: str) -> str:
     presumption that it points to some other mutable snapshot that should be
     pulled in-place to update.
     """
+    def GET(url, **kwargs):
+        response = requests.get(url, **kwargs)
+        response.raise_for_status()
+        return response
+
     def auth_token(repository: str) -> str:
         url, params = "https://auth.docker.io/token", {
             "scope": "repository:%s:pull" % repository,
             "service": "registry.docker.io",
         }
-        return requests.get(url, params = params).json().get("token")
+        return GET(url, params = params).json().get("token")
 
     def tags(respository: str) -> List[str]:
         url, headers = "https://registry.hub.docker.com/v2/%s/tags/list" % repository, {
             "Accept": "application/vnd.docker.distribution.manifest.v2+json",
             "Authorization": "Bearer %s" % auth_token(repository),
         }
-        return requests.get(url, headers = headers).json().get("tags", [])
+        return GET(url, headers = headers).json().get("tags", [])
 
     repository, tag = split_image_name(image_name)
 
