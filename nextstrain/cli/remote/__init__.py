@@ -2,7 +2,6 @@
 Remote destinations and sources for Nextstrain datasets and narratives.
 """
 
-from textwrap import dedent
 from types import ModuleType
 from typing import Tuple
 from urllib.parse import urlparse, ParseResult
@@ -19,11 +18,11 @@ def parse_remote_path(path: str) -> Tuple[ModuleType, ParseResult]:
     url = urlparse(path)
 
     if url.scheme not in SUPPORTED_SCHEMES:
-        raise UserError(dedent(f"""\
+        raise UserError(f"""
             Unsupported remote scheme {url.scheme}://
 
             Supported schemes are: {", ".join(SUPPORTED_SCHEMES)}
-            """))
+            """)
 
     remote = SUPPORTED_SCHEMES[url.scheme]
 
