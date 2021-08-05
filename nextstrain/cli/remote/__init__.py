@@ -2,12 +2,14 @@
 Remote destinations and sources for Nextstrain datasets and narratives.
 """
 
-from pathlib import Path
-from typing import cast, Dict, Iterable, List, Tuple, TYPE_CHECKING
+from typing import cast, Tuple, TYPE_CHECKING
 from urllib.parse import urlparse, ParseResult
 from ..errors import UserError
 from ..types import RemoteModule
-from . import s3 as __s3
+from . import (
+    s3 as __s3,
+    nextstrain_dot_org as __nextstrain_dot_org,
+)
 
 
 # While PEP-0544 allows for modules to serve as implementations of Protocols¹,
@@ -30,25 +32,43 @@ from . import s3 as __s3
 MYPY = False
 if TYPE_CHECKING and MYPY:
     s3 = cast(RemoteModule, __s3)
+    nextstrain_dot_org = cast(RemoteModule, __nextstrain_dot_org)
 else:
     s3 = __s3
+    nextstrain_dot_org = __nextstrain_dot_org
 
 
-SUPPORTED_SCHEMES: Dict[str, RemoteModule] = {
-    "s3": s3,
-}
+class UnsupportedRemoteError(UserError):
+    def __init__(self, path):
+        super().__init__(f"""
+            Unsupported remote source/destination: {path!r}
+
+            Supported remotes are:
+
+              - nextstrain.org/…
+              - s3://…
+            """)
 
 
 def parse_remote_path(path: str) -> Tuple[RemoteModule, ParseResult]:
     url = urlparse(path)
 
-    if url.scheme not in SUPPORTED_SCHEMES:
-        raise UserError(f"""
-            Unsupported remote scheme {url.scheme}://
+    if not url.scheme or url.scheme in {"https", "http"}:
+        if not url.scheme:
+            if url.path.startswith("groups/"):
+                # Special-case groups/… as a shortcut
+                url = urlparse("https://nextstrain.org/" + path)
+            else:
+                # Re-parse with an assumed scheme to split .netloc from .path
+                url = urlparse("https://" + path)
 
-            Supported schemes are: {", ".join(SUPPORTED_SCHEMES)}
-            """)
+        if url.netloc.lower() != "nextstrain.org":
+            raise UnsupportedRemoteError(path)
 
-    remote = SUPPORTED_SCHEMES[url.scheme]
+        return nextstrain_dot_org, url
 
-    return remote, url
+    elif url.scheme == "s3":
+        return s3, url
+
+    else:
+        raise UnsupportedRemoteError(path)
