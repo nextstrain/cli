@@ -128,6 +128,8 @@ setup(
             "sphinx-argparse",
             "sphinx-markdown-tables",
             "sphinx_rtd_theme",
+            "types-setuptools",
+            "types-requests",
         ],
     },
 )
