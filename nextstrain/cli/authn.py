@@ -27,11 +27,16 @@ class User:
     username: str
     groups: List[str]
     email: str
+    http_authorization: str
 
-    def __init__(self, id_claims: dict):
-        self.username = id_claims["cognito:username"]
-        self.groups   = id_claims["cognito:groups"]
-        self.email    = id_claims["email"]
+    def __init__(self, session: cognito.Session):
+        assert session.id_claims
+
+        self.username = session.id_claims["cognito:username"]
+        self.groups   = session.id_claims["cognito:groups"]
+        self.email    = session.id_claims["email"]
+
+        self.http_authorization = f"Bearer {session.id_token}"
 
 
 def login(username: str, password: str) -> User:
@@ -57,9 +62,7 @@ def login(username: str, password: str) -> User:
     _save_tokens(session)
     print(f"Credentials saved to {config.SECRETS}.", file = stderr)
 
-    assert session.id_claims
-
-    return User(session.id_claims)
+    return User(session)
 
 
 def renew():
@@ -130,9 +133,7 @@ def current_user() -> Optional[User]:
     except (cognito.TokenError, cognito.NotAuthorizedError):
         return None
 
-    assert session.id_claims
-
-    return User(session.id_claims)
+    return User(session)
 
 
 def _load_tokens() -> Dict[str, Optional[str]]:
