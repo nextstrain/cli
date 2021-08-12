@@ -1,0 +1,20 @@
+{
+  "pythonVersion": "3.6",
+  "include": ["nextstrain"],
+  "reportMissingImports": false,
+  "reportMissingModuleSource": true,
+  "reportUnusedFunction": true,
+  "reportWildcardImportFromLibrary": true,
+  "reportUntypedFunctionDecorator": true,
+  "reportUntypedClassDecorator": true,
+  "reportUntypedBaseClass": true,
+  "reportUntypedNamedTuple": true,
+  "reportPrivateUsage": true,
+  "reportInvalidStringEscapeSequence": true,
+  "reportInvalidTypeVarUse": true,
+  "reportAssertAlwaysTrue": true,
+  "reportSelfClsParameterName": true,
+  "reportInvalidStubStatement": true,
+  "reportIncompleteStub": true,
+  "reportUnsupportedDunderAll": true
+}

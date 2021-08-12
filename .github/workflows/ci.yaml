@@ -31,11 +31,11 @@ jobs:
       - name: Setup test environment
         run: |
           # Install required external programs for --native.
-          conda create -p ~/ci -c bioconda \
+          conda create -p ~/ci -c conda-forge -c bioconda \
               fasttree \
               iqtree \
               mafft \
-              nodejs=10 \
+              nodejs=12 \
               raxml \
               vcftools
 
