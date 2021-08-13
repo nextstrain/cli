@@ -54,6 +54,7 @@ def check_for_new_version():
 
     installed_into_user_site = \
             site.ENABLE_USER_SITE \
+        and site.USER_SITE is not None \
         and __file__.startswith(site.USER_SITE)
 
     if sys.executable:

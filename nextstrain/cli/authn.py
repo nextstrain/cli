@@ -56,6 +56,8 @@ def login(username: str, password: str) -> User:
     _save_tokens(session)
     print(f"Credentials saved to {config.SECRETS}.")
 
+    assert session.id_claims
+
     return User(session.id_claims)
 
 
@@ -98,6 +100,8 @@ def current_user() -> Optional[User]:
 
     except (cognito.TokenError, cognito.NotAuthorizedError):
         return None
+
+    assert session.id_claims
 
     return User(session.id_claims)
 
