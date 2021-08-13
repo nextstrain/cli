@@ -11,7 +11,7 @@ from sys import stdin
 from textwrap import dedent
 from typing import Iterable, List
 from .. import runner, hostenv, config
-from ..types import RunnerTestResults
+from ..types import RunnerTestResults, RunnerTestResultStatus
 from ..util import warn, colored, capture_output, exec_or_return, resolve_path, split_image_name
 from ..volume import store_volume
 from ..__version__ import __version__
@@ -135,7 +135,7 @@ def test_setup() -> RunnerTestResults:
         desired = 2 * GiB
 
         msg = 'containers have access to >%.0f GiB of memory' % (desired / GiB)
-        status = ...
+        status: RunnerTestResultStatus = ...
 
         if image_exists():
             report_memory = """
@@ -169,7 +169,7 @@ def test_setup() -> RunnerTestResults:
         minimum_tag = "build-20190119T045444Z"
 
         msg = 'image is new enough for this CLI version'
-        status = ...
+        status: RunnerTestResultStatus = ...
 
         repository, tag = split_image_name(DEFAULT_IMAGE)
 

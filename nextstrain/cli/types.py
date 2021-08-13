@@ -13,8 +13,9 @@ from .volume import NamedVolume
 
 Options = argparse.Namespace
 
-RunnerTestResult  = Tuple[str, Union[bool, None, 'builtins.ellipsis']]
-RunnerTestResults = List[RunnerTestResult]
+RunnerTestResults = List['RunnerTestResult']
+RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
+RunnerTestResultStatus = Union[bool, None, 'builtins.ellipsis']
 
 # Cleaner-reading type annotations for boto3 S3 objects, which maybe can be
 # improved later.  The actual types are generated at runtime in
