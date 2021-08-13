@@ -1,7 +1,8 @@
 import argparse
+import builtins
 from argparse import ArgumentParser
 from textwrap import dedent
-from typing import cast, Mapping, List, TYPE_CHECKING
+from typing import cast, Mapping, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
     native as __native,
@@ -60,9 +61,11 @@ if configured_runner:
             % (configured_runner, runner_name(default_runner)))
 
 
+RunnerExec = List[Union[str, 'builtins.ellipsis']]
+
 
 def register_runners(parser:  ArgumentParser,
-                     exec:    List,
+                     exec:    RunnerExec,
                      runners: List[RunnerModule] = all_runners,
                      default: RunnerModule       = default_runner) -> None:
     """
@@ -114,7 +117,7 @@ def register_flags(parser: ArgumentParser, runners: List[RunnerModule], default:
             default = argparse.SUPPRESS)
 
 
-def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec: List) -> None:
+def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec: RunnerExec) -> None:
     """
     Register arguments shared by all runners as well as runner-specific
     arguments on the given ArgumentParser instance.
