@@ -1,14 +1,47 @@
 import argparse
 from argparse import ArgumentParser
 from textwrap import dedent
-from typing import Any, Mapping, List
-from . import docker, native, aws_batch
+from typing import cast, Mapping, List, TYPE_CHECKING
+from . import (
+    docker as __docker,
+    native as __native,
+    aws_batch as __aws_batch,
+)
 from .. import config
-from ..types import Options
+from ..types import Options, RunnerModule
 from ..util import runner_name, runner_help, warn
 from ..volume import NamedVolume
 
-all_runners = [
+
+# While PEP-0544 allows for modules to serve as implementations of Protocols¹,
+# Mypy doesn't currently support it².  Pyright does³, however, so we tell Mypy
+# to "trust us", but let Pyright actually check our work.  Mypy considers the
+# MYPY variable to always be True when evaluating the code, regardless of the
+# assignment below.
+#
+# This bit of type checking chicanery is not ideal, but the benefit of having
+# our module interfaces actually checked by Pyright is worth it.  In the
+# future, we should maybe ditch Mypy in favor of Pyright alone, but I didn't
+# want to put in the due diligence for a full switchover right now.
+#
+#   -trs, 12 August 2021
+#
+# ¹ https://www.python.org/dev/peps/pep-0544/#modules-as-implementations-of-protocols
+# ² https://github.com/python/mypy/issues/5018
+# ³ https://github.com/microsoft/pyright/issues/1341
+#
+MYPY = False
+if TYPE_CHECKING and MYPY:
+    docker = cast(RunnerModule, __docker)
+    native = cast(RunnerModule, __native)
+    aws_batch = cast(RunnerModule, __aws_batch)
+else:
+    docker = __docker
+    native = __native
+    aws_batch = __aws_batch
+
+
+all_runners: List[RunnerModule] = [
     docker,
     native,
     aws_batch,
@@ -27,21 +60,11 @@ if configured_runner:
             % (configured_runner, runner_name(default_runner)))
 
 
-# The types of "runners" and "default" are left vague because a generic
-# parameterization isn't easily possible with default values, as reported
-# https://github.com/python/mypy/issues/3737.  The workaround becomes pretty
-# sticky pretty quick for our use case, making it not worth it in my
-# estimation.  It'd make things more confusing rather than more clear.
-#
-# Additionally, there seems to be no way to use the structural/duck typing
-# provided by the Protocol type to annotate a _module_ type with attributes
-# instead of a _class_.  Oh well.
-#   -trs, 15 August 2018
 
 def register_runners(parser:  ArgumentParser,
                      exec:    List,
-                     runners: List = all_runners,
-                     default: Any  = default_runner) -> None:
+                     runners: List[RunnerModule] = all_runners,
+                     default: RunnerModule       = default_runner) -> None:
     """
     Register runner selection flags and runner-specific arguments on the given
     ArgumentParser instance.
@@ -54,7 +77,7 @@ def register_runners(parser:  ArgumentParser,
     register_arguments(parser, runners, exec = exec)
 
 
-def register_flags(parser: ArgumentParser, runners: List, default: Any) -> None:
+def register_flags(parser: ArgumentParser, runners: List[RunnerModule], default: RunnerModule) -> None:
     """
     Register runner selection flags on the given ArgumentParser instance.
     """
@@ -91,7 +114,7 @@ def register_flags(parser: ArgumentParser, runners: List, default: Any) -> None:
             default = argparse.SUPPRESS)
 
 
-def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> None:
+def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec: List) -> None:
     """
     Register arguments shared by all runners as well as runner-specific
     arguments on the given ArgumentParser instance.
@@ -110,7 +133,7 @@ def register_arguments(parser: ArgumentParser, runners: List, exec: List) -> Non
         "--image",
         help    = "Container image name to use for the Nextstrain computing environment",
         metavar = "<image>",
-        default = docker.DEFAULT_IMAGE)
+        default = docker.DEFAULT_IMAGE) # type: ignore
 
     # Program to execute
     #
@@ -164,7 +187,8 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
         )
     ]
 
-    if opts.image != docker.DEFAULT_IMAGE and opts.__runner__ is native:
+    if (opts.image != docker.DEFAULT_IMAGE # type: ignore
+    and opts.__runner__ is native):
         warn(dedent("""
             Warning: The specified --image=%s option is not used by --native.
             """ % opts.image))
