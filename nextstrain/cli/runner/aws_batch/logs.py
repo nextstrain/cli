@@ -4,7 +4,7 @@ Log handling for AWS Batch jobs.
 
 import threading
 from botocore.exceptions import ClientError, ConnectionError as BotocoreConnectionError
-from typing import Callable, Generator, MutableSet
+from typing import Any, Callable, Dict, Generator, MutableSet
 from ... import aws
 
 
@@ -25,10 +25,10 @@ def fetch_stream(stream: str, start_time: int = None) -> Generator[dict, None, N
 
     log_events = client.get_paginator("filter_log_events")
 
-    query = {
+    query: Dict[str, Any] = {
         "logGroupName": LOG_GROUP,
         "logStreamNames": [ stream ],
-    } # type: dict
+    }
 
     if start_time:
         query["startTime"] = start_time

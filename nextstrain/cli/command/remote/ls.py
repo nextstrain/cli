@@ -10,14 +10,7 @@ will list files named `some/prefix/*`.
 See `nextstrain remote --help` for more information on remote sources.
 """
 
-from urllib.parse import urlparse
-from ...remote import s3
-from ...util import warn
-
-
-SUPPORTED_SCHEMES = {
-    "s3": s3,
-}
+from ...remote import parse_remote_path
 
 
 def register_parser(subparser):
@@ -35,15 +28,7 @@ def register_parser(subparser):
 
 
 def run(opts):
-    url = urlparse(opts.remote_path)
-
-    if url.scheme not in SUPPORTED_SCHEMES:
-        warn("Error: Unsupported remote scheme %s://" % url.scheme)
-        warn("")
-        warn("Supported schemes are: %s" % ", ".join(SUPPORTED_SCHEMES))
-        return 1
-
-    remote = SUPPORTED_SCHEMES[url.scheme]
+    remote, url = parse_remote_path(opts.remote_path)
 
     files = remote.ls(url)
 

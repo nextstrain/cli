@@ -145,7 +145,7 @@ class AppendOverwriteDefault(Action):
     def __call__(self, parser, namespace, value, option_string = None):
         current = getattr(namespace, self.dest, None)
 
-        if current is parser.get_default(self.dest):
+        if current is parser.get_default(self.dest) or current is None:
             current = []
 
         setattr(namespace, self.dest, [*current, value])

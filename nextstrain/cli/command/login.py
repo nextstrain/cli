@@ -20,7 +20,6 @@ use in the environment variables NEXTSTRAIN_USERNAME and NEXTSTRAIN_PASSWORD.
 from functools import partial
 from getpass import getpass
 from os import environ
-from textwrap import dedent
 from ..authn import current_user, login
 from ..errors import UserError
 
@@ -79,11 +78,11 @@ def run(opts):
         print()
     else:
         if opts.username is not None and opts.username != user.username:
-            raise UserError(dedent(f"""\
+            raise UserError(f"""
                 Login requested for {opts.username}, but {user.username} is already logged in.
                 
                 Please logout first if you want to switch users.
-                """).rstrip())
+                """)
 
     print(f"Logged into nextstrain.org as {user.username}.")
     print("Log out with `nextstrain logout`.")

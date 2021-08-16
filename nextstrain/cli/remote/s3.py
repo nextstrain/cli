@@ -12,7 +12,6 @@ from botocore.exceptions import ClientError, NoCredentialsError, PartialCredenti
 from operator import methodcaller
 from os.path import commonprefix
 from pathlib import Path
-from textwrap import dedent
 from time import time
 from typing import Iterable, List, Tuple
 from .. import aws
@@ -68,11 +67,11 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
         objects = [ item.Object() for item in bucket.objects.filter(Prefix = path) ]
     else:
         if not path:
-            raise UserError(dedent("""\
-                No file path specified in URL (%s); nothing to download.
+            raise UserError(f"""
+                No file path specified in URL ({url.geturl()!s}); nothing to download.
 
                 Did you mean to use --recursively?
-                """ % (str(url.geturl()))))
+                """)
 
         object = bucket.Object(path)
         assert_exists(object)
@@ -161,11 +160,11 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
         boto3.client("s3").head_bucket(Bucket = bucket.name)
 
     except ClientError as error:
-        raise UserError(dedent('''\
-            No bucket exists with the name "%s".
+        raise UserError(f"""
+            No bucket exists with the name "{bucket.name}".
 
             Buckets are not automatically created for safety reasons.
-            ''' % bucket.name))
+            """)
 
     return bucket, prefix
 

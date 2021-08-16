@@ -32,6 +32,7 @@ class GzipCompressingReader(BufferedIOBase):
 
     def read(self, size = None):
         assert size != 0
+        assert self.stream
 
         if size is None:
             size = -1
@@ -93,14 +94,17 @@ class GzipDecompressingWriter(BufferedIOBase):
         return True
 
     def write(self, data: bytes): # type: ignore[override]
+        assert self.stream and self.__gunzip
         return self.stream.write(self.__gunzip.decompress(data))
 
     def flush(self):
+        assert self.stream and self.__gunzip
         super().flush()
         self.stream.flush()
 
     def close(self):
         if self.stream:
+            assert self.__gunzip
             try:
                 self.stream.write(self.__gunzip.flush())
                 self.stream.close()

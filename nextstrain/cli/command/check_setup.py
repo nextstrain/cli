@@ -61,7 +61,7 @@ def run(opts: Options) -> int:
     print("Testing your setup…")
 
     runner_tests = [
-        (runner, runner.test_setup()) # type: ignore
+        (runner, runner.test_setup())
             for runner in all_runners
     ]
 

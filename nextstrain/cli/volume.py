@@ -3,11 +3,13 @@ Volumes map well-known names to a source path.
 """
 
 import argparse
-from collections import namedtuple
+from typing import NamedTuple
 from pathlib import Path
 
 
-NamedVolume = namedtuple("NamedVolume", ("name", "src"))
+class NamedVolume(NamedTuple):
+    name: str
+    src: Path
 
 
 def store_volume(volume_name):
@@ -18,7 +20,7 @@ def store_volume(volume_name):
     Multiple argparse arguments can use this to cooperatively accept source
     path definitions for named volumes.
 
-    Each named volume is stored as a namedtuple (name, src).  The tuple is
+    Each named volume is stored as a NamedTuple (name, src).  The tuple is
     stored on the options object under the volume's name (modified to replace
     slashes with underscores), as well as added to a shared list of volumes,
     accessible via the "volumes" attribute on the options object.

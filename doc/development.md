@@ -67,11 +67,19 @@ During development you can run static type checks using [mypy][]:
     $ mypy nextstrain
     # No output is good!
 
-There are also many [editor integrations for mypy][].
+and [pyright][]:
+
+    $ npx pyright
+    ...
+    Found 40 source files
+    0 errors, 0 warnings, 0 infos
+    Completed in 2sec
+
+There are also many [editor integrations for mypy][], and Pyright is integrated
+into VS Code's Python support.
 
 The [`typing_extensions`][] module should be used for features added to the
-standard `typings` module after 3.6.  (Currently this isn't necessary since we
-don't use those features.)
+standard `typings` module after 3.6.
 
 We also use [Flake8][] for some static analysis checks focusing on runtime
 safety and correctness.  You can run them like this:
@@ -86,6 +94,7 @@ safety and correctness.  You can run them like this:
 [twine]: https://pypi.org/project/twine
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [mypy]: http://mypy-lang.org/
+[pyright]: https://github.com/microsoft/pyright
 [editor integrations for mypy]: https://github.com/python/mypy#ide--linter-integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org

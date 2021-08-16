@@ -13,14 +13,7 @@ See `nextstrain remote --help` for more information on remote sources.
 """
 
 from pathlib import Path
-from urllib.parse import urlparse
-from ...remote import s3
-from ...util import warn
-
-
-SUPPORTED_SCHEMES = {
-    "s3": s3,
-}
+from ...remote import parse_remote_path
 
 
 def register_parser(subparser):
@@ -47,16 +40,9 @@ def register_arguments(parser):
 
 
 def run(opts):
-    url = urlparse(opts.destination)
+    remote, url = parse_remote_path(opts.destination)
 
-    if url.scheme not in SUPPORTED_SCHEMES:
-        warn("Error: Unsupported destination scheme %s://" % url.scheme)
-        warn("")
-        warn("Supported schemes are: %s" % ", ".join(SUPPORTED_SCHEMES))
-        return 1
-
-    remote = SUPPORTED_SCHEMES[url.scheme]
-    files  = [Path(f) for f in opts.files]
+    files = [Path(f) for f in opts.files]
 
     uploads = remote.upload(url, files)
 

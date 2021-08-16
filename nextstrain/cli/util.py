@@ -5,13 +5,14 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import Mapping, List, Tuple
+from typing import Any, Mapping, List, Tuple
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
 from sys import exit, stderr, version_info as python_version
 from textwrap import dedent, indent
 from .__version__ import __version__
+from .types import RunnerModule
 
 
 def warn(*args):
@@ -54,6 +55,7 @@ def check_for_new_version():
 
     installed_into_user_site = \
             site.ENABLE_USER_SITE \
+        and site.USER_SITE is not None \
         and __file__.startswith(site.USER_SITE)
 
     if sys.executable:
@@ -161,14 +163,14 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
             exit(process.returncode)
 
 
-def runner_name(runner: ModuleType) -> str:
+def runner_name(runner: RunnerModule) -> str:
     """
     Return a friendly name suitable for display for the given runner module.
     """
     return module_basename(runner).replace("_", "-")
 
 
-def runner_help(runner: ModuleType) -> str:
+def runner_help(runner: RunnerModule) -> str:
     """
     Return a brief description of a runner module, suitable for help strings.
     """
@@ -178,7 +180,7 @@ def runner_help(runner: ModuleType) -> str:
         return "(undocumented)"
 
 
-def module_basename(module: ModuleType) -> str:
+def module_basename(module: Any) -> str:
     """
     Return the final portion of the given module's name, akin to a file's basename.
     """
