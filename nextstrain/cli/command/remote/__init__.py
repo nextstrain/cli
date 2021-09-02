@@ -22,7 +22,7 @@ Amazon S3
 
 """
 
-__shortdoc__ = __doc__.strip().splitlines()[0]
+__shortdoc__ = (__doc__ or "").strip().splitlines()[0]
 
 
 from . import upload, download, ls, delete
