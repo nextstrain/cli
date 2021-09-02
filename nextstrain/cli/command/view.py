@@ -1,5 +1,6 @@
 """
-Visualizes a completed pathogen build in Auspice, the Nextstrain visualization app.
+Visualizes a completed pathogen build or narrative in Auspice, the Nextstrain
+visualization app.
 
 The data directory should contain sets of Auspice JSON¹ files like
 
@@ -9,6 +10,10 @@ or
 
     <name>_tree.json
     <name>_meta.json
+
+and optionally Auspice narrative Markdown files like
+
+    <name>.md
 
 ¹ <https://docs.nextstrain.org/projects/auspice/en/latest/introduction/how-to-run.html#input-file-formats>
 """
@@ -57,7 +62,7 @@ def register_parser(subparser):
     # Register runners; only Docker is supported for now.
     runner.register_runners(
         parser,
-        exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
+        exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
         runners = [docker, native])
 
     return parser
@@ -76,8 +81,8 @@ def run(opts):
 
         return 1
 
-    # Find the available dataset paths
-    datasets = dataset_paths(data_dir)
+    # Find the available dataset and narrative paths
+    available_paths = auspice_paths(data_dir)
 
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
@@ -131,15 +136,15 @@ def run(opts):
             host = remote_address
 
     # Show a helpful message about where to connect
-    print_url(host, port, datasets)
+    print_url(host, port, available_paths)
 
     return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
 
 
-def dataset_paths(data_dir: Path) -> Iterable[str]:
+def auspice_paths(data_dir: Path) -> Iterable[str]:
     """
-    Returns a :py:class:`set` of Auspice (not filesystem) paths for datasets in
-    *data_dir*.
+    Returns a sorted list of Auspice (not filesystem) paths for datasets and
+    narratives in *data_dir*.
     """
     # v2: All *.json files which don't end with a known sidecar or v1 suffix.
     sidecar_suffixes = {"meta", "tree", "root-sequence", "seq", "sequences", "tip-frequencies", "entropy"}
@@ -161,13 +166,22 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
             for path in data_dir.glob("*_tree.json")
             if meta_exists(path))
 
-    return datasets_v2 | datasets_v1
+    # Narratives: all *.md files except README.md and group-overview.md
+    narratives = set(
+        "narratives/" + path.stem.replace("_", "/")
+            for path in data_dir.glob("*.md")
+            if path.name not in {"README.md", "group-overview.md"})
+
+    return [
+        *sorted(datasets_v2 | datasets_v1, key = str.casefold),
+        *sorted(narratives, key = str.casefold),
+    ]
 
 
-def print_url(host, port, datasets):
+def print_url(host, port, available_paths):
     """
-    Prints a list of available dataset URLs, if any.  Otherwise, prints a
-    generic URL.
+    Prints a list of available dataset and narrative URLs, if any.  Otherwise,
+    prints a generic URL.
     """
 
     def url(path = None):
@@ -183,14 +197,14 @@ def print_url(host, port, datasets):
     print()
     print(horizontal_rule)
 
-    if len(datasets):
-        print("    The following datasets should be available in a moment:")
-        for path in sorted(datasets, key = str.casefold):
+    if available_paths:
+        print("    The following datasets and/or narratives should be available in a moment:")
+        for path in available_paths:
             print("       • %s" % url(path))
     else:
         print("    Open <%s> in your browser." % url())
         print()
-        print("   ", colored("yellow", "Warning: No datasets detected."))
+        print("   ", colored("yellow", "Warning: No datasets or narratives detected."))
 
     print(horizontal_rule)
     print()
