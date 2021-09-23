@@ -34,7 +34,7 @@ Now test that you can run:
 The development environment includes our dev tools (described below):
 
     pytest           # runs doctests as well as mypy and flake8
-    mypy nextstrain
+    mypy -p nextstrain.cli
     flake8
 
 ## Running with local changes
