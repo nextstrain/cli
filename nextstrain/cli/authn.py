@@ -2,6 +2,7 @@
 Authentication routines.
 """
 from functools import partial
+from sys import stderr
 from typing import Dict, List, Optional
 
 from . import config
@@ -54,7 +55,7 @@ def login(username: str, password: str) -> User:
         raise UserError(f"Login failed: {error}")
 
     _save_tokens(session)
-    print(f"Credentials saved to {config.SECRETS}.")
+    print(f"Credentials saved to {config.SECRETS}.", file = stderr)
 
     assert session.id_claims
 
@@ -70,10 +71,10 @@ def logout():
     not logged out of Nextstrain.org.
     """
     if config.remove(CONFIG_SECTION, config.SECRETS):
-        print(f"Credentials removed from {config.SECRETS}.")
-        print("Logged out.")
+        print(f"Credentials removed from {config.SECRETS}.", file = stderr)
+        print("Logged out.", file = stderr)
     else:
-        print("Not logged in.")
+        print("Not logged in.", file = stderr)
 
 
 def current_user() -> Optional[User]:
@@ -96,7 +97,7 @@ def current_user() -> Optional[User]:
         except cognito.ExpiredTokenError:
             session.renew_tokens(refresh_token = tokens.get("refresh_token"))
             _save_tokens(session)
-            print("Renewed login credentials.")
+            print("Renewed login credentials.", file = stderr)
 
     except (cognito.TokenError, cognito.NotAuthorizedError):
         return None
