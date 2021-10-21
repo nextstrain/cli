@@ -353,55 +353,42 @@ but Amazon's prorated billing uses a minimum duration of one month.
 
 ### Disk space for your jobs
 
-By default, your Batch jobs will each have access to 10 GiB of scratch space.
-This is enough for most Nextstrain builds, but yours may require more.
+_The following applies to Batch compute environments using Amazon Linux 2 (AL2)
+[ECS-optimized AMIs][], which is the default for new compute environments.  If
+you're using older compute environments with Amazon Linux 1 (AL1) AMIs, either
+upgrade or see previous versions of this document.  If you're using custom
+AMIs, you can probably find your own way._
+
+By default, your Batch jobs will have access to ~28 GiB of shared space.  This
+is enough for many Nextstrain builds, but the [SARS-CoV-2 build][] is the
+notable exception.  Your own builds may require more disk space as well.
 
 Configuring more space requires a little bit of setup.  It also helps to
 understand that Batch uses [ECS][] to run containers on clusters of [EC2][]
 servers.
 
-Each EC2 instance in an ECS cluster has a storage volume named `/dev/xvdcz`
-which is shared by all the containers/jobs running on that instance.  The
-default size of this volume is **22 GiB**, which comes from the [AWS-managed
-ECS-optimized machine images (AMIs)][ami-storage] used by Batch.
+Each EC2 instance in an ECS cluster has, by default, a single **30 GiB** root
+volume which is **shared by all the containers/jobs running on that instance**.
+The default size of this volume is set by the [AWS-managed ECS-optimized
+machine images (AMIs)][ami-storage] used by Batch.  The operating system and
+base software is on the same volume, so usable space for your containers/job is
+slightly less, around **28 GiB**.
 
-Each container/job is allowed to use up to **10 GiB** of disk by default.  This
-comes from Docker's [`dm.basesize` option][].
-
-In order to give your Batch jobs more disk, you have to increase **both** of
-these defaults.  There are many approaches to doing this, but the simplest is
-to create a new EC2 _[launch template][]_.
+There are several approaches to give your Batch jobs more disk, but the
+simplest is to increase the size of the root volume using a custom EC2 _[launch
+template][]_ that you associate with a new Batch compute environment.
 
 It's quickest to [create the launch template][create-launch-template] using the
 AWS Console, although you can also do it on the command-line.
 
 First, add to the launch template an EBS storage volume with the device name
-`/dev/xvdcz`, volume size you want (e.g. 200 GiB), and a volume type of `gp2`.
+`/dev/xvda`, volume size you want (e.g. 200 GiB), and a volume type of `gp3`.
 Make sure that the volume is marked for deletion on instance termination, or
 you'll end up paying for old volumes indefinitely!  This sets the size of the
 shared volume available to all containers on a single EC2 instance.
 
-Next, under the "Advanced details" section, add a user data blob with the
-following text:
-
-    Content-Type: multipart/mixed; boundary="==BOUNDARY=="
-    MIME-Version: 1.0
-
-    --==BOUNDARY==
-    Content-Type: text/cloud-boothook; charset="us-ascii"
-
-    # Set Docker daemon option dm.basesize so each container gets up to 50GB
-    cloud-init-per once docker_options echo 'OPTIONS="${OPTIONS} --storage-opt dm.basesize=50GB"' >> /etc/sysconfig/docker
-
-    --==BOUNDARY==--
-
-This allows each container/job to use up to 50 GiB.  Adjust this value to your
-own needs and according to the total EBS volume size you chose above.  The ECS
-documentation includes more information about this format and [specifying
-options for the ECS Docker daemon][ecs-docker-options].
-
-If you want to set other options in your launch template you may, but make sure
-you understand [Batch's support for them][batch-launch-template].
+Next, under the "Advanced details" section, make sure that "EBS-optimized
+instance" is enabled.
 
 Create the launch template and note its id or name.
 
@@ -412,7 +399,10 @@ compute environment is set to use the `$Latest` version of an existing launch
 template you modified as above.  Compute environments set to use the `$Latest`
 version of a launch template are frozen to the latest template version that
 exists at the time the environment was created, per [AWS Batch
-documentation][compute environment launch template].
+documentation][compute environment launch template].  For this reason, it's
+recommended to use an explicit version number instead of `$Latest` so that you
+can easily see what version a compute environment is using (instead of having
+to correlate compute environment and launch template version creation times).
 
 To check if it worked, create an empty directory on your computer, make a
 Snakefile containing the rule below, and run it on AWS Batch using the
@@ -423,15 +413,124 @@ Nextstrain CLI:
 
 If all goes well, you should see that the container has access to more space!
 
+#### Alternative: NVMe SSD instance storage
+
+Some EC2 instance families, such as `c5d`, provide host-local NVMe SSD instance
+storage devices for a moderate increased cost.  These may be faster and/or
+cheaper for your latency, throughput, and IOPS needs.
+
+If you intend to use such instances for your Batch jobs, you'll need to add the
+following user data blob to your launch template to configure them:
+
+    Content-Type: multipart/mixed; boundary="==BOUNDARY=="
+    MIME-Version: 1.0
+    
+    --==BOUNDARY==
+    Content-Type: text/cloud-boothook; charset="us-ascii"
+    
+    #!/bin/bash
+    # Use the local NVMe instance storage devices for Docker images and containers.
+    set -euo pipefail -x
+    
+    # Only run this whole script once.
+    if [[ "${1:-}" != init ]]; then
+        exec cloud-init-per once nvme-storage \
+            "$0" init
+    fi
+    
+    yum install -y nvme-cli jq lvm2
+    
+    declare -a instance_devices ebs_devices
+    
+    instance_devices=($(
+        nvme list -o json | jq -r '
+              .Devices[]
+            | select(.ModelNumber == "Amazon EC2 NVMe Instance Storage")
+            | .DevicePath
+        '
+    ))
+    
+    ebs_devices=($(
+          nvme list -o json \
+        | jq -r '
+              .Devices[]
+            | select(.ModelNumber == "Amazon Elastic Block Store")
+            | .DevicePath
+        ' \
+        | grep -Ff <(
+            lsblk --json --path /dev/nvme?n? | jq -r '
+                  .blockdevices[]
+                | select((.children | length == 0) and (.mountpoint == null))
+                | .name
+            '
+        )
+    ))
+    
+    if [[ ${#instance_devices[@]} -gt 0 || ${#ebs_devices[@]} -gt 0 ]]; then
+        # Create VG.  set +u locally to work around Bash 4.2's behaviour with
+        # empty arrays (fixed in 4.4).
+        (set +u; vgcreate nvme-storage "${instance_devices[@]}" "${ebs_devices[@]}")
+    
+        # Allow LVM to settle and VG to appear before trying to create LV
+        sleep 5
+    
+        # Create LV for Docker.  Create + extend when both instance and EBS
+        # devices are present so that instance devices are allocated PEs (and
+        # thus used) first.
+        if [[ ${#instance_devices[@]} -gt 0 && ${#ebs_devices[@]} -gt 0 ]]; then
+            lvcreate --extents 100%PVS --name docker nvme-storage "${instance_devices[@]}"
+            lvextend nvme-storage/docker "${ebs_devices[@]}"
+        else
+            lvcreate --name nvme-storage/docker --extents 100%VG
+        fi
+    
+        # Format ext4 with zero reserved blocks for root
+        mkfs -t ext4 -m 0 /dev/nvme-storage/docker
+    
+        # Add to fstab so it mounts at subsequent boots
+        >>/etc/fstab echo "/dev/nvme-storage/docker /var/lib/docker ext4 defaults 0 0"
+    
+        # Mount it for this boot
+        mount /dev/nvme-storage/docker
+    fi
+    
+    --==BOUNDARY==--
+
+This uses the [cloud-init user data format][] to setup each EC2 instance (ECS
+node) on first boot.  Every instance storage device (if any) is added to an LVM
+local storage pool, which is then used as the backing disk by Docker.
+
+If instance storage for a given instance size is not quite enough for your jobs
+when matching CPU/memory requirements, you can include additional SSD-backed
+EBS volumes in your launch template.  These are picked up by the user data
+setup above and used only when instance storage is exhausted (or not present).
+
+The ECS documentation includes more information about [specifying options for
+the ECS Docker daemon][ecs-docker-options].  If you want to set other options
+in your launch template you may, but make sure you understand [Batch's support
+for them][batch-launch-template].
+
+#### Alternative: EFS
+
+Using [EFS volumes][] for Batch jobs is enticing as there's no need to predict
+required disk sizes, but it's more expensive and has more complex initial setup
+considerations.  For example, job definitions must provide EFS volumes to
+Docker to be mounted into containers and something must deal with deleting data
+which only needs to be ephemeral so as not to incur increasing costs.
+
+
+[SARS-CoV-2 build]: https://github.com/nextstrain/ncov
 [ECS]: https://aws.amazon.com/ecs/
 [EC2]: https://aws.amazon.com/ec2/
-[ami-storage]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html#al1-ami-storage-config
-[`dm.basesize` option]: https://docs.docker.com/engine/reference/commandline/dockerd/#dmbasesize
-[launch template]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-launch-templates.html
+[ECS-optimized AMIs]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+[ami-storage]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html#al2-ami-storage-config
+[launch template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
 [create-launch-template]: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchTemplates:
 [batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
+[cloud-init user data format]: https://cloudinit.readthedocs.io/en/latest/topics/format.html
 [ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#multi-part_user_data
 [compute environment launch template]: https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment.html#create-compute-environment-managed-ec2
+[EFS volumes]: https://docs.aws.amazon.com/batch/latest/userguide/efs-volumes.html
 
 
 ### Security
