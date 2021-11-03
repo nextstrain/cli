@@ -99,15 +99,16 @@ setup(
         # declarations.
         #
         # Resolve the issue by using a specially-provided package extra from
-        # aiobotocore which causes them to declare explicit dependencies on
-        # boto3 so that the dependency resolver can figure it out properly.
+        # s3fs (first introduced with 2021.4.0) which causes them to declare an
+        # explicit dependency on aiobotocore's specially-provided package extra
+        # on boto3 so that dependency resolver can figure it out properly.
         #
-        # See <https://github.com/dask/s3fs/issues/357> for more background.
+        # See <https://github.com/dask/s3fs/issues/357> and
+        # <https://github.com/nextstrain/cli/issues/133> for more background.
         #
         # What a mess.
         "fsspec",
-        "s3fs",
-        "aiobotocore[boto3]",
+        "s3fs[boto3] >=2021.04.0",
 
         # We use pkg_resources.parse_version(), which (confusingly) is provided
         # by setuptools.  setuptools is nearly ever-present, but it can be
