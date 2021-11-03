@@ -127,7 +127,7 @@ setup(
             "pytest-mypy",
             "recommonmark",
             "sphinx>=3",
-            "sphinx-argparse",
+            "sphinx-argparse ~=0.3",
             "sphinx-markdown-tables",
             "sphinx_rtd_theme",
             "types-setuptools",
