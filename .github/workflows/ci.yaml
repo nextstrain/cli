@@ -102,7 +102,7 @@ jobs:
         run: python3 -m pip install --upgrade pip setuptools wheel
 
       - name: Setup docs build environment
-        run: python3 -m pip install -r .readthedocs-requirements.txt
+        run: python3 -m pip install --upgrade -e '.[dev]'
 
       - name: Make docs with warnings fatalized
         run: make -C doc dirhtml
