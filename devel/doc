@@ -12,8 +12,8 @@ main() {
 }
 
 rebuild() {
-    pipenv run make clean
-    pipenv run make dirhtml
+    make clean
+    make dirhtml
 
     pushd _build/dirhtml
         kill %
