@@ -1,6 +1,58 @@
 # __NEXT__
 
 
+# 3.0.4 (3 November 2021)
+
+## Features
+
+* Three new commands—`login`, `logout`, and `whoami`—for authenticating with
+  nextstrain.org.  These commands manage tokens stored in
+  _~/.nextstrain/secrets_.  No other commands currently use the tokens, but
+  future features will start using them, e.g.  for managing datasets and
+  narratives on nextstrain.org with the `remote` family of commands.
+
+## Bug fixes
+
+* Adjusted dependencies on s3fs and aiobotocore to avoid incompatible versions
+  being selected by pip.
+
+  aiobotocore released a new version, 2.0.0, with breaking changes and pip's
+  resolution algorithm chose an older s3fs version which was "compatible" by
+  dep declaration by not actually in practice, leading to `nextstrain build
+  --aws-batch` throwing errors at runtime.
+
+* update: Explicitly handle errors from the Docker Hub registry.
+
+## Documentation
+
+* AWS Batch: Documented the unintuitive interaction of compute envs and launch
+  template versions and updated the disk space section for Amazon Linux 2
+  compute environments.
+
+* Updated various links that had moved.
+
+## Development
+
+* Ditched Pipenv for a plain venv setup.
+
+* Dependencies for Read The Docs and CI docs builds are no longer pinned but
+  will use the latest versions that otherwise meet standard dep declarations.
+
+* Added pyright tests for additional type checking.  This covers some kinds of
+  checks that mypy does not, and in particular lets us use protocol types to
+  check the Runner and Remote module interfaces.
+
+* Enabled more mypy checks and resolve findings.
+
+* Tests now treat warnings as errors so we can address them, and CI is now
+  warnings clean.
+
+  Python warnings are important to see earlier than later so we can avoid
+  spewing warnings to users.
+
+  Sphinx warnings are often authoring mistakes that need to be addressed.
+
+
 # 3.0.3 (23 February 2021)
 
 ## Documentation
