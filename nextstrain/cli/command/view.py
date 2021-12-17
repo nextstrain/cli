@@ -14,7 +14,6 @@ or
 """
 
 import re
-import netifaces as net
 from pathlib import Path
 from typing import Iterable
 from .. import runner
@@ -117,18 +116,26 @@ def run(opts):
         "--publish=%s:%d:%d" % (host, port, port),
     ]
 
-    # Find the best remote address if we're allowing remote access.  While we
-    # listen on all interfaces (0.0.0.0), only the local host can connect to
-    # that successfully.  Remote hosts need a real IP on the network, which we
-    # do our best to discover.  If something goes wrong, ignore it and leave
-    # the host IP as-is (0.0.0.0); it'll at least work for local access.
-    if opts.allow_remote_access:
-        try:
-            remote_address = best_remote_address()
-        except:
-            pass
-        else:
-            host = remote_address
+    # XXX TODO: Find the best remote address if we're allowing remote access.
+    # While we listen on all interfaces (0.0.0.0), only the local host can
+    # connect to that successfully.  Remote hosts need a real IP on the
+    # network, which we do our best to discover.  If something goes wrong,
+    # ignore it and leave the host IP as-is (0.0.0.0); it'll at least work for
+    # local access.
+    #
+    # We used to use (in versions <= 3.0.4) the netifaces package to determine
+    # this, but netifaces became unmaintained and thus stopped having wheels
+    # built for newer Python versions.  This caused installation issues on a
+    # myriad of platforms since without wheels a full C toolchain is needed to
+    # install it.  For more context, see discussion starting with this comment:
+    #
+    #   <https://github.com/nextstrain/cli/issues/31#issuecomment-966609539>
+    #
+    # This comment exists as a reminder that spitting out http://0.0.0.0:4000
+    # is not very helpful and we should do better in the future if we
+    # reasonably can (e.g. use mDNS/Zeroconf to make nextstrain.your-computer.local
+    # Just Work, or even check if netifaces gets revived).
+    #   -trs, 17 Dec 2021
 
     # Show a helpful message about where to connect
     print_url(host, port, datasets)
@@ -194,30 +201,3 @@ def print_url(host, port, datasets):
 
     print(horizontal_rule)
     print()
-
-
-def best_remote_address():
-    """
-    Returns the "best" non-localback IP address for the local host, if
-    possible.  The "best" IP address is that bound to either the default
-    gateway interface, if any, else the arbitrary first interface found.
-
-    IPv4 is preferred, but IPv6 will be used if no IPv4 interfaces/addresses
-    are available.
-    """
-    default_gateway   = net.gateways().get("default", {})
-    default_interface = default_gateway.get(net.AF_INET,  (None, None))[1] \
-                     or default_gateway.get(net.AF_INET6, (None, None))[1] \
-                     or net.interfaces()[0]
-
-    interface_addresses = net.ifaddresses(default_interface).get(net.AF_INET)  \
-                       or net.ifaddresses(default_interface).get(net.AF_INET6) \
-                       or []
-
-    addresses = [
-        address["addr"]
-            for address in interface_addresses
-             if address.get("addr")
-    ]
-
-    return addresses[0] if addresses else None
