@@ -80,7 +80,6 @@ setup(
 
     install_requires = [
         "fasteners",
-        "netifaces >=0.10.6",
         "pyjwt[crypto] >=2.0.0",
         "requests",
         "typing_extensions >=3.6.4",
