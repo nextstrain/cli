@@ -1,6 +1,28 @@
 # __NEXT__
 
 
+# 3.0.5 (20 December 2021)
+
+## Features
+
+* `view` now supports a `--host` option to specify the IP address or hostname
+  on which to listen, complementing the existing `--port` option.
+  `--allow-remote-access` is now an alias for `--host=0.0.0.0`.
+
+## Paper cut remedies
+
+* [netifaces](https://pypi.org/project/netifaces/) is no longer a dependency
+  since its lack of wheels for recent Python versions means it often requires a
+  C toolchain for installation.  This impacted multiple platforms, including
+  Windows and Linux.  For more context, see discussion starting with [this
+  issue comment](https://github.com/nextstrain/cli/issues/31#issuecomment-966609539).
+
+  Unfortunately the package no longer has a maintainer, so we can't count on
+  any timeline for updates and do not have the resources to maintain it
+  ourselves.  Dropping the dep makes the UX of `nextstrain view
+  --allow-remote-access` a bit poorer, but makes installation a lot easier.
+
+
 # 3.0.4 (3 November 2021)
 
 ## Features
