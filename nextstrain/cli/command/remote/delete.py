@@ -30,11 +30,11 @@ def register_parser(subparser):
 def run(opts):
     remote, url = parse_remote_path(opts.remote_path)
 
-    deleted = remote.delete(url, recursively = opts.recursively)
+    deletions = remote.delete(url, recursively = opts.recursively)
     deleted_count = 0
 
-    for file in deleted:
-        print("deleted: %s" % file)
+    for file in deletions:
+        print("Deleting", file)
         deleted_count += 1
 
     if deleted_count:
