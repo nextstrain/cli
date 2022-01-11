@@ -28,7 +28,7 @@ mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, Path]]:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the bucket and optional prefix specified by *url*.
     """
@@ -41,7 +41,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
 
     for local_file, remote_file in files:
-        yield local_file, Path(remote_file)
+        yield local_file, remote_file
 
         # Upload compressed data
         with GzipCompressingReader(local_file.open("rb")) as gzdata:
@@ -54,7 +54,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     purge_cloudfront(bucket, [remote for local, remote in files])
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[Path, Path]]:
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
@@ -87,7 +87,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     files = list(zip(objects, [local_file_path(obj) for obj in objects]))
 
     for remote_object, local_file in files:
-        yield Path(remote_object.key), local_file
+        yield remote_object.key, local_file
 
         encoding = remote_object.content_encoding
 
@@ -95,16 +95,16 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             remote_object.download_fileobj(file)
 
 
-def ls(url: urllib.parse.ParseResult) -> Iterable[Path]:
+def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     """
     List the files deployed at the given remote *url*.
     """
     bucket, prefix = split_url(url)
 
-    return [ Path(obj.key) for obj in bucket.objects.filter(Prefix = prefix) ]
+    return [ obj.key for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[Path]:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[str]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
     """
@@ -128,7 +128,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
         objects = [ object ]
 
     for object in objects:
-        yield Path(object.key)
+        yield object.key
         object.delete()
 
     if objects:
