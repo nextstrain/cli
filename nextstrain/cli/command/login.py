@@ -20,7 +20,7 @@ use in the environment variables NEXTSTRAIN_USERNAME and NEXTSTRAIN_PASSWORD.
 from functools import partial
 from getpass import getpass
 from os import environ
-from ..authn import current_user, login
+from ..authn import current_user, login, renew
 from ..errors import UserError
 
 
@@ -46,10 +46,23 @@ def register_parser(subparser):
                   " Useful for scripting.",
         action  = 'store_true')
 
+    parser.add_argument(
+        "--renew",
+        help    = "Renew existing tokens, if possible. "
+                  " Useful to refresh group membership information (for example) sooner"
+                  " than the tokens would normally be renewed.",
+        action  = "store_true")
+
     return parser
 
 
 def run(opts):
+    if opts.renew:
+        user = renew()
+        if not user:
+            raise UserError("Renewal failed or not possible.  Please login again.")
+        return
+
     user = current_user()
 
     if not user:

@@ -62,6 +62,34 @@ def login(username: str, password: str) -> User:
     return User(session.id_claims)
 
 
+def renew():
+    """
+    Renews existing tokens, if possible.
+
+    Returns a :class:`User` object with renewed information about the logged in
+    user when successful.
+
+    Raises a :class:`UserError` if authentication fails.
+    """
+    session = CognitoSession()
+    tokens = _load_tokens()
+    refresh_token = tokens.get("refresh_token")
+
+    if not refresh_token:
+        return None
+
+    try:
+        session.renew_tokens(refresh_token = refresh_token)
+
+    except (cognito.TokenError, cognito.NotAuthorizedError):
+        return None
+
+    _save_tokens(session)
+    print(f"Renewed login credentials in {config.SECRETS}.", file = stderr)
+
+    return User(session)
+
+
 def logout():
     """
     Remove locally-saved credentials.
@@ -97,7 +125,7 @@ def current_user() -> Optional[User]:
         except cognito.ExpiredTokenError:
             session.renew_tokens(refresh_token = tokens.get("refresh_token"))
             _save_tokens(session)
-            print("Renewed login credentials.", file = stderr)
+            print(f"Renewed login credentials in {config.SECRETS}.", file = stderr)
 
     except (cognito.TokenError, cognito.NotAuthorizedError):
         return None
