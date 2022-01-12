@@ -16,9 +16,8 @@ as `Docker <https://docker.com>`__, `Conda
 
 .. note::
     If you're unfamiliar with Nextstrain builds, you may want to follow our
-    `quickstart guide
-    <https://nextstrain.org/docs/getting-started/quickstart>`__ first and then
-    come back here.
+    :doc:`docs.nextstrain.org:tutorials/running-a-workflow` tutorial first and
+    then come back here.
 
 .. toctree::
     :caption: Table of Contents
