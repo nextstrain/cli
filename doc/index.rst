@@ -3,7 +3,7 @@ Nextstrain CLI
 ==============
 
 .. warning::
-   This is the Nextstrain CLI's reference documentation. For the general Nextstrain docs, go here: :doc:`docs.nextstrain.org:index`
+   This is the Nextstrain CLI's reference documentation. For the general Nextstrain docs, go here: :doc:`docs:index`
 
 This is the documentation for the `Nextstrain <https://nextstrain.org>`__
 command-line interface (CLI)---a program called ``nextstrain``---which aims to
@@ -16,8 +16,8 @@ as `Docker <https://docker.com>`__, `Conda
 
 .. note::
     If you're unfamiliar with Nextstrain builds, you may want to follow our
-    :doc:`docs.nextstrain.org:tutorials/running-a-workflow` tutorial first and
-    then come back here.
+    :doc:`docs:tutorials/running-a-workflow` tutorial first and then come back
+    here.
 
 .. toctree::
     :caption: Table of Contents
