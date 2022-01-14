@@ -19,14 +19,38 @@ across computing environments such as `Docker <https://docker.com>`__, `Conda
     :doc:`docs:tutorials/running-a-workflow` tutorial first and then come back
     here.
 
+
+Table of Contents
+=================
+
 .. toctree::
-    :caption: Table of Contents
-    :titlesonly:
+    :maxdepth: 3
 
     Introduction <self>
     installation
-    commands/index
-    aws-batch
+    AWS Batch <aws-batch>
+
+.. toctree::
+    :caption: Commands
+    :name: commands
+    :titlesonly:
+    :maxdepth: 3
+
+    commands/build
+    commands/view
+    commands/deploy
+    commands/remote/index
+    commands/remote/list
+    commands/remote/download
+    commands/remote/upload
+    commands/remote/delete
+    commands/shell
+    commands/update
+    commands/check-setup
+    commands/login
+    commands/logout
+    commands/whoami
+    commands/version
 
 
 Big Picture

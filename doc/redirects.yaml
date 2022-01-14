@@ -7,3 +7,11 @@
 - type: page
   from_url: /development/index.html
   to_url: https://docs.nextstrain.org/en/latest/guides/contribute/cli-develop.html
+
+- type: page
+  from_url: /commands/
+  to_url: /#commands
+
+- type: page
+  from_url: /commands/index.html
+  to_url: /index.html#commands

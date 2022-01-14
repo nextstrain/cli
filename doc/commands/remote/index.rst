@@ -8,12 +8,3 @@ nextstrain remote
     :prog: nextstrain
     :path: remote
     :nosubcommands:
-
-.. toctree::
-    :caption: Subcommands
-    :titlesonly:
-
-    upload
-    download
-    list
-    delete
