@@ -1,0 +1,9 @@
+# Authoritative list of redirects we have configured in RTD for this project.
+---
+- type: page
+  from_url: /development/
+  to_url: https://docs.nextstrain.org/en/latest/guides/contribute/cli-develop.html
+
+- type: page
+  from_url: /development/index.html
+  to_url: https://docs.nextstrain.org/en/latest/guides/contribute/cli-develop.html
