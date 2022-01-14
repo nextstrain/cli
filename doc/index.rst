@@ -2,15 +2,15 @@
 Nextstrain CLI
 ==============
 
-.. warning::
-   This is the Nextstrain CLI's reference documentation. For the general Nextstrain docs, go here: :doc:`docs:index`
+.. hint::
+   This is reference documentation for the Nextstrain CLI (command-line
+   interface).  If you're just getting started with Nextstrain, please see
+   :doc:`our general documentation <docs:index>` instead.
 
-This is the documentation for the `Nextstrain <https://nextstrain.org>`__
-command-line interface (CLI)---a program called ``nextstrain``---which aims to
-provide a consistent way to run and visualize pathogen builds and access
-Nextstrain components like :doc:`Augur <augur:index>` and :doc:`Auspice
-<auspice:index>` across computing environments such
-as `Docker <https://docker.com>`__, `Conda
+The Nextstrain CLI is a program called ``nextstrain``.  It aims to provide a
+consistent way to run and visualize pathogen builds and access Nextstrain
+components like :doc:`Augur <augur:index>` and :doc:`Auspice <auspice:index>`
+across computing environments such as `Docker <https://docker.com>`__, `Conda
 <https://docs.conda.io/en/latest/miniconda.html>`__, and `AWS Batch
 <https://aws.amazon.com/batch/>`__.
 
