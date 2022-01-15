@@ -1,18 +1,32 @@
 """
-Downloads pathogen JSON data files or Markdown narratives from a remote
-source.
+Download datasets and narratives from a remote source.
  
-Source URLs specify the file(s) to download:
+A remote source URL specifies what to download, e.g. to download one of the
+seasonal influenza datasets::
 
-    nextstrain remote download s3://my-bucket/some/prefix/data.json
+    nextstrain remote download nextstrain.org/flu/seasonal/h3n2/ha/2y
 
-will download "data.json" into the current directory.
+which creates three files in the current directory::
 
-Recursive downloads are supported for downloading multiple files:
+    2y.json
+    2y_root-sequence.json
+    2y_tip-frequencies.json
 
-    nextstrain remote download --recursive s3://my-bucket/some/prefix/
+The --recursively option allows for downloading multiple datasets or narratives
+at once, e.g. to download all the datasets under "ncov/open/…" into an existing
+directory named "sars-cov-2"::
 
-will download all files under "some/prefix/" into the current directory.
+    nextstrain remote download --recursively nextstrain.org/ncov/open sars-cov-2/
+
+which creates files for each dataset::
+
+    sars-cov-2/global.json
+    sars-cov-2/global_root-sequence.json
+    sars-cov-2/global_tip-frequencies.json
+    sars-cov-2/africa.json
+    sars-cov-2/africa_root-sequence.json
+    sars-cov-2/africa_tip-frequencies.json
+    …
 
 See `nextstrain remote --help` for more information on remote sources.
 """
@@ -24,25 +38,32 @@ from ...errors import UserError
 
 
 def register_parser(subparser):
+    """
+    %(prog)s <remote-url> [<local-path>]
+    %(prog)s --recursively <remote-url> [<local-directory>]
+    %(prog)s --help
+    """
     parser = subparser.add_parser("download", help = "Download dataset and narrative files")
 
     parser.add_argument(
         "remote_path",
-        help    = "Remote file path as a URL",
-        metavar = "<s3://bucket-name>")
+        help    = "Remote source URL for a dataset or narrative.  "
+                  "A path prefix to scope/filter by if using --recursively.",
+        metavar = "<remote-url>")
 
     parser.add_argument(
         "local_path",
         help    = "Local directory to save files in.  "
-                  "May be a local filename to use if the remote path points to a single file.",
-        metavar = "<path>",
+                  "May be a local filename to use if not using --recursively.  "
+                  'Defaults to current directory ("%(default)s").',
+        metavar = "<local-path>",
         type    = Path,
         nargs   = "?",
         default = ".")
 
     parser.add_argument(
         "--recursively", "-r",
-        help   = "Download all files with the given remote path prefix",
+        help   = "Download everything under the given remote URL path prefix",
         action = "store_true")
 
     return parser

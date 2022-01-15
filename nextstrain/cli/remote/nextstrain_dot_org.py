@@ -1,16 +1,57 @@
 """
-Nextstrain.org remote.
+.. versionadded:: UNRELEASED
 
-Backend module for the remote family of commands.
+The ``nextstrain remote`` family of commands can
+:doc:`list </commands/remote/list>`,
+:doc:`download </commands/remote/download>`,
+:doc:`upload </commands/remote/upload>`,
+and :doc:`delete </commands/remote/delete>`
+Nextstrain :term:`datasets <docs:dataset>` and :term:`narratives
+<docs:narrative>` hosted on `nextstrain.org <https://nextstrain.org>`_.  This
+functionality is primarily intended for users to manage the contents of their
+:doc:`Nextstrain Groups <docs:guides/share/nextstrain-groups>`, but any public
+dataset or narrative may be downloaded.
+
+
+Remote paths
+============
+
+Nextstrain.org_ datasets and narratives are recognized by the same URLs used to
+view them on the web, e.g. ``https://nextstrain.org/ncov/open/global``.
+
+As a convenience, the scheme (``https://``) may be omitted, e.g.
+``nextstrain.org/ncov/open/global``.
+
+As a further convenience for Nextstrain Groups URLs, the domain
+(``nextstrain.org``) may also be omitted, e.g.  ``groups/blab/sars-like-cov``
+works as well as ``https://nextstrain.org/groups/blab/sars-like-cov``.
+
+
+Authentication
+==============
+
+Read-only actions may be performed against public paths without authentication.
+To manage a private Nextstrain Group or upload/delete a public path, first
+login with nextstrain.org_ credentials using the :doc:`/commands/login`
+command.
+
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set this during normal operation.
 
 .. envvar:: NEXTSTRAIN_DOT_ORG
 
     Base URL to use instead of ``https://nextstrain.org`` when accessing
-    remote resources.  Useful primarily for development and testing, e.g.:
+    remote resources, e.g.:
 
     .. code-block:: shell
 
         NEXTSTRAIN_DOT_ORG=http://localhost:5000 nextstrain remote ls nextstrain.org
+
+    will interact with ``http://localhost:5000`` instead of nextstrain.org_.
 """
 
 import os

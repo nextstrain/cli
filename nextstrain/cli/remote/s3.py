@@ -1,7 +1,46 @@
 """
-S3 remote with automatic CloudFront invalidation.
+The ``nextstrain remote`` family of commands can
+:doc:`list </commands/remote/list>`,
+:doc:`download </commands/remote/download>`,
+:doc:`upload </commands/remote/upload>`,
+and :doc:`delete </commands/remote/delete>`
+Nextstrain :term:`datasets <docs:dataset>` and :term:`narratives
+<docs:narrative>` hosted on `Amazon S3 <https://aws.amazon.com/s3/>`_.
+This functionality is primarily intended for use by the Nextstrain team and
+operators of self-hosted :term:`docs:Auspice` instances.  It is also used to
+manage the contents of :doc:`Nextstrain Groups
+<docs:guides/share/nextstrain-groups>` that have not migrated to using the
+:doc:`/remotes/nextstrain.org`.
 
-Backend module for the remote family of commands.
+
+Remote paths
+============
+
+Remote paths start with ``s3://`` and specify the bucket name and
+individual file path/prefix, e.g. ``s3://my-bucket/some/prefix``.
+
+The bucket must already exist.
+
+
+Authentication
+==============
+
+All actions require AWS credentials.  The following environment variables
+can be used to provide credentials:
+
+.. envvar::
+    AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY
+
+    Keys for your AWS IAM user, provided by your AWS account administrator
+    (e.g. the Nextstrain team if you're a Nextstrain Groups user).
+
+Amazon's documentation includes more information on these `environment
+variables`_.  A persistent `credentials file`_ (:file:`~/.aws/credentials`) is
+also supported.
+
+.. _environment variables: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables
+.. _credentials file: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
 """
 
 import boto3
