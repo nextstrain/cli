@@ -415,8 +415,8 @@ class TextWrapper(textwrap.TextWrapper):
             cur_line.append(reversed_chunks.pop())
 
 
-MAXWIDTH = 70
-STDINDENT = 3
+MAXWIDTH = 80
+STDINDENT = 4
 
 
 def my_wrap(text: str, width: int = MAXWIDTH, **kwargs: Any) -> List[str]:
@@ -887,7 +887,7 @@ class TextTranslator(SphinxTranslator):
 
     def depart_list_item(self, node: Element) -> None:
         if self.list_counter[-1] == -1:
-            self.end_state(first='* ')
+            self.end_state(first='• ')
         elif self.list_counter[-1] == -2:
             pass
         else:
@@ -1155,10 +1155,10 @@ class TextTranslator(SphinxTranslator):
         self.add_text('*')
 
     def visit_literal(self, node: Element) -> None:
-        self.add_text('"')
+        self.add_text('`')
 
     def depart_literal(self, node: Element) -> None:
-        self.add_text('"')
+        self.add_text('`')
 
     def visit_subscript(self, node: Element) -> None:
         self.add_text('_')

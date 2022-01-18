@@ -1,5 +1,6 @@
 import pytest
 import argparse
+import os
 from itertools import chain
 from nextstrain.cli import make_parser
 from subprocess import run
@@ -27,3 +28,6 @@ def pytest_help(command):
 
     result = run(argv)
     assert result.returncode == 0, f"{argv} exited with error"
+
+    result = run(argv, env = {**os.environ, "NEXTSTRAIN_RST_STRICT": "yes"})
+    assert result.returncode == 0, f"{argv} exited with error with strict rST conversion"
