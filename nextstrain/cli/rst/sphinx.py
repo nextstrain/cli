@@ -4,9 +4,34 @@ rST to plain text implementation.
 Originally copied from the Sphinx project (version 4.3.2), which is licensed
 under a BSD 2-clause license.  See the LICENSE.sphinx file distributed
 alongside this project's own LICENSE file.
+
+Subsequent modifications have been made.  These and any future modifications
+are licensed under the MIT license of this project.
 """
-from docutils import nodes
-from docutils.nodes import Node
+import math
+import os
+import re
+import textwrap
+from itertools import chain, groupby
+from typing import (Any, Dict, Generator, Iterable, List, Optional, Set, Tuple, Union, cast)
+
+from docutils import nodes, writers
+from docutils.nodes import Element, Node, Text
+from docutils.utils import column_width
+
+
+# Stubs taking the place of a full Sphinx builder with config and what not.
+# The builder in Sphinx is a global context object ("god object") which isn't
+# very amenable to extraction.
+class TextConfig:
+    text_newlines = "native"
+    text_sectionchars = '*=-~"+`'
+    text_add_secnumbers = False   # Sphinx default is True, but we don't want 'em.
+    text_secnumber_suffix = ". "  # referenced but not used because above is False.
+
+class TextBuilder:
+    config = TextConfig()
+    secnumbers: Dict = {}
 
 
 # Originally from sphinx/util/docutils.py (version 4.3.2)
@@ -22,7 +47,7 @@ class SphinxTranslator(nodes.NodeVisitor):
               This class is strongly coupled with Sphinx.
     """
 
-    def __init__(self, document: nodes.document, builder: "Builder") -> None:
+    def __init__(self, document: nodes.document, builder) -> None:
         super().__init__(document)
         self.builder = builder
         self.config = builder.config
@@ -64,26 +89,6 @@ class SphinxTranslator(nodes.NodeVisitor):
 
 
 # Originally from sphinx/writers/text.py (version 4.3.2)
-import math
-import os
-import re
-import textwrap
-from itertools import chain, groupby
-from typing import (TYPE_CHECKING, Any, Dict, Generator, Iterable, List, Optional, Set, Tuple,
-                    Union, cast)
-
-from docutils import nodes, writers
-from docutils.nodes import Element, Node, Text
-from docutils.utils import column_width
-
-from sphinx import addnodes
-from sphinx.locale import _, admonitionlabels
-from sphinx.util.docutils import SphinxTranslator
-
-if TYPE_CHECKING:
-    from sphinx.builders.text import TextBuilder
-
-
 class Cell:
     """Represents a cell in a table.
     It can span multiple columns or multiple lines.
@@ -426,14 +431,14 @@ class TextWriter(writers.Writer):
 
     output: str = None
 
-    def __init__(self, builder: "TextBuilder") -> None:
+    def __init__(self, builder: "TextBuilder" = None) -> None:
         super().__init__()
-        self.builder = builder
+        self.builder = builder or TextBuilder()
 
     def translate(self) -> None:
-        visitor = self.builder.create_translator(self.document, self.builder)
+        visitor = TextTranslator(self.document, self.builder)
         self.document.walkabout(visitor)
-        self.output = cast(TextTranslator, visitor).body
+        self.output = visitor.body
 
 
 class TextTranslator(SphinxTranslator):
@@ -699,24 +704,6 @@ class TextTranslator(SphinxTranslator):
     def depart_caption(self, node: Element) -> None:
         pass
 
-    def visit_productionlist(self, node: Element) -> None:
-        self.new_state()
-        names = []
-        productionlist = cast(Iterable[addnodes.production], node)
-        for production in productionlist:
-            names.append(production['tokenname'])
-        maxlen = max(len(name) for name in names)
-        lastname = None
-        for production in productionlist:
-            if production['tokenname']:
-                self.add_text(production['tokenname'].ljust(maxlen) + ' ::=')
-                lastname = production['tokenname']
-            elif lastname is not None:
-                self.add_text('%s    ' % (' ' * len(lastname)))
-            self.add_text(production.astext() + self.nl)
-        self.end_state(wrap=False)
-        raise nodes.SkipNode
-
     def visit_footnote(self, node: Element) -> None:
         label = cast(nodes.label, node[0])
         self._footnote = label.astext().strip()
@@ -857,8 +844,8 @@ class TextTranslator(SphinxTranslator):
 
     def visit_image(self, node: Element) -> None:
         if 'alt' in node.attributes:
-            self.add_text(_('[image: %s]') % node['alt'])
-        self.add_text(_('[image]'))
+            self.add_text('[image: %s]' % node['alt'])
+        self.add_text('[image]')
         raise nodes.SkipNode
 
     def visit_transition(self, node: Element) -> None:
@@ -986,6 +973,18 @@ class TextTranslator(SphinxTranslator):
         self.new_state(2)
 
     def _depart_admonition(self, node: Element) -> None:
+        admonitionlabels = {
+            'attention': 'Attention',
+            'caution':   'Caution',
+            'danger':    'Danger',
+            'error':     'Error',
+            'hint':      'Hint',
+            'important': 'Important',
+            'note':      'Note',
+            'seealso':   'See also',
+            'tip':       'Tip',
+            'warning':   'Warning',
+        }
         label = admonitionlabels[node.tagname]
         indent = sum(self.stateindent) + len(label)
         if (len(self.states[-1]) == 1 and
@@ -1067,13 +1066,11 @@ class TextTranslator(SphinxTranslator):
         pass
 
     def visit_paragraph(self, node: Element) -> None:
-        if not isinstance(node.parent, nodes.Admonition) or \
-           isinstance(node.parent, addnodes.seealso):
+        if not isinstance(node.parent, nodes.Admonition):
             self.new_state(0)
 
     def depart_paragraph(self, node: Element) -> None:
-        if not isinstance(node.parent, nodes.Admonition) or \
-           isinstance(node.parent, addnodes.seealso):
+        if not isinstance(node.parent, nodes.Admonition):
             self.end_state()
 
     def visit_target(self, node: Element) -> None:

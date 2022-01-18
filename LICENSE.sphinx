@@ -1,5 +1,7 @@
 This license applies to the original copy of code from the Sphinx project
 (version 4.3.2) into this project as "nextstrain/cli/rst/sphinx.py".
+Subsequent modifications to this project's copy are licensed under the MIT
+license of this project.
 
 Copyright (c) 2007-2022 by the Sphinx team (see AUTHORS file).
 All rights reserved.

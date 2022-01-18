@@ -1,6 +1,9 @@
 {
   "pythonVersion": "3.6",
   "include": ["nextstrain"],
+  "ignore": [
+    "nextstrain/cli/rst/sphinx.py"
+  ],
   "reportMissingImports": false,
   "reportMissingModuleSource": true,
   "reportUnusedFunction": true,
