@@ -1,16 +1,16 @@
 """
 Visualizes a completed pathogen build in Auspice, the Nextstrain visualization app.
 
-The data directory should contain sets of Auspice JSON¹ files like
+The data directory should contain sets of dataset_ files like::
 
     <name>.json
 
-or
+or::
 
     <name>_tree.json
     <name>_meta.json
 
-¹ <https://docs.nextstrain.org/projects/auspice/en/latest/introduction/how-to-run.html#input-file-formats>
+.. _dataset: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
 """
 
 import re
