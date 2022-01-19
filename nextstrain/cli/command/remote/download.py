@@ -17,9 +17,10 @@ will download all files under "some/prefix/" into the current directory.
 See `nextstrain remote --help` for more information on remote sources.
 """
 
+import shlex
 from pathlib import Path
 from ...remote import parse_remote_path
-from ...util import warn
+from ...errors import UserError
 
 
 def register_parser(subparser):
@@ -51,8 +52,16 @@ def run(opts):
     remote, url = parse_remote_path(opts.remote_path)
 
     if opts.recursively and not opts.local_path.is_dir():
-        warn("Local path must be a directory when using --recursively; «%s» is not" % opts.local_path)
-        return 1
+        if opts.local_path.exists():
+            raise UserError(f"Local path must be a directory when using --recursively, but «{opts.local_path}» is not.")
+        else:
+            raise UserError(f"""
+                Local path must be a directory when using --recursively, but «{opts.local_path}» doesn't exist.
+
+                If the name is correct, you must create the directory before downloading, e.g.:
+
+                    mkdir -p {shlex.quote(str(opts.local_path))}
+                """)
 
     downloads = remote.download(url, opts.local_path, recursively = opts.recursively)
 
