@@ -40,7 +40,10 @@ ROLES_REGISTERED = False
 
 PREAMBLE = """
 .. default-role:: literal
+"""
 
+POSTAMBLE = """
+.. target-notes::
 """
 
 
@@ -82,7 +85,7 @@ def rst_to_text(source: str) -> str:
 
     try:
         return convert_rst(
-            PREAMBLE + source,
+            "\n".join([PREAMBLE, source, POSTAMBLE]),
             writer = TextWriter(),
             settings_overrides = settings,
             enable_exit_status = STRICT)

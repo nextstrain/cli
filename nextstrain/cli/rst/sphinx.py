@@ -1070,8 +1070,14 @@ class TextTranslator(SphinxTranslator):
             self.new_state(0)
 
     def depart_paragraph(self, node: Element) -> None:
-        if not isinstance(node.parent, nodes.Admonition):
-            self.end_state()
+        within_admonition = isinstance(node.parent, nodes.Admonition)
+
+        # Avoid wrapping paragraphs which are just URLs, such as those within
+        # footnotes.
+        looks_like_url = bool(re.match(r'(?i)^https?://[^ ]+?$', node.astext().strip()))
+
+        if not within_admonition:
+            self.end_state(wrap = not looks_like_url)
 
     def visit_target(self, node: Element) -> None:
         raise nodes.SkipNode
@@ -1092,12 +1098,11 @@ class TextTranslator(SphinxTranslator):
         pass
 
     def visit_reference(self, node: Element) -> None:
-        # Handle bare references:
+        # Handle bare references, which are not turned into footnotes by the
+        # target-notes directive:
         #
         #   https://example.com
         #   `<https://example.com>`__
-        #
-        # Other forms are handled in depart_reference() below.
         #
         refuri = node.get("refuri")
         if refuri == node.astext():
@@ -1113,20 +1118,7 @@ class TextTranslator(SphinxTranslator):
                 self.add_text('.'.join(map(str, numbers)) + self.secnumber_suffix)
 
     def depart_reference(self, node: Element) -> None:
-        # Handle references of these forms:
-        #
-        #   `foo bar <https://example.com>`__
-        #   `baz bat`_
-        #   bam_
-        #
-        #   .. _baz bat: https://example.com
-        #   .. _bam: https://example.com
-        #
-        # Other forms are handled in visit_reference() above.
-        #
-        refuri = node.get("refuri")
-        if refuri is not None:
-            self.add_text(f" <{refuri}>")
+        pass
 
     def visit_number_reference(self, node: Element) -> None:
         text = nodes.Text(node.get('title', '#'))
