@@ -5,17 +5,27 @@ reStructuredText conversion.
 
     If set to any value, then rST parsing is put into strict mode and any
     warnings and errors are raised as exceptions.
+
+.. envvar:: NEXTSTRAIN_RST_DEBUG
+
+    If set to any value, then rST parsing produces the stringified doctree
+    instead of formatted plain text.  Being able to see the doctree is useful
+    for debugging and making changes to
+    :cls:`~nextstrain.cli.rst.sphinx.TextWriter`.
 """
 import docutils.nodes
 import os
 import re
-from docutils.core import publish_string as convert_rst     # type: ignore
+from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree   # type: ignore
 from docutils.parsers.rst.roles import register_local_role
 from docutils.utils import unescape                         # type: ignore
 from urllib.parse import urljoin
 from ..__version__ import __version__ as cli_version
 from .sphinx import TextWriter
 
+
+# For dev
+DEBUG = os.environ.get("NEXTSTRAIN_RST_DEBUG", "") != ""
 
 # For CI testing
 STRICT = os.environ.get("NEXTSTRAIN_RST_STRICT", "") != ""
@@ -82,6 +92,21 @@ def rst_to_text(source: str) -> str:
         else:
             # Welp, we tried.  Return the rST input as a last resort.
             return source
+
+
+def convert_rst(source: str, *, writer, settings_overrides: dict, enable_exit_status: bool) -> str:
+    if DEBUG:
+        return str(
+            convert_rst_to_doctree(
+                source,
+                settings_overrides = settings_overrides,
+                enable_exit_status = enable_exit_status))
+
+    return convert_rst_to_string(
+        source,
+        writer = writer,
+        settings_overrides = settings_overrides,
+        enable_exit_status = enable_exit_status)
 
 
 # See docutils.parsers.rst.roles for this API and examples.
