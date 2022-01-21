@@ -14,6 +14,8 @@ reStructuredText conversion.
     :cls:`~nextstrain.cli.rst.sphinx.TextWriter`.
 """
 import docutils.nodes
+import docutils.readers.standalone
+import docutils.transforms
 import os
 import re
 from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree   # type: ignore
@@ -86,6 +88,7 @@ def rst_to_text(source: str) -> str:
     try:
         return convert_rst(
             "\n".join([PREAMBLE, source, POSTAMBLE]),
+            reader = Reader(),
             writer = TextWriter(),
             settings_overrides = settings,
             enable_exit_status = STRICT)
@@ -97,16 +100,18 @@ def rst_to_text(source: str) -> str:
             return source
 
 
-def convert_rst(source: str, *, writer, settings_overrides: dict, enable_exit_status: bool) -> str:
+def convert_rst(source: str, *, reader, writer, settings_overrides: dict, enable_exit_status: bool) -> str:
     if DEBUG:
         return str(
             convert_rst_to_doctree(
                 source,
+                reader = reader,
                 settings_overrides = settings_overrides,
                 enable_exit_status = enable_exit_status))
 
     return convert_rst_to_string(
         source,
+        reader = reader,
         writer = writer,
         settings_overrides = settings_overrides,
         enable_exit_status = enable_exit_status)
@@ -177,3 +182,67 @@ def doc_url(target: str) -> str:
         return target
 
     return project_url.rstrip("/") + "/" + path.lstrip("/") + suffix
+
+
+class Reader(docutils.readers.standalone.Reader):
+    def get_transforms(self):
+        return [*super().get_transforms(), MarkEmbeddedHyperlinkReferencesAnonymous]
+
+
+class MarkEmbeddedHyperlinkReferencesAnonymous(docutils.transforms.Transform):
+    """
+    Mark all hyperlink references with embedded targets as ``anonymous``.
+
+    Hyperlink references with embedded targets [1]_ are syntactically always
+    anonymous references [2]_, but the standard parser only marks them as
+    anonymous if they refer to a separate anonymous target (i.e. don't embed
+    the target using angle brackets) [3]_.  Presumably this is because such
+    anonymous reference and anonymous target pairs need special processing that
+    anonymous references with embedded targets don't [4]_.
+
+    For our use, we want these embedded-target references to be picked up by
+    the :cls:`docutils.transforms.references.TargetNotes` transform, which
+    requires them to be marked anonymous.
+
+    .. [1] https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#embedded-uris-and-aliases
+    .. [2] https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#anonymous-hyperlinks
+    .. [3] https://sourceforge.net/p/docutils/code/HEAD/tree/trunk/docutils/docutils/parsers/rst/states.py#l859 (see phrase_ref() method)
+    .. [4] See :cls:`docutils.transforms.references.AnonymousHyperlinks`.
+
+    >>> rst_to_text('`foo <https://example.com/foo>`__')
+    'foo [1]\\n\\n[1] https://example.com/foo\\n'
+
+    >>> rst_to_text('''
+    ... `bar <https://example.com/bar>`_
+    ... `baz <bar_>`_
+    ... ''')
+    'bar [1] baz [1]\\n\\n[1] https://example.com/bar\\n'
+
+    >>> rst_to_text('just a link, https://example.com/standalone, sitting right there')
+    'just a link, https://example.com/standalone, sitting right there\\n'
+    """
+
+    # After other hyperlink reference processing, but before TargetNotes runs
+    # and before other target processing removes "refname" attributes.  See:
+    # https://docutils.sourceforge.io/docs/ref/transforms.html#transforms-listed-in-priority-order
+    default_priority = 480
+
+    def apply(self):
+        for ref in self.document.traverse(docutils.nodes.reference):
+            # Not embedded if it's got a refname, which refers to a target
+            # name.
+            if ref.get("refname"):
+                continue
+
+            # We only care about external (refuri) not internal (refid) links.
+            if not ref.get("refuri"):
+                continue
+
+            # Skip standalone hyperlinks where the link text is the URL itself
+            # since duplicating them in a footnote doesn't make much sense.
+            if ref.get("refuri") == ref.astext().strip():
+                continue
+
+            # Some refs by this point will already be marked anonymous, but
+            # there's no harm in marking "again".
+            ref["anonymous"] = 1

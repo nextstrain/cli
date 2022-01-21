@@ -1098,20 +1098,6 @@ class TextTranslator(SphinxTranslator):
         pass
 
     def visit_reference(self, node: Element) -> None:
-        # Handle bare references, which are not turned into footnotes by the
-        # target-notes directive:
-        #
-        #   https://example.com
-        #   `<https://example.com>`__
-        #
-        refuri = node.get("refuri")
-        if refuri == node.astext():
-            self.add_text(f"<{refuri}>")
-
-            # Skip children.  Just a Text node which is equal to the URL we
-            # already output.
-            raise nodes.SkipNode
-
         if self.add_secnumbers:
             numbers = node.get("secnumber")
             if numbers is not None:
