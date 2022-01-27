@@ -66,6 +66,6 @@ html_static_path = ['_static']
 intersphinx_mapping = {
     'augur': ('https://docs.nextstrain.org/projects/augur/en/stable', None),
     'auspice': ('https://docs.nextstrain.org/projects/auspice/en/stable', None),
-    'docs.nextstrain.org': ('https://docs.nextstrain.org/en/latest/', None)
+    'docs': ('https://docs.nextstrain.org/en/latest/', None),
 }
 

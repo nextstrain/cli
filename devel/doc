@@ -1,11 +1,12 @@
 #!/bin/bash
 base="$(realpath "$(dirname "$0")/..")"
 doc="$base/doc"
+lib="$base/nextstrain/cli"
 
 main() {
     pushd "$doc"
         rebuild
-        while inotifywait -e attrib -r .; do
+        while inotifywait -e attrib -r . "$lib"; do
             rebuild
         done
     popd

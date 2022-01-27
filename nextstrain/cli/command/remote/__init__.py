@@ -14,12 +14,12 @@ Amazon S3
         * AWS_ACCESS_KEY_ID
         * AWS_SECRET_ACCESS_KEY
 
-    Amazon's documentation includes more information:
-    <https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables>.
+    Amazon's documentation includes more information on these `environment
+    variables`_.  A persistent `credentials file`_, ~/.aws/credentials, is also
+    supported.
 
-    A persistent credentials file, ~/.aws/credentials, is also supported:
-    <https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file>.
-
+.. _environment variables: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables
+.. _credentials file: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
 """
 
 __shortdoc__ = (__doc__ or "").strip().splitlines()[0]

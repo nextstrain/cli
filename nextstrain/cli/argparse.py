@@ -1,10 +1,11 @@
 """
 Custom helpers for extending the behaviour of argparse standard library.
 """
-
-from argparse import Action, ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter, SUPPRESS
+from argparse import Action, ArgumentDefaultsHelpFormatter, SUPPRESS
 from itertools import takewhile
+from textwrap import indent
 from types import SimpleNamespace
+from .rst import rst_to_text
 from .util import format_usage
 
 
@@ -19,8 +20,10 @@ from .util import format_usage
 SKIP_AUTO_DEFAULT_IN_HELP = "%(default).0s"
 
 
-class HelpFormatter(ArgumentDefaultsHelpFormatter, RawDescriptionHelpFormatter):
-    pass
+class HelpFormatter(ArgumentDefaultsHelpFormatter):
+    # Based on argparse.RawDescriptionHelpFormatter's implementation
+    def _fill_text(self, text, width, prefix):
+        return indent(rst_to_text(text), prefix)
 
 
 def register_default_command(parser):

@@ -79,6 +79,7 @@ setup(
     python_requires = '>=3.6',
 
     install_requires = [
+        "docutils",
         "fasteners",
         "pyjwt[crypto] >=2.0.0",
         "requests",
@@ -123,12 +124,12 @@ setup(
             "nextstrain-sphinx-theme",
             "pytest",
             "pytest-flake8",
-            "pytest-mypy",
             "recommonmark",
             "sphinx>=3",
             "sphinx-argparse ~=0.3",
             "sphinx-markdown-tables",
             "sphinx_rtd_theme",
+            "types-docutils",
             "types-setuptools",
             "types-requests",
         ],
