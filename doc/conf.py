@@ -19,7 +19,7 @@
 
 from datetime import date
 
-project = 'CLI'
+project = 'Nextstrain CLI'
 copyright = '2018–%d, Trevor Bedford and Richard Neher' % (date.today().year)
 author = 'Thomas Sibley and the rest of the Nextstrain team'
 
