@@ -1,6 +1,18 @@
 # __NEXT__
 
 
+# 3.0.6 (26 January 2022)
+
+## Documentation
+
+* The organization of the documentation sidebar menu is now improved to show
+  more of the pages instead of burying them in subpage table of contents.
+
+* The formatting of `--help` output is now slightly improved with regard to
+  links, but more importantly, richer formatting of content shared between
+  `--help` and the online documentation is now possible.
+
+
 # 3.0.5 (20 December 2021)
 
 ## Features
