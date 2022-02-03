@@ -46,7 +46,7 @@ def register_arguments(parser) -> None:
     # AWS Batch development options
     development = parser.add_argument_group(
         "development options for --aws-batch",
-        "See <https://github.com/nextstrain/cli/tree/master/doc/aws-batch.md>\nfor more information.")
+        "See <https://docs.nextstrain.org/projects/cli/page/aws-batch>\nfor more information.")
 
     development.add_argument(
         "--aws-batch-job",
