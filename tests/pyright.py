@@ -8,7 +8,7 @@ topdir = Path(__file__).resolve().parent.parent
 if which("pyright"):
     pyright = ["pyright"]
 elif which("npx"):
-    pyright = ["npx", "pyright"]
+    pyright = ["npx", "pyright@<1.1.217 || >1.1.217"]
 else:
     pyright = None
 
