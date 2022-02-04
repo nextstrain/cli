@@ -18,8 +18,11 @@
 # -- Project information -----------------------------------------------------
 
 from datetime import date
+from nextstrain.cli import __version__ as cli_version
 
 project = 'Nextstrain CLI'
+version = cli_version
+release = version
 copyright = '2018–%d, Trevor Bedford and Richard Neher' % (date.today().year)
 author = 'Thomas Sibley and the rest of the Nextstrain team'
 
