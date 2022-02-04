@@ -87,6 +87,10 @@ class JobState:
         return self.status in self.TERMINAL_STATUS
 
     @property
+    def is_failed(self) -> bool:
+        return self.status == "FAILED"
+
+    @property
     def elapsed_time(self) -> float:
         # Timestamps from the job state are in milliseconds
         created = self.state.get("createdAt", float("NaN"))  / 1000

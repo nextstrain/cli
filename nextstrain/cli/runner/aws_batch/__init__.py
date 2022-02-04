@@ -267,8 +267,13 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         s3.download_workdir(remote_workdir, local_workdir, patterns)
 
 
-    # Exit with the job's exit code, or assume success
-    return job.exit_code or 0
+    # Exit with the job's exit code if available or 1 if another failure,
+    # otherwise success.
+    return (
+        job.exit_code if job.exit_code is not None else
+                    1 if job.is_failed             else
+                    0
+    )
 
 
 def detach(job: jobs.JobState, local_workdir: Path) -> int:
