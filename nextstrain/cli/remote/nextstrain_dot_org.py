@@ -577,6 +577,10 @@ def raise_for_status(response: requests.Response) -> None:
                     Permission denied.
 
                     Are you logged in as the correct user?  Current user: {user.username}.
+
+                    If your permissions were recently changed (e.g. new group
+                    membership), it might help to run `nextstrain login --renew`
+                    and then retry your command.
                     """) from err
             else:
                 raise UserError(f"""
