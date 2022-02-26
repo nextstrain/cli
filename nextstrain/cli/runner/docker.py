@@ -140,7 +140,7 @@ def test_setup() -> RunnerTestResults:
         if image_exists():
             report_memory = """
                 awk '/^MemTotal:/ { print $2 * 1024 }' /proc/meminfo
-                cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null
+                (cat /sys/fs/cgroup/memory.max || cat /sys/fs/cgroup/memory/memory.limit_in_bytes) 2>/dev/null
             """
 
             try:
