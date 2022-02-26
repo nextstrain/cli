@@ -144,12 +144,17 @@ def test_setup() -> RunnerTestResults:
             """
 
             try:
-                total, cgroup = map(int, run_bash(report_memory))
-            except (ValueError, OSError, subprocess.CalledProcessError):
-                # If for some reason we can't get both values...
+                limits = run_bash(report_memory)
+            except (OSError, subprocess.CalledProcessError):
                 pass
             else:
-                limit = cgroup if cgroup < total else total
+                def int_or_none(x):
+                    try:
+                        return int(x)
+                    except ValueError:
+                        return None
+
+                limit = min(filter(None, map(int_or_none, limits)))
 
                 if limit <= desired:
                     msg += dedent("""
