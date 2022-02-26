@@ -140,12 +140,12 @@ def test_setup() -> RunnerTestResults:
         if image_exists():
             report_memory = """
                 awk '/^MemTotal:/ { print $2 * 1024 }' /proc/meminfo
-                cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+                cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null
             """
 
             try:
                 total, cgroup = map(int, run_bash(report_memory))
-            except ValueError:
+            except (ValueError, OSError, subprocess.CalledProcessError):
                 # If for some reason we can't get both values...
                 pass
             else:
