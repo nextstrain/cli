@@ -140,16 +140,21 @@ def test_setup() -> RunnerTestResults:
         if image_exists():
             report_memory = """
                 awk '/^MemTotal:/ { print $2 * 1024 }' /proc/meminfo
-                cat /sys/fs/cgroup/memory/memory.limit_in_bytes
+                (cat /sys/fs/cgroup/memory.max || cat /sys/fs/cgroup/memory/memory.limit_in_bytes) 2>/dev/null
             """
 
             try:
-                total, cgroup = map(int, run_bash(report_memory))
-            except ValueError:
-                # If for some reason we can't get both values...
+                limits = run_bash(report_memory)
+            except (OSError, subprocess.CalledProcessError):
                 pass
             else:
-                limit = cgroup if cgroup < total else total
+                def int_or_none(x):
+                    try:
+                        return int(x)
+                    except ValueError:
+                        return None
+
+                limit = min(filter(None, map(int_or_none, limits)))
 
                 if limit <= desired:
                     msg += dedent("""
