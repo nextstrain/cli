@@ -124,7 +124,6 @@ setup(
             "nextstrain-sphinx-theme",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
-            "pytest-flake8",
             "recommonmark",
             "sphinx>=3",
             "sphinx-argparse ~=0.3",
