@@ -1,11 +1,14 @@
 """
-List pathogen JSON data files or Markdown narratives on a remote source.
+List datasets and narratives on a remote source.
  
-URLs support optional path prefixes for restricting the files listed.
+A remote source URL specifies what to list, e.g. to list what's in the
+Nextstrain Group named "Blab"::
 
-    nextstrain remote list s3://my-bucket/some/prefix/
+    nextstrain remote list nextstrain.org/groups/blab
 
-will list files named `some/prefix/*`.
+or list the core seasonal influenza datasets::
+
+    nextstrain remote list nextstrain.org/flu/seasonal
 
 See `nextstrain remote --help` for more information on remote sources.
 """
@@ -14,15 +17,19 @@ from ...remote import parse_remote_path
 
 
 def register_parser(subparser):
+    """
+    %(prog)s <url>
+    %(prog)s --help
+    """
     parser = subparser.add_parser(
         "list",
         aliases = ["ls"],
-        help    = "List dataset and narrative files")
+        help    = "List datasets and narratives")
 
     parser.add_argument(
         "remote_path",
-        help    = "Remote path as a URL, with optional key/path prefix",
-        metavar = "<s3://bucket-name>")
+        help    = "Remote source URL, with optional path prefix to scope/filter the results",
+        metavar = "<remote-url>")
 
     return parser
 

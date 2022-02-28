@@ -52,6 +52,13 @@ Table of Contents
     commands/whoami
     commands/version
 
+.. toctree::
+    :caption: Remotes
+    :titlesonly:
+
+    nextstrain.org <remotes/nextstrain.org>
+    Amazon S3 <remotes/s3>
+
 
 Big Picture
 ===========

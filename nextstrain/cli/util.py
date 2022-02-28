@@ -5,12 +5,13 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import Any, Mapping, List, Tuple
+from typing import Any, Callable, Mapping, List, Sequence, Tuple, Union
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
 from sys import exit, stderr, version_info as python_version
 from textwrap import dedent, indent
+from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
 from .types import RunnerModule
 
@@ -312,3 +313,31 @@ def split_image_name(name: str) -> Tuple[str, str]:
         repository, tag = name, "latest"
 
     return (repository, tag)
+
+
+def glob_matcher(patterns: Sequence[str]) -> Callable[[Union[str, Path]], bool]:
+    """
+    Generate a function which matches a string or path-like object against the
+    list of Bash-like glob *patterns*.
+
+    See :func:`glob_match` for supported pattern features.
+    """
+    def matcher(path: Union[str, Path]) -> bool:
+        return glob_match(path, patterns)
+
+    return matcher
+
+
+def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]]) -> bool:
+    """
+    Test if *path* matches any of the glob *patterns*.
+
+    Besides basic glob features like single-part wildcards (``*``), character
+    classes (``[…]``), and brace expansion (``{…, …}``), several advanced
+    globbing features are also supported: multi-part wildcards (``**``),
+    extended globbing (``@(…)``, ``+(…)``, etc.), basename matching for
+    patterns containing only a single path part, and negation (``!…``).
+
+    Implemented with with :func:`wcmatch.glob.globmatch`.
+    """
+    return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE)

@@ -1,13 +1,20 @@
 """
-Uploads (deploys) a set of built pathogen JSON data files or Markdown
-narratives to a remote source.
+Upload dataset and narratives files to a remote destination.
 
-Source URLs support optional path prefixes if you want your local filenames to
-be prefixed on the remote.  For example:
+A remote destination URL specifies where to upload, e.g. to upload the dataset
+files::
 
-    nextstrain remote upload s3://my-bucket/some/prefix/ auspice/zika*.json
+    auspice/ncov_local.json
+    auspice/ncov_local_root-sequence.json
+    auspice/ncov_local_tip-frequencies.json
 
-will upload files named "some/prefix/zika*.json".
+so they're visible at `https://nextstrain.org/groups/example/ncov`::
+
+    nextstrain remote upload nextstrain.org/groups/example/ncov auspice/ncov_local*.json
+
+If uploading multiple datasets or narratives, uploading to the top-level of a
+Nextstrain Group, or uploading to an S3 remote, then the local filenames are
+used in combination with any path prefix in the remote source URL.
 
 See `nextstrain remote --help` for more information on remote sources.
 """
@@ -17,6 +24,10 @@ from ...remote import parse_remote_path
 
 
 def register_parser(subparser):
+    """
+    %(prog)s <remote-url> <file> [<file2> […]]
+    %(prog)s --help
+    """
     parser = subparser.add_parser("upload", help = "Upload dataset and narrative files")
 
     register_arguments(parser)
@@ -28,14 +39,18 @@ def register_arguments(parser):
     # Destination
     parser.add_argument(
         "destination",
-        help    = "Remote path as a URL, with optional key/path prefix",
-        metavar = "<s3://bucket-name>")
+        help    = "Remote destination URL for a dataset or narrative.  "
+                  "A path prefix if the files to upload comprise more than "
+                  "one dataset or narrative or the remote is S3.",
+        metavar = "<remote-url>")
 
     # Files to upload
     parser.add_argument(
         "files",
-        help    = "Files to upload, typically Auspice JSON data files",
-        metavar = "<file.json>",
+        help    = "Files to upload.  "
+                  "Typically dataset and sidecar files (Auspice JSON files) "
+                  "and/or narrative files (Markdown files).",
+        metavar = "<file> [<file2> […]]",
         nargs   = "+")
 
 

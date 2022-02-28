@@ -156,6 +156,18 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
     Returns a :py:class:`set` of Auspice (not filesystem) paths for datasets in
     *data_dir*.
     """
+    # This file matching/organization logic is similar to organize_files() in
+    # nextstrain/cli/remote/nextstrain_dot_org.py, but with a slightly
+    # different use case.  I considered combining the two, but ultimately
+    # deemed it better to just keep them separate for now.
+    #
+    # Note also that here "sidecar" is used to describe suffixes which include
+    # Augur "node data" files, though those aren't true dataset sidecars.  The
+    # list below also doesn't include all such known suffixes; see
+    # <https://docs.nextstrain.org/en/latest/reference/data-formats.html> for
+    # more examples.
+    #   -trs, 11 Jan 2022
+
     # v2: All *.json files which don't end with a known sidecar or v1 suffix.
     sidecar_suffixes = {"meta", "tree", "root-sequence", "seq", "sequences", "tip-frequencies", "entropy"}
 

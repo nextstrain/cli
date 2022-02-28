@@ -1,0 +1,6 @@
+================
+Amazon S3 remote
+================
+
+.. automodule:: nextstrain.cli.remote.s3
+    :noindex:

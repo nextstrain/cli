@@ -1,7 +1,46 @@
 """
-S3 remote with automatic CloudFront invalidation.
+The ``nextstrain remote`` family of commands can
+:doc:`list </commands/remote/list>`,
+:doc:`download </commands/remote/download>`,
+:doc:`upload </commands/remote/upload>`,
+and :doc:`delete </commands/remote/delete>`
+Nextstrain :term:`datasets <docs:dataset>` and :term:`narratives
+<docs:narrative>` hosted on `Amazon S3 <https://aws.amazon.com/s3/>`_.
+This functionality is primarily intended for use by the Nextstrain team and
+operators of self-hosted :term:`docs:Auspice` instances.  It is also used to
+manage the contents of :doc:`Nextstrain Groups
+<docs:guides/share/nextstrain-groups>` that have not migrated to using the
+:doc:`/remotes/nextstrain.org`.
 
-Backend module for the remote family of commands.
+
+Remote paths
+============
+
+Remote paths start with ``s3://`` and specify the bucket name and
+individual file path/prefix, e.g. ``s3://my-bucket/some/prefix``.
+
+The bucket must already exist.
+
+
+Authentication
+==============
+
+All actions require AWS credentials.  The following environment variables
+can be used to provide credentials:
+
+.. envvar::
+    AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY
+
+    Keys for your AWS IAM user, provided by your AWS account administrator
+    (e.g. the Nextstrain team if you're a Nextstrain Groups user).
+
+Amazon's documentation includes more information on these `environment
+variables`_.  A persistent `credentials file`_ (:file:`~/.aws/credentials`) is
+also supported.
+
+.. _environment variables: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#environment-variables
+.. _credentials file: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
 """
 
 import boto3
@@ -28,7 +67,7 @@ mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, Path]]:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the bucket and optional prefix specified by *url*.
     """
@@ -41,7 +80,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     files = list(zip(local_files, [ prefix + f.name for f in local_files ]))
 
     for local_file, remote_file in files:
-        yield local_file, Path(remote_file)
+        yield local_file, remote_file
 
         # Upload compressed data
         with GzipCompressingReader(local_file.open("rb")) as gzdata:
@@ -54,7 +93,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     purge_cloudfront(bucket, [remote for local, remote in files])
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[Path, Path]]:
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
@@ -87,7 +126,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     files = list(zip(objects, [local_file_path(obj) for obj in objects]))
 
     for remote_object, local_file in files:
-        yield Path(remote_object.key), local_file
+        yield remote_object.key, local_file
 
         encoding = remote_object.content_encoding
 
@@ -95,16 +134,16 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             remote_object.download_fileobj(file)
 
 
-def ls(url: urllib.parse.ParseResult) -> Iterable[Path]:
+def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     """
     List the files deployed at the given remote *url*.
     """
     bucket, prefix = split_url(url)
 
-    return [ Path(obj.key) for obj in bucket.objects.filter(Prefix = prefix) ]
+    return [ obj.key for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[Path]:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[str]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
     """
@@ -128,7 +167,7 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
         objects = [ object ]
 
     for object in objects:
-        yield Path(object.key)
+        yield object.key
         object.delete()
 
     if objects:

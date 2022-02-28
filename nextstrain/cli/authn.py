@@ -2,6 +2,7 @@
 Authentication routines.
 """
 from functools import partial
+from sys import stderr
 from typing import Dict, List, Optional
 
 from . import config
@@ -26,11 +27,16 @@ class User:
     username: str
     groups: List[str]
     email: str
+    http_authorization: str
 
-    def __init__(self, id_claims: dict):
-        self.username = id_claims["cognito:username"]
-        self.groups   = id_claims["cognito:groups"]
-        self.email    = id_claims["email"]
+    def __init__(self, session: cognito.Session):
+        assert session.id_claims
+
+        self.username = session.id_claims["cognito:username"]
+        self.groups   = session.id_claims["cognito:groups"]
+        self.email    = session.id_claims["email"]
+
+        self.http_authorization = f"Bearer {session.id_token}"
 
 
 def login(username: str, password: str) -> User:
@@ -54,11 +60,37 @@ def login(username: str, password: str) -> User:
         raise UserError(f"Login failed: {error}")
 
     _save_tokens(session)
-    print(f"Credentials saved to {config.SECRETS}.")
+    print(f"Credentials saved to {config.SECRETS}.", file = stderr)
 
-    assert session.id_claims
+    return User(session)
 
-    return User(session.id_claims)
+
+def renew():
+    """
+    Renews existing tokens, if possible.
+
+    Returns a :class:`User` object with renewed information about the logged in
+    user when successful.
+
+    Raises a :class:`UserError` if authentication fails.
+    """
+    session = CognitoSession()
+    tokens = _load_tokens()
+    refresh_token = tokens.get("refresh_token")
+
+    if not refresh_token:
+        return None
+
+    try:
+        session.renew_tokens(refresh_token = refresh_token)
+
+    except (cognito.TokenError, cognito.NotAuthorizedError):
+        return None
+
+    _save_tokens(session)
+    print(f"Renewed login credentials in {config.SECRETS}.", file = stderr)
+
+    return User(session)
 
 
 def logout():
@@ -70,10 +102,10 @@ def logout():
     not logged out of Nextstrain.org.
     """
     if config.remove(CONFIG_SECTION, config.SECRETS):
-        print(f"Credentials removed from {config.SECRETS}.")
-        print("Logged out.")
+        print(f"Credentials removed from {config.SECRETS}.", file = stderr)
+        print("Logged out.", file = stderr)
     else:
-        print("Not logged in.")
+        print("Not logged in.", file = stderr)
 
 
 def current_user() -> Optional[User]:
@@ -96,14 +128,12 @@ def current_user() -> Optional[User]:
         except cognito.ExpiredTokenError:
             session.renew_tokens(refresh_token = tokens.get("refresh_token"))
             _save_tokens(session)
-            print("Renewed login credentials.")
+            print(f"Renewed login credentials in {config.SECRETS}.", file = stderr)
 
     except (cognito.TokenError, cognito.NotAuthorizedError):
         return None
 
-    assert session.id_claims
-
-    return User(session.id_claims)
+    return User(session)
 
 
 def _load_tokens() -> Dict[str, Optional[str]]:

@@ -9,7 +9,9 @@ and Auspice across computing environments such as Docker, Conda, and AWS Batch.
 
 import sys
 import argparse
+import traceback
 from argparse import ArgumentParser
+from textwrap import dedent
 from types    import SimpleNamespace
 
 from .argparse    import HelpFormatter, register_commands, register_default_command
@@ -32,6 +34,18 @@ def run(args):
 
     except NextstrainCliError as error:
         warn(error)
+        return 1
+
+    except AssertionError as error:
+        traceback.print_exc()
+        warn("\n")
+        warn(dedent("""\
+            An error occurred (see above) that likely indicates a bug in the
+            Nextstrain CLI.
+
+            To report this, please open a new issue and include the error above:
+                <https://github.com/nextstrain/cli/issues/new/choose>
+            """))
         return 1
 
 
