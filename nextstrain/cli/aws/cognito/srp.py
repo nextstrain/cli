@@ -245,8 +245,8 @@ class CognitoSRP:
             )
         return response
 
-    def authenticate_user(self, client=None):
-        boto_client = self.client or client
+    def authenticate_user(self):
+        boto_client = self.client
         auth_params = self.get_auth_params()
         response = boto_client.initiate_auth(
             AuthFlow="USER_SRP_AUTH",
@@ -272,8 +272,8 @@ class CognitoSRP:
             "The %s challenge is not supported" % response["ChallengeName"]
         )
 
-    def set_new_password_challenge(self, new_password, client=None):
-        boto_client = self.client or client
+    def set_new_password_challenge(self, new_password):
+        boto_client = self.client
         auth_params = self.get_auth_params()
         response = boto_client.initiate_auth(
             AuthFlow="USER_SRP_AUTH",

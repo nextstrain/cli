@@ -87,6 +87,13 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+    # Unlike other runners, the AWS Bach runner currently *requires* a working
+    # dir.  This is ok as we only provide the AWS Batch runner for commands
+    # which also require a working dir (e.g. build), whereas other runners also
+    # work with commands that don't.
+    #   -trs, 28 Feb 2022
+    assert working_volume is not None
+
     local_workdir = resolve_path(working_volume.src)
 
     if opts.attach:

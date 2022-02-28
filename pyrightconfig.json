@@ -19,5 +19,6 @@
   "reportSelfClsParameterName": true,
   "reportInvalidStubStatement": true,
   "reportIncompleteStub": true,
-  "reportUnsupportedDunderAll": true
+  "reportUnsupportedDunderAll": true,
+  "strictParameterNoneValue": false
 }
