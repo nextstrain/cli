@@ -1,5 +1,5 @@
 """
-.. versionadded:: UNRELEASED
+.. versionadded:: 3.1.0
 
 The ``nextstrain remote`` family of commands can
 :doc:`list </commands/remote/list>`,
