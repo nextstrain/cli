@@ -71,6 +71,12 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
             warn("    • %s: %s" % (vol.name, vol.src))
         return 1
 
+    # Check if all our stdio fds (stdin = 0, stdout = 1, stderr = 2) are TTYs.
+    # This uses fds explicitly as that's what we (and `docker run`) ultimately
+    # care about; not whatever the Python sys.stdin/stdout/stderr filehandles
+    # point to.  (They're probably unchanged, but ya never know.)
+    stdio_isatty = all(os.isatty(fd) for fd in [0, 1, 2])
+
     return exec_or_return([
         "docker", "run",
         "--rm",             # Remove the ephemeral container after exiting
@@ -81,9 +87,18 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         #    The -t option is incompatible with a redirection of the docker
         #    client standard input.
         #
-        # so only set it when our stdin is a TTY too.
+        # so only set it when (at least) our stdin is a TTY.
+        #
+        # Additionally, we go a step further and condition on _all_ our stdio
+        # being a TTY.  Reason being is that under --tty Docker/containerd/runc
+        # will read from the container's TTY and send it to `docker run`'s
+        # stdout, thus combining the container's stdout + stderr into "our"
+        # stdout.  If someone is redirecting our stdout and/or stderr (i.e.
+        # it's not a TTY), then they necessarily want separate streams and
+        # using --tty will foil that.  More details on this complex issue are
+        # in <https://github.com/nextstrain/cli/issues/152>.
         *(["--tty"]
-            if stdin.isatty() else []),
+            if stdio_isatty else []),
 
         # On Unix (POSIX) systems, run the process in the container with the same
         # UID/GID so that file ownership is correct in the bind mount directories.
