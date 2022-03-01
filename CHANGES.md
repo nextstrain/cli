@@ -1,6 +1,49 @@
 # __NEXT__
 
 
+# 3.1.0 (1 March 2022)
+
+## Features
+
+* `remote` family of commands now support interacting with nextstrain.org's web
+  API using the credentials established by the `login` command.
+
+  See the [nextstrain.org
+  remote](https://docs.nextstrain.org/projects/cli/page/remotes/nextstrain.org/)
+  documentation for more information.
+
+* `login` now sports a `--renew` flag to request new tokens with refreshed user
+  information (e.g. group memberships).
+
+## Bug fixes
+
+* `build` now exits 1 (an error) when the AWS Batch job fails due to
+  infrastructural issues like the EC2 instance its running on being terminated.
+  Previously it exited 0 (success) despite the job not being successful.
+
+* `check-setup` now supports Docker hosts with cgroups v2 and better handles
+  failures in the memory limits check.
+
+* Messages related to automatic login (authn) management are now send to stderr
+  instead of stdout.
+
+* `remote delete` messages now correctly imply each deletion is just about to
+  happen instead of just happened already.
+
+* The messages produced when an internal error is detected now suggest filing
+  an issue on GitHub to report the bug.
+
+## Documentation
+
+* The specific release version will now be displayed under the project name in
+  the sidebar of the documentation pages.
+
+## Development
+
+* Many breakages of our CI caused by external changes in upstream testing deps
+  are now resolved.
+
+
 # 3.0.6 (26 January 2022)
 
 ## Documentation
