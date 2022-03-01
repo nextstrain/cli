@@ -58,6 +58,9 @@
 
 # 3.0.5 (20 December 2021)
 
+_This release should have bumped the minor version, not the patch version,
+since it added a new feature.  —trs, 1 March 2022_
+
 ## Features
 
 * `view` now supports a `--host` option to specify the IP address or hostname
@@ -79,6 +82,9 @@
 
 
 # 3.0.4 (3 November 2021)
+
+_This release should have bumped the minor version, not the patch version,
+since it added new features/commands.  —trs, 1 March 2022_
 
 ## Features
 
