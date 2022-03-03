@@ -120,7 +120,7 @@ class Dataset(Resource):
     def __init__(self, api_item):
         super().__init__(api_item)
 
-        default_sidecars = ["root-sequence", "tip-frequencies"]
+        default_sidecars = ["root-sequence", "tip-frequencies", "measurements"]
 
         self.subresources = [
             SubResource("application/vnd.nextstrain.dataset.main+json", ".json", primary = True),
@@ -637,13 +637,13 @@ def organize_files(paths: Iterable[Path]) -> OrganizedFiles:
 
     Returns a :class:`OrganizedFiles` tuple.
     """
-    # v1 dataset suffixes + our two dataset sidecar suffixes.
+    # v1 dataset suffixes + our three dataset sidecar suffixes.
     #
     # There are other conventional suffixes for node data files (see our data
     # formats doc¹), but we're not trying to handle node data files here.
     #
     # ¹ https://docs.nextstrain.org/en/latest/reference/data-formats.html
-    dataset_suffixes = {"meta", "tree", "root-sequence", "tip-frequencies"}
+    dataset_suffixes = {"meta", "tree", "root-sequence", "tip-frequencies", "measurements"}
 
     datasets:   Dict[str, Dict[str, Path]] = defaultdict(dict)
     narratives: Dict[str, Dict[str, Path]] = defaultdict(dict)
@@ -688,6 +688,7 @@ def sidecar_suffix(media_type: str) -> str:
     suffixes = {
         "application/vnd.nextstrain.dataset.root-sequence+json": "root-sequence",
         "application/vnd.nextstrain.dataset.tip-frequencies+json": "tip-frequencies",
+        "application/vnd.nextstrain.dataset.measurements+json": "measurements",
     }
     return suffixes.get(media_type, "")
 
@@ -697,5 +698,6 @@ def dataset_media_type(suffix: str) -> Optional[str]:
         "": "application/vnd.nextstrain.dataset.main+json",
         "root-sequence": "application/vnd.nextstrain.dataset.root-sequence+json",
         "tip-frequencies": "application/vnd.nextstrain.dataset.tip-frequencies+json",
+        "measurements": "application/vnd.nextstrain.dataset.measurements+json",
     }
     return media_types.get(suffix)
