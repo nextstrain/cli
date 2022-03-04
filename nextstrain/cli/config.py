@@ -26,6 +26,10 @@ CONFIG = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
 SECRETS = Path(os.environ.get("NEXTSTRAIN_SECRETS") or
                HOME / ".nextstrain/secrets")
 
+# Path to our global lock file
+LOCK = Path(os.environ.get("NEXTSTRAIN_LOCK") or
+            HOME / ".nextstrain/lock")
+
 # Permissions to use for the secrets file if we have to create it.
 SECRETS_PERMS = \
     ( stat.S_IRUSR  # u+r
@@ -56,7 +60,6 @@ def save(config, path: Path = CONFIG):
     """
     secrets = path is SECRETS
 
-    # See also the handling of parents in write_lock().
     path = path.resolve(strict = False)
 
     if path.parent.name == ".nextstrain":
@@ -79,7 +82,7 @@ def get(section: str, field: str, fallback: str = None, path: Path = CONFIG) -> 
     If *section* or *field* does not exist, returns *fallback* (which defaults
     to None).
     """
-    with read_lock(path):
+    with read_lock():
         config = load(path)
 
         if section in config:
@@ -94,7 +97,7 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
 
     If *section* does not exist, it is automatically created.
     """
-    with write_lock(path):
+    with write_lock():
         config = load(path)
 
         if section not in config:
@@ -115,7 +118,7 @@ def remove(section: str, path: Path) -> bool:
     if not path.exists():
         return False
 
-    with write_lock(path):
+    with write_lock():
         config = load(path)
 
         if section not in config:
@@ -129,38 +132,22 @@ def remove(section: str, path: Path) -> bool:
 
 
 @contextmanager
-def read_lock(path: Path):
+def read_lock():
     """
-    Lock *path* for reading across processes (but not within).
+    Lock for reading across processes (but not within).
 
-    Uses advisory/cooperative locks.  Avoids creating *path* if it does not
-    exist.
+    Uses a global advisory/cooperative lock.
     """
-    if path.exists():
-        with InterProcessReaderWriterLock(path).read_lock():
-            yield
-    else:
+    with InterProcessReaderWriterLock(LOCK).read_lock():
         yield
 
 
 @contextmanager
-def write_lock(path: Path):
+def write_lock():
     """
-    Lock *path* for writing across processes (but not within).
+    Lock for writing across processes (but not within).
 
-    Uses advisory/cooperative locks.  Avoids creating *path* if the parent does
-    not exist.
+    Uses a global advisory/cooperative lock.
     """
-    # We only care if the parent exists, as the file is expected to be written
-    # and created if it does not exist.
-    parent = path.resolve(strict = False).parent
-
-    if parent.name == ".nextstrain":
-        # save() will auto-create in this case, so look one parent higher.
-        parent = parent.parent
-
-    if parent.exists():
-        with InterProcessReaderWriterLock(path).write_lock():
-            yield
-    else:
+    with InterProcessReaderWriterLock(LOCK).write_lock():
         yield
