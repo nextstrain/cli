@@ -1,6 +1,28 @@
 # __NEXT__
 
 
+# 3.1.1 (4 March 2022)
+
+## Bug fixes
+
+* The Docker runtime now avoids merging stdout and stderr together when at
+  least one of stdout or stderr isn't a console (TTY), e.g. when redirecting
+  one or both streams to a file or piping output to another command.
+  ([#155](https://github.com/nextstrain/cli/pull/155))
+
+* A global lockfile is now used for reading/writing config files instead of
+  locking the config files themselves.  This resolves a regression on Windows
+  introduced in 3.0.4 which manifested as an `[Errno 13] Permission denied`
+  error when running `nextstrain update` and `nextstrain check-setup
+  --set-default`.
+  ([#157](https://github.com/nextstrain/cli/pull/157))
+
+## Documentation
+
+* The changelog now notes two minor (har har) semantic versioning mistakes in
+  previous releases.
+
+
 # 3.1.0 (1 March 2022)
 
 ## Features
