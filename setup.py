@@ -40,7 +40,7 @@ setup(
 
     license = "MIT",
 
-    url          = "https://github.com/nextstrain/cli",
+    url          = "https://docs.nextstrain.org/projects/cli/",
     project_urls = {
         "Bug Reports": "https://github.com/nextstrain/cli/issues",
         "Change Log":  "https://github.com/nextstrain/cli/blob/master/CHANGES.md",
