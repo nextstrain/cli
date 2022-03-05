@@ -165,7 +165,7 @@ def test_setup() -> RunnerTestResults:
             else:
                 def int_or_none(x):
                     try:
-                        return int(x)
+                        return int(float(x))
                     except ValueError:
                         return None
 
