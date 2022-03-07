@@ -169,7 +169,7 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
     #   -trs, 11 Jan 2022
 
     # v2: All *.json files which don't end with a known sidecar or v1 suffix.
-    sidecar_suffixes = {"meta", "tree", "root-sequence", "seq", "sequences", "tip-frequencies", "entropy"}
+    sidecar_suffixes = {"meta", "tree", "root-sequence", "seq", "sequences", "tip-frequencies", "measurements", "entropy"}
 
     def sidecar_file(path):
         return any(path.name.endswith("_%s.json" % suffix) for suffix in sidecar_suffixes)
