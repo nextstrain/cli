@@ -184,6 +184,7 @@ def test_setup() -> RunnerTestResults:
                             """ % (limit / GiB))
                         status = None
                     else:
+                        msg += " (limit is %.1f GiB)" % (limit / GiB)
                         status = True
 
         return [(msg, status)]
