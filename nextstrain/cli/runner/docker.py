@@ -169,19 +169,22 @@ def test_setup() -> RunnerTestResults:
                     except ValueError:
                         return None
 
-                limit = min(filter(None, map(int_or_none, limits)))
+                limits = list(filter(None, map(int_or_none, limits)))
 
-                if limit <= desired:
-                    msg += dedent("""
+                if limits:
+                    limit = min(limits)
 
-                        Containers appear to be limited to %0.1f GiB of memory. This
-                        may not be enough for some Nextstrain builds.  On Windows or
-                        a Mac, you can increase the memory available to containers
-                        in the Docker preferences.\
-                        """ % (limit / GiB))
-                    status = None
-                else:
-                    status = True
+                    if limit <= desired:
+                        msg += dedent("""
+
+                            Containers appear to be limited to %0.1f GiB of memory. This
+                            may not be enough for some Nextstrain builds.  On Windows or
+                            a Mac, you can increase the memory available to containers
+                            in the Docker preferences.\
+                            """ % (limit / GiB))
+                        status = None
+                    else:
+                        status = True
 
         return [(msg, status)]
 
