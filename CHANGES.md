@@ -1,6 +1,21 @@
 # __NEXT__
 
 
+# 3.2.0 (9 March 2022)
+
+## Bug fixes
+
+* `check-setup` no longer errors when, on some systems, awk outputs a large
+  number (bytes of memory reported by /proc/meminfo) in exponential notation.
+  ([#159](https://github.com/nextstrain/cli/pull/159))
+
+## Features
+
+* The `view` and `remote` family of commands now support "measurements" dataset
+  sidecar files.
+  ([#156](https://github.com/nextstrain/cli/pull/156))
+
+
 # 3.1.1 (4 March 2022)
 
 ## Bug fixes
