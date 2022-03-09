@@ -153,24 +153,22 @@ def test_setup() -> RunnerTestResults:
         status: RunnerTestResultStatus = ...
 
         if image_exists():
+            def int_or_none(x):
+                try:
+                    return int(float(x))
+                except ValueError:
+                    return None
+
             report_memory = """
                 awk '/^MemTotal:/ { print $2 * 1024 }' /proc/meminfo
                 (cat /sys/fs/cgroup/memory.max || cat /sys/fs/cgroup/memory/memory.limit_in_bytes) 2>/dev/null
             """
 
             try:
-                limits = run_bash(report_memory)
+                limits = list(filter(None, map(int_or_none, run_bash(report_memory))))
             except (OSError, subprocess.CalledProcessError):
                 pass
             else:
-                def int_or_none(x):
-                    try:
-                        return int(float(x))
-                    except ValueError:
-                        return None
-
-                limits = list(filter(None, map(int_or_none, limits)))
-
                 if limits:
                     limit = min(limits)
 
