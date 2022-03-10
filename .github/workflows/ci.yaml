@@ -35,13 +35,17 @@ jobs:
           # The small build we'll use as an integration test case.
           git clone https://github.com/nextstrain/zika-tutorial
 
+      - name: Install Nextstrain CLI
+        run: python3 -m pip install --upgrade '.[dev]'
+
+      - run: conda info
+      - run: conda list
+
       - name: Check python version
         run: |
           # Assert that we're on the expected Python version, in case the GH
           # Actions environment is messed up.
           python3 --version | grep -F 'Python ${{ matrix.python }}.'
-      - name: Install Nextstrain CLI
-        run: python3 -m pip install --upgrade '.[dev]'
 
       - name: Run Nextstrain CLI commands
         run: |
