@@ -14,58 +14,46 @@ jobs:
           - ubuntu-latest
           - macos-latest
         python:
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l -eo pipefail {0}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
+          mamba-version: "*"
+          channels: conda-forge,bioconda
+          channel-priority: true
+          activate-environment: test
+      - run: cat ~/.profile || true
+      - run: cat ~/.bashrc || true
 
-      - name: Upgrade Python toolchain
-        run: python3 -m pip install --upgrade pip setuptools wheel
-
-      - name: Setup test environment
+      - name: Set up test environment
         run: |
-          # Install required external programs for --native.
-          conda create -p ~/ci -c conda-forge -c bioconda \
-              fasttree \
-              iqtree \
-              mafft \
-              nodejs=12 \
-              raxml \
-              vcftools
-
-          # Add Conda env to PATH for this and subsequent steps
-          export PATH="$HOME/ci/bin:$PATH"
-          tee -a "$GITHUB_PATH" <<<"$HOME/ci/bin"
-
-          # Install required Python programs for --native, intentionally
-          # outside of the Conda env since otherwise they'll drag Python into
-          # the Conda env and shadow our desired Python version from the matrix
-          # and setup-python above.
-          python3 -m pip install \
-              nextstrain-augur \
-              snakemake
-
-          # Installs into Conda env to avoid version/permissions issues.
-          npm install --global auspice
-
+          mamba install augur auspice snakemake
           # The small build we'll use as an integration test case.
           git clone https://github.com/nextstrain/zika-tutorial
-        env:
-          CONDA_PKGS_DIRS: /tmp
 
       - name: Install Nextstrain CLI
+        run: python3 -m pip install --upgrade '.[dev]'
+
+      - run: conda info
+      - run: conda list
+
+      - name: Check python version
         run: |
           # Assert that we're on the expected Python version, in case the GH
           # Actions environment is messed up.
           python3 --version | grep -F 'Python ${{ matrix.python }}.'
-          python3 -m pip install --upgrade '.[dev]'
 
+      - name: Run Nextstrain CLI commands
+        run: |
           nextstrain version --verbose
           nextstrain check-setup
 
@@ -96,7 +84,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: '3.6'
 
       - name: Upgrade Python toolchain
         run: python3 -m pip install --upgrade pip setuptools wheel
