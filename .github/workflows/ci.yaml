@@ -21,43 +21,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
+          mamba-version: "*"
+          channels: conda-forge,bioconda
+          channel-priority: true
+          activate-environment: test
 
-      - name: Upgrade Python toolchain
-        run: python3 -m pip install --upgrade pip setuptools wheel
-
-      - name: Setup test environment
+      - name: Set up test environment
         run: |
-          # Install required external programs for --native.
-          conda create -p ~/ci -c conda-forge -c bioconda \
-              fasttree \
-              iqtree \
-              mafft \
-              nodejs=12 \
-              raxml \
-              vcftools
-
-          # Add Conda env to PATH for this and subsequent steps
-          export PATH="$HOME/ci/bin:$PATH"
-          tee -a "$GITHUB_PATH" <<<"$HOME/ci/bin"
-
-          # Install required Python programs for --native, intentionally
-          # outside of the Conda env since otherwise they'll drag Python into
-          # the Conda env and shadow our desired Python version from the matrix
-          # and setup-python above.
-          python3 -m pip install \
-              nextstrain-augur \
-              snakemake
-
-          # Installs into Conda env to avoid version/permissions issues.
-          npm install --global auspice
-
+          mamba install augur auspice snakemake
           # The small build we'll use as an integration test case.
           git clone https://github.com/nextstrain/zika-tutorial
-        env:
-          CONDA_PKGS_DIRS: /tmp
 
       - name: Install Nextstrain CLI
         run: |
