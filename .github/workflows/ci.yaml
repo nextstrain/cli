@@ -19,6 +19,9 @@ jobs:
           - 3.8
           - 3.9
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l -eo pipefail {0}
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
@@ -28,6 +31,8 @@ jobs:
           channels: conda-forge,bioconda
           channel-priority: true
           activate-environment: test
+      - run: cat ~/.profile || true
+      - run: cat ~/.bashrc || true
 
       - name: Set up test environment
         run: |
