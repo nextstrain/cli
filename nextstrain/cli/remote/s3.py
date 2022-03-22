@@ -52,7 +52,7 @@ from operator import methodcaller
 from os.path import commonprefix
 from pathlib import Path
 from time import time
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 from .. import aws
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
@@ -82,12 +82,19 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     for local_file, remote_file in files:
         yield local_file, remote_file
 
-        # Upload compressed data
-        with GzipCompressingReader(local_file.open("rb")) as gzdata:
-            bucket.upload_fileobj(
-                gzdata,
-                remote_file,
-                { "ContentType": content_type(local_file), "ContentEncoding": "gzip" })
+        content_type, encoding_type = guess_type(local_file)
+
+        if encoding_type is None:
+            # Compress as we read.
+            data = GzipCompressingReader(local_file.open("rb"))
+            meta = { "ContentType": content_type, "ContentEncoding": "gzip" }
+        else:
+            # Already compressed; don't compress it again.
+            data = local_file.open("rb")                    # type: ignore
+            meta = { "ContentType": encoding_type }
+
+        with data:
+            bucket.upload_fileobj(data, remote_file, meta)
 
     # Purge any CloudFront caches for this bucket
     purge_cloudfront(bucket, [remote for local, remote in files])
@@ -232,15 +239,57 @@ def exists(object: S3Object) -> bool:
             raise
 
 
-def content_type(path: Path) -> str:
+def guess_type(path: Path) -> Tuple[str, Optional[str]]:
     """
-    Guess the content type of *path* from its name.
+    Guess the content (type, encoding type) of *path* from its name.
 
     If the type is not guessable, returns the generic type
     ``application/octet-stream``.
+
+    Encoding type is the media type of the encoding container itself (e.g. the
+    gzip encoding is application/gzip).  If an encoding is guessed but no media
+    type is known for it, then the generic type ``application/octet-stream`` is
+    returned.
+
+    >>> guess_type(Path("zika.json"))
+    ('application/json', None)
+
+    >>> guess_type(Path("zika-in-the-americas.md"))
+    ('text/markdown', None)
+
+    >>> guess_type(Path("metadata.tsv"))
+    ('text/tab-separated-values', None)
+
+    >>> guess_type(Path("metadata.tsv.gz"))
+    ('text/tab-separated-values', 'application/gzip')
+
+    >>> guess_type(Path("metadata.tsv.xz"))
+    ('text/tab-separated-values', 'application/x-xz')
+
+    >>> guess_type(Path("metadata.tsv.Z"))
+    ('text/tab-separated-values', 'application/octet-stream')
+
+    >>> guess_type(Path("x"))
+    ('application/octet-stream', None)
     """
+    fallback_type = "application/octet-stream"
+    encoding_types = {
+        "gzip": "application/gzip",
+        "xz": "application/x-xz",
+        "bzip2": "application/x-bzip2",
+    }
+
     type, encoding = mimetypes.guess_type(path.name)
-    return type or "application/octet-stream"
+
+    if not type:
+        type = fallback_type
+
+    if encoding:
+        encoding_type = encoding_types.get(encoding, fallback_type)
+    else:
+        encoding_type = None
+
+    return type, encoding_type
 
 
 def purge_cloudfront(bucket, paths: List[str]) -> None:
