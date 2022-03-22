@@ -1,6 +1,22 @@
 # __NEXT__
 
 
+# 3.2.1 (22 March 2022)
+
+## Bug fixes
+
+* `remote upload` no longer gzip compresses files which are already compressed
+  when uploading them to an S3 remote.  This isn't expected in typical usage
+  when uploading Nextstrain dataset (JSON) or narrative (Markdown) files but
+  arises when uploading related files to an S3 remote (e.g. a `metadata.tsv.gz`
+  file to `s3://nextstrain-data/files/zika/`).
+  ([#161](https://github.com/nextstrain/cli/pull/161))
+
+## Development
+
+* The CI workflow setup steps were simplified a bit.
+
+
 # 3.2.0 (9 March 2022)
 
 ## Bug fixes
