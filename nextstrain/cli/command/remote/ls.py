@@ -18,7 +18,7 @@ from ...remote import parse_remote_path
 
 def register_parser(subparser):
     """
-    %(prog)s <url>
+    %(prog)s <remote-url>
     %(prog)s --help
     """
     parser = subparser.add_parser(
