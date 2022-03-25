@@ -8,3 +8,11 @@ nextstrain remote
     :prog: nextstrain
     :path: remote
     :nosubcommands:
+
+Subcommands
+===========
+
+  - :doc:`list`
+  - :doc:`upload`
+  - :doc:`download`
+  - :doc:`delete`
