@@ -1,6 +1,19 @@
 # __NEXT__
 
 
+# 3.2.2 (28 March 2022)
+
+## Documentation
+
+* A new page describes how to upgrade Nextstrain CLI.
+
+* The doc page for `nextstrain remote` now links to the pages for its
+  subcommands.
+
+* A placeholder in the `nextstrain remote list` command usage now matches the
+  placeholder used elsewhere in its `--help` output.
+
+
 # 3.2.1 (22 March 2022)
 
 ## Bug fixes
