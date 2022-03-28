@@ -28,6 +28,7 @@ Table of Contents
 
     Introduction <self>
     installation
+    upgrading
     AWS Batch <aws-batch>
 
 .. toctree::
