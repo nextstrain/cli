@@ -264,8 +264,8 @@ def update() -> bool:
     print()
 
     try:
-        images = dangling_images(current_image) \
-               + old_build_images(current_image)
+        images = dangling_images(latest_image) \
+               + old_build_images(latest_image)
 
         if images:
             subprocess.run(
