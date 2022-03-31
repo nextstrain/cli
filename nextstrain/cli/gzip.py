@@ -29,7 +29,6 @@ class GzipCompressingReader(BufferedIOBase):
         self.iter_size = iter_size
         self.__buffer = b''
         self.__gzip = zlib.compressobj(
-            level = zlib.Z_BEST_COMPRESSION,
             wbits = 16 + zlib.MAX_WBITS,    # Offset of 16 is gzip encapsulation
             memLevel = 9,                   # Memory is ~cheap; use it for better compression
         )
