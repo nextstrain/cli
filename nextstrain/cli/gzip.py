@@ -4,7 +4,10 @@ Gzip stream utilities.
 import zlib
 from io import BufferedIOBase
 from typing import BinaryIO
-from .util import warn
+from .util import byte_quantity, warn
+
+
+DEFAULT_ITER_SIZE = byte_quantity("8 MiB")
 
 
 class GzipCompressingReader(BufferedIOBase):
@@ -15,14 +18,17 @@ class GzipCompressingReader(BufferedIOBase):
     class's :meth:`.read` method will read data from the source *stream* and
     return a compressed copy.
     """
-    def __init__(self, stream: BinaryIO):
+    def __init__(self, stream: BinaryIO, iter_size: int = DEFAULT_ITER_SIZE):
         if not stream.readable():
             raise ValueError('"stream" argument must be readable.')
 
+        if type(iter_size) is not int:
+            raise TypeError('"iter_size" argument must be an int')
+
         self.stream = stream
+        self.iter_size = iter_size
         self.__buffer = b''
         self.__gzip = zlib.compressobj(
-            level = zlib.Z_BEST_COMPRESSION,
             wbits = 16 + zlib.MAX_WBITS,    # Offset of 16 is gzip encapsulation
             memLevel = 9,                   # Memory is ~cheap; use it for better compression
         )
@@ -69,6 +75,22 @@ class GzipCompressingReader(BufferedIOBase):
                 self.stream.close()
             finally:
                 self.stream = None
+
+    def __next__(self):
+        """
+        Iterate in :attr:`.iter_size` chunks.
+
+        Overrides default line-wise iteration from :cls:`io.IOBase`.  Line-wise
+        iteration has no reasonable semantics for binary IO streams like this
+        one.  It only serves to slow down the stream by using many short reads
+        instead of fewer longer reads.
+        """
+        chunk = self.read(self.iter_size)
+
+        if not len(chunk):
+            raise StopIteration
+
+        return chunk
 
 
 class GzipDecompressingWriter(BufferedIOBase):
