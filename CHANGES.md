@@ -1,6 +1,19 @@
 # __NEXT__
 
 
+# 3.2.3 (1 April 2022)
+
+## Bug fixes
+
+* `remote upload` to nextstrain.org destinations is no longer exceedingly slow.
+  This was most noticeable for large dataset JSONs.  The slowness was a result
+  of poor IO patterns during gzip compression that weren't triggered by S3
+  destinations.  Additionally, after benchmarking, the gzip compression level
+  was reduced from the max (9) to the default (currently 6) as a better
+  compromise between speed and compressed size.
+  ([#165](https://github.com/nextstrain/cli/pull/165))
+
+
 # 3.2.2 (28 March 2022)
 
 ## Documentation
