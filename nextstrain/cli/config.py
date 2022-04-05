@@ -103,7 +103,7 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
         if section not in config:
             config.add_section(section)
 
-        config.set(section, field, value)
+        config[section][field] = value
 
         save(config, path)
 
