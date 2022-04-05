@@ -94,18 +94,20 @@ def run(opts: Options) -> int:
 
     # Print overall status.
     supported_runners = [
-        runner_name(runner)
+        runner
             for runner, status_ok in runner_status.items()
              if status_ok
     ]
 
     if supported_runners:
-        print("All good!  Supported Nextstrain environments:", ", ".join(map(success, supported_runners)))
+        print("All good!  Supported Nextstrain environments:", ", ".join(success(runner_name(r)) for r in supported_runners))
 
         if opts.set_default:
+            default_runner = supported_runners[0]
             print()
-            print("Setting default environment to %s." % supported_runners[0])
-            config.set("core", "runner", supported_runners[0])
+            print("Setting default environment to %s." % runner_name(default_runner))
+            config.set("core", "runner", runner_name(default_runner))
+            default_runner.set_default_config()
     else:
         print(failure("No good.  No support for any Nextstrain environment."))
 

@@ -230,6 +230,13 @@ def test_setup() -> RunnerTestResults:
     ]
 
 
+def set_default_config() -> None:
+    """
+    No-op.
+    """
+    pass
+
+
 def update() -> bool:
     """
     Pull down the latest Docker image build and prune old image versions.
