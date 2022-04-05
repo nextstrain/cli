@@ -230,6 +230,14 @@ def test_setup() -> RunnerTestResults:
     ]
 
 
+def set_default_config() -> None:
+    """
+    Sets ``docker.image``, if it isn't already set, to the latest ``build-*``
+    image.
+    """
+    config.setdefault("docker", "image", latest_build_image(DEFAULT_IMAGE))
+
+
 def update() -> bool:
     """
     Pull down the latest Docker image build and prune old image versions.

@@ -103,7 +103,25 @@ def set(section: str, field: str, value: str, path: Path = CONFIG):
         if section not in config:
             config.add_section(section)
 
-        config.set(section, field, value)
+        config[section][field] = value
+
+        save(config, path)
+
+
+def setdefault(section: str, field: str, value: str, path: Path = CONFIG):
+    """
+    Set *field* in *section* to *value* in the config file at the given *path*,
+    if *field* doesn't already exist.
+
+    If *section* does not exist, it is automatically created.
+    """
+    with write_lock():
+        config = load(path)
+
+        if section not in config:
+            config.add_section(section)
+
+        config[section].setdefault(field, value)
 
         save(config, path)
 

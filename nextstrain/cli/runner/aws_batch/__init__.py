@@ -349,6 +349,13 @@ def test_setup() -> RunnerTestResults:
     ]
 
 
+def set_default_config() -> None:
+    """
+    No-op.
+    """
+    pass
+
+
 def update() -> bool:
     """
     No-op.  Updating the AWS Batch environment isn't meaningful.

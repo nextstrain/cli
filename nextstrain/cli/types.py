@@ -41,6 +41,9 @@ class RunnerModule(Protocol):
     def test_setup() -> Any: ...
 
     @staticmethod
+    def set_default_config() -> None: ...
+
+    @staticmethod
     def update() -> bool: ...
 
     @staticmethod
