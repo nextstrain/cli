@@ -232,9 +232,10 @@ def test_setup() -> RunnerTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``docker.image``, if it isn't already set, to the latest ``build-*``
+    image.
     """
-    pass
+    config.setdefault("docker", "image", latest_build_image(DEFAULT_IMAGE))
 
 
 def update() -> bool:
