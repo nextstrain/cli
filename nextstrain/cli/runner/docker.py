@@ -17,6 +17,10 @@ from ..volume import store_volume
 from ..__version__ import __version__
 
 
+# The default intentionally omits an explicit "latest" tag so that on the first
+# `nextstrain update` it gets pinned in the config file to the most recent
+# "build-*" tag.  Users can set an explicit "latest" tag in config to always
+# use the most recent image and not pin to "build-*" tags.
 DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
              or config.get("docker", "image") \
              or "nextstrain/base"
@@ -272,8 +276,8 @@ def update() -> bool:
     print()
 
     try:
-        images = dangling_images(current_image) \
-               + old_build_images(current_image)
+        images = dangling_images(latest_image) \
+               + old_build_images(latest_image)
 
         if images:
             subprocess.run(
@@ -304,10 +308,42 @@ def latest_build_image(image_name: str) -> str:
     is better than using the "latest" tag since the former is more descriptive
     and points to a static snapshot instead of a mutable snapshot.
 
-    If the given *image_name* is not tagged "build-*" or "latest" (implicitly
-    or explicitly), then the given *image_name* is returned as-is under the
-    presumption that it points to some other mutable snapshot that should be
-    pulled in-place to update.
+    If the given *image_name* has a tag but it isn't a "build-*" tag, then the
+    given *image_name* is returned as-is under the presumption that it points
+    to some other mutable snapshot that should be pulled in-place to update.
+    This means, for example, that users can opt into tracking the "latest" tag
+    by explicitly configuring it as the image to use (versus omitting the
+    "latest" tag).
+
+    Examples
+    --------
+
+    When a newer "build-*" tag exists, it's returned.
+
+    >>> old = "nextstrain/base:build-20220215T000459Z"
+    >>> new = latest_build_image(old)
+    >>> _, old_tag = split_image_name(old)
+    >>> _, new_tag = split_image_name(new)
+    >>> old_tag
+    'build-...'
+    >>> new_tag
+    'build-...'
+    >>> new_tag > old_tag
+    True
+
+    When a non-build tag is present, it's simply passed through.
+
+    >>> latest_build_image("nextstrain/base:latest")
+    'nextstrain/base:latest'
+
+    >>> latest_build_image("nextstrain/base:example")
+    'nextstrain/base:example'
+
+    When no tag is present (i.e. implicitly "latest"), a "build-*" tag is
+    returned.
+
+    >>> latest_build_image("nextstrain/base")
+    'nextstrain/base:build-...'
     """
     def GET(url, **kwargs):
         response = requests.get(url, **kwargs)
@@ -328,17 +364,15 @@ def latest_build_image(image_name: str) -> str:
         }
         return GET(url, headers = headers).json().get("tags", [])
 
-    repository, tag = split_image_name(image_name)
+    repository, tag = split_image_name(image_name, implicit_latest = False)
 
-    if tag == "latest" or is_build_tag(tag):
+    if not tag or is_build_tag(tag):
         build_tags = sorted(filter(is_build_tag, tags(repository)))
 
         if build_tags:
             return repository + ":" + build_tags[-1]
-        else:
-            return repository + ":latest"
-    else:
-        return image_name
+
+    return image_name
 
 
 def old_build_images(name: str) -> List[str]:

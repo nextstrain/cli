@@ -5,7 +5,8 @@ import site
 import subprocess
 import sys
 from types import ModuleType
-from typing import Any, Callable, Mapping, List, Sequence, Tuple, Union
+from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
+from typing_extensions import Literal
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
@@ -297,7 +298,15 @@ def byte_quantity(quantity: str) -> int:
     return int(value * unit_factor[units.lower()])
 
 
-def split_image_name(name: str) -> Tuple[str, str]:
+@overload
+def split_image_name(name: str, implicit_latest: Literal[True] = True) -> Tuple[str, str]:
+    ...
+
+@overload
+def split_image_name(name: str, implicit_latest: Literal[False]) -> Tuple[str, Optional[str]]:
+    ...
+
+def split_image_name(name: str, implicit_latest: bool = True) -> Tuple[str, Optional[str]]:
     """
     Split the Docker image *name* into a (repository, tag) tuple.
 
@@ -306,11 +315,17 @@ def split_image_name(name: str) -> Tuple[str, str]:
 
     >>> split_image_name("nextstrain/base")
     ('nextstrain/base', 'latest')
+
+    >>> split_image_name("nextstrain/base", implicit_latest = False)
+    ('nextstrain/base', None)
+
+    >>> split_image_name("nextstrain/base:latest", implicit_latest = False)
+    ('nextstrain/base', 'latest')
     """
     if ":" in name:
         repository, tag = name.split(":", maxsplit = 2)
     else:
-        repository, tag = name, "latest"
+        repository, tag = name, "latest" if implicit_latest else None
 
     return (repository, tag)
 
