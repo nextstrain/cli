@@ -1,6 +1,32 @@
 # __NEXT__
 
 
+# 3.2.4 (6 April 2022)
+
+## Bug fixes
+
+* `update` will no longer overwrite a `docker.image` config setting when the
+  current/default value includes an explicit `latest` tag.  This change makes
+  it possible to track the "latest" Docker runtime image by manually setting
+  
+  ```ini
+  [docker]
+  image = nextstrain/base:latest
+  ```
+  
+  in _~/.nextstrain/config_.
+  ([#163](https://github.com/nextstrain/cli/pull/163))
+
+* `update` now correctly prunes old images starting from and including the
+  just-updated-from image, instead of accidentally skipping it until the next
+  `update`.
+  ([#163](https://github.com/nextstrain/cli/pull/163))
+
+* `check-setup --set-default` now sets the `docker.image` setting to the most
+  recent `build-*` image when the Docker runtime is selected as the default.
+  ([#168](https://github.com/nextstrain/cli/pull/168))
+
+
 # 3.2.3 (1 April 2022)
 
 ## Bug fixes
