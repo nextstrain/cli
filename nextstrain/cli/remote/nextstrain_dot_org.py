@@ -56,6 +56,7 @@ Environment variables
 
 import os
 import requests
+import requests.auth
 import urllib.parse
 from collections import defaultdict
 from email.message import EmailMessage
@@ -209,7 +210,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     single = bool((len(datasets) + len(narratives)) == 1 and prefixed(path))
 
     with requests.Session() as http:
-        authorization = auth_headers()
+        http.auth = auth()
 
         def put(endpoint, file, media_type):
             with GzipCompressingReader(file.open("rb")) as data:
@@ -218,8 +219,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
                     data = data, # type: ignore
                     headers = {
                         "Content-Type": media_type,
-                        "Content-Encoding": "gzip",
-                        **authorization })
+                        "Content-Encoding": "gzip" })
 
                 raise_for_status(response)
 
@@ -267,10 +267,10 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             Did you mean to use --recursively?
             """)
 
-    authorization = auth_headers()
-
     with requests.Session() as http:
-        resources = _ls(path, recursively = recursively, http = http, authorization = authorization)
+        http.auth = auth()
+
+        resources = _ls(path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
@@ -285,7 +285,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
                 response = http.get(
                     endpoint,
-                    headers = {"Accept": subresource.media_type, **authorization},
+                    headers = {"Accept": subresource.media_type},
                     stream = True)
 
                 with response:
@@ -357,7 +357,7 @@ def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     ]
 
 
-def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session = None, authorization: dict = None):
+def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session = None):
     """
     List the :class:`Resource`(s) available at *path*.
 
@@ -366,20 +366,16 @@ def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session 
     at or beneath *path* are returned.
 
     If *http* is not provided, a new :class:`requests.Session` will be created.
-
-    If *authorization* is not provided, :func:`auth_headers` will be called to
     obtain it.
     """
     if http is None:
         http = requests.Session()
-
-    if authorization is None:
-        authorization = auth_headers()
+        http.auth = auth()
 
     response = http.get(
         api_endpoint("charon/getAvailable"),
         params = {"prefix": str(path)},
-        headers = {"Accept": "application/json", **authorization})
+        headers = {"Accept": "application/json"})
 
     raise_for_status(response)
 
@@ -411,18 +407,16 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
             Did you mean to use --recursively?
             """)
 
-    authorization = auth_headers()
-
     with requests.Session() as http:
-        resources = _ls(path, recursively = recursively, http = http, authorization = authorization)
+        http.auth = auth()
+
+        resources = _ls(path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
 
         for resource in resources:
-            response = http.delete(
-                api_endpoint(resource.path),
-                headers = authorization)
+            response = http.delete(api_endpoint(resource.path))
 
             raise_for_status(response)
 
@@ -535,20 +529,33 @@ def api_endpoint(path: Union[str, PurePosixPath]) -> str:
     return urljoin(NEXTSTRAIN_DOT_ORG, urlquote(str(path).lstrip("/")))
 
 
-def auth_headers() -> Dict[str, str]:
+class auth(requests.auth.AuthBase):
     """
-    HTTP request headers to authenticate with the nextstrain.org API as the
-    CLI's currently logged in user, if any.
-
-    Returns a dictionary.
+    Authentication class for Requests which adds HTTP request headers to
+    authenticate with the nextstrain.org API as the CLI's currently logged in
+    user, if any.
     """
-    headers = {}
-    user = current_user()
+    def __init__(self):
+        self.user = current_user()
 
-    if user:
-        headers["Authorization"] = user.http_authorization
+    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+        if self.user and origin(request.url) == origin(NEXTSTRAIN_DOT_ORG):
+            request.headers["Authorization"] = self.user.http_authorization
+        return request
 
-    return headers
+
+def origin(url: Optional[str]) -> Tuple[str, str]:
+    """
+    Parse *url* and into its origin tuple (scheme, netloc).
+
+    >>> origin("https://nextstrain.org/a/b/c")
+    ('https', 'nextstrain.org')
+
+    >>> origin("http://localhost:5000/x/y/z")
+    ('http', 'localhost:5000')
+    """
+    u = urlsplit(url or "")
+    return u.scheme, u.netloc
 
 
 def raise_for_status(response: requests.Response) -> None:
