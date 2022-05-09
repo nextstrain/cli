@@ -61,6 +61,7 @@ import urllib.parse
 from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
+from requests.utils import parse_dict_header
 from textwrap import indent
 from typing import Dict, Iterable, List, NamedTuple, NewType, Optional, Tuple, Union
 from urllib.parse import urljoin, urlsplit, quote as urlquote, quote_plus as urlquote_plus
@@ -580,15 +581,40 @@ def raise_for_status(response: requests.Response) -> None:
             user = current_user()
 
             if user:
-                raise UserError(f"""
-                    Permission denied.
+                challenge = authn_challenge(response) if status == 401 else None
 
-                    Are you logged in as the correct user?  Current user: {user.username}.
+                if challenge and challenge.get("error") == "invalid_token":
+                    # XXX TODO: In the future we could/should handle renewal
+                    # and retry automatically and ~transparently.
+                    #
+                    # Instead of throwing a UserError, this bit of code could
+                    # throw a custom exception, InvalidTokenError or something,
+                    # which would be caught by upper layers (caller of
+                    # raise_for_status()?) and be the trigger for performing
+                    # the renew and retry.
+                    #
+                    # Could potentially also use the "response" hook supported
+                    # by Requests and/or a urllib3 Retry subclass
+                    # implementation, but if the caller of raise_for_status()
+                    # isn't involved then the retry needs to be generalized
+                    # enough to handle things like re-seeking streams (which
+                    # may not be possible without cooperation).
+                    #   -trs, 10 May 2022
+                    raise UserError(f"""
+                        Login credentials appear to be out of date.
 
-                    If your permissions were recently changed (e.g. new group
-                    membership), it might help to run `nextstrain login --renew`
-                    and then retry your command.
-                    """) from err
+                        Please run `nextstrain login --renew` and then retry your command.
+                        """) from err
+                else:
+                    raise UserError(f"""
+                        Permission denied.
+
+                        Are you logged in as the correct user?  Current user: {user.username}.
+
+                        If your permissions were recently changed (e.g. new group
+                        membership), it might help to run `nextstrain login --renew`
+                        and then retry your command.
+                        """) from err
             else:
                 raise UserError(f"""
                     Permission denied.
@@ -605,6 +631,49 @@ def raise_for_status(response: requests.Response) -> None:
 
         else:
             raise
+
+
+def authn_challenge(response: requests.Response) -> Optional[Dict[str, str]]:
+    """
+    Extract the Bearer authentication challenge parameters from the HTTP
+    ``WWW-Authenticate`` header of *response*.
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Bearer error="invalid_token", error_description="token is expired"'
+    >>> authn_challenge(r)
+    {'error': 'invalid_token', 'error_description': 'token is expired'}
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Basic realm="nunya"'
+    >>> authn_challenge(r) # None
+
+    >>> r = requests.Response()
+    >>> authn_challenge(r) # None
+
+    A limitation is that this assumes only one challenge is provided, though
+    multiple challenges are permitted by the RFCs.  The Bearer challenge must
+    be first to be found:
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Basic realm="nunya", Bearer error="invalid_token"'
+    >>> authn_challenge(r) # None
+
+    and challenges following an initial Bearer challenge will be parsed
+    incorrectly as params:
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Bearer error="invalid_token", Basic realm="nunya"'
+    >>> authn_challenge(r)
+    {'error': 'invalid_token', 'Basic realm': 'nunya'}
+    """
+    challenge = response.headers.get("WWW-Authenticate")
+
+    if not challenge or not challenge.startswith("Bearer "):
+        return None
+
+    challenge_params = remove_prefix("Bearer ", challenge).lstrip(" ")
+
+    return parse_dict_header(challenge_params)
 
 
 def content_media_type(response: requests.Response) -> str:
