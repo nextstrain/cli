@@ -9,8 +9,8 @@ and :doc:`delete </commands/remote/delete>`
 Nextstrain :term:`datasets <docs:dataset>` and :term:`narratives
 <docs:narrative>` hosted on `nextstrain.org <https://nextstrain.org>`_.  This
 functionality is primarily intended for users to manage the contents of their
-:doc:`Nextstrain Groups <docs:guides/share/nextstrain-groups>`, but any public
-dataset or narrative may be downloaded.
+:doc:`Nextstrain Groups <docs:learn/groups/index>`, but any public dataset or
+narrative may be downloaded.
 
 
 Remote paths

@@ -9,7 +9,7 @@ Nextstrain :term:`datasets <docs:dataset>` and :term:`narratives
 This functionality is primarily intended for use by the Nextstrain team and
 operators of self-hosted :term:`docs:Auspice` instances.  It is also used to
 manage the contents of :doc:`Nextstrain Groups
-<docs:guides/share/nextstrain-groups>` that have not migrated to using the
+<docs:learn/groups/index>` that have not migrated to using the
 :doc:`/remotes/nextstrain.org`.
 
 
