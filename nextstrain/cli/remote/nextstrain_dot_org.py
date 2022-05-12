@@ -56,10 +56,12 @@ Environment variables
 
 import os
 import requests
+import requests.auth
 import urllib.parse
 from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
+from requests.utils import parse_dict_header
 from textwrap import indent
 from typing import Dict, Iterable, List, NamedTuple, NewType, Optional, Tuple, Union
 from urllib.parse import urljoin, urlsplit, quote as urlquote, quote_plus as urlquote_plus
@@ -209,7 +211,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
     single = bool((len(datasets) + len(narratives)) == 1 and prefixed(path))
 
     with requests.Session() as http:
-        authorization = auth_headers()
+        http.auth = auth()
 
         def put(endpoint, file, media_type):
             with GzipCompressingReader(file.open("rb")) as data:
@@ -218,8 +220,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
                     data = data, # type: ignore
                     headers = {
                         "Content-Type": media_type,
-                        "Content-Encoding": "gzip",
-                        **authorization })
+                        "Content-Encoding": "gzip" })
 
                 raise_for_status(response)
 
@@ -267,10 +268,10 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             Did you mean to use --recursively?
             """)
 
-    authorization = auth_headers()
-
     with requests.Session() as http:
-        resources = _ls(path, recursively = recursively, http = http, authorization = authorization)
+        http.auth = auth()
+
+        resources = _ls(path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
@@ -285,7 +286,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
                 response = http.get(
                     endpoint,
-                    headers = {"Accept": subresource.media_type, **authorization},
+                    headers = {"Accept": subresource.media_type},
                     stream = True)
 
                 with response:
@@ -357,7 +358,7 @@ def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     ]
 
 
-def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session = None, authorization: dict = None):
+def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session = None):
     """
     List the :class:`Resource`(s) available at *path*.
 
@@ -366,20 +367,16 @@ def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session 
     at or beneath *path* are returned.
 
     If *http* is not provided, a new :class:`requests.Session` will be created.
-
-    If *authorization* is not provided, :func:`auth_headers` will be called to
     obtain it.
     """
     if http is None:
         http = requests.Session()
-
-    if authorization is None:
-        authorization = auth_headers()
+        http.auth = auth()
 
     response = http.get(
         api_endpoint("charon/getAvailable"),
         params = {"prefix": str(path)},
-        headers = {"Accept": "application/json", **authorization})
+        headers = {"Accept": "application/json"})
 
     raise_for_status(response)
 
@@ -411,18 +408,16 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
             Did you mean to use --recursively?
             """)
 
-    authorization = auth_headers()
-
     with requests.Session() as http:
-        resources = _ls(path, recursively = recursively, http = http, authorization = authorization)
+        http.auth = auth()
+
+        resources = _ls(path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
 
         for resource in resources:
-            response = http.delete(
-                api_endpoint(resource.path),
-                headers = authorization)
+            response = http.delete(api_endpoint(resource.path))
 
             raise_for_status(response)
 
@@ -535,20 +530,33 @@ def api_endpoint(path: Union[str, PurePosixPath]) -> str:
     return urljoin(NEXTSTRAIN_DOT_ORG, urlquote(str(path).lstrip("/")))
 
 
-def auth_headers() -> Dict[str, str]:
+class auth(requests.auth.AuthBase):
     """
-    HTTP request headers to authenticate with the nextstrain.org API as the
-    CLI's currently logged in user, if any.
-
-    Returns a dictionary.
+    Authentication class for Requests which adds HTTP request headers to
+    authenticate with the nextstrain.org API as the CLI's currently logged in
+    user, if any.
     """
-    headers = {}
-    user = current_user()
+    def __init__(self):
+        self.user = current_user()
 
-    if user:
-        headers["Authorization"] = user.http_authorization
+    def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
+        if self.user and origin(request.url) == origin(NEXTSTRAIN_DOT_ORG):
+            request.headers["Authorization"] = self.user.http_authorization
+        return request
 
-    return headers
+
+def origin(url: Optional[str]) -> Tuple[str, str]:
+    """
+    Parse *url* and into its origin tuple (scheme, netloc).
+
+    >>> origin("https://nextstrain.org/a/b/c")
+    ('https', 'nextstrain.org')
+
+    >>> origin("http://localhost:5000/x/y/z")
+    ('http', 'localhost:5000')
+    """
+    u = urlsplit(url or "")
+    return u.scheme, u.netloc
 
 
 def raise_for_status(response: requests.Response) -> None:
@@ -573,15 +581,40 @@ def raise_for_status(response: requests.Response) -> None:
             user = current_user()
 
             if user:
-                raise UserError(f"""
-                    Permission denied.
+                challenge = authn_challenge(response) if status == 401 else None
 
-                    Are you logged in as the correct user?  Current user: {user.username}.
+                if challenge and challenge.get("error") == "invalid_token":
+                    # XXX TODO: In the future we could/should handle renewal
+                    # and retry automatically and ~transparently.
+                    #
+                    # Instead of throwing a UserError, this bit of code could
+                    # throw a custom exception, InvalidTokenError or something,
+                    # which would be caught by upper layers (caller of
+                    # raise_for_status()?) and be the trigger for performing
+                    # the renew and retry.
+                    #
+                    # Could potentially also use the "response" hook supported
+                    # by Requests and/or a urllib3 Retry subclass
+                    # implementation, but if the caller of raise_for_status()
+                    # isn't involved then the retry needs to be generalized
+                    # enough to handle things like re-seeking streams (which
+                    # may not be possible without cooperation).
+                    #   -trs, 10 May 2022
+                    raise UserError(f"""
+                        Login credentials appear to be out of date.
 
-                    If your permissions were recently changed (e.g. new group
-                    membership), it might help to run `nextstrain login --renew`
-                    and then retry your command.
-                    """) from err
+                        Please run `nextstrain login --renew` and then retry your command.
+                        """) from err
+                else:
+                    raise UserError(f"""
+                        Permission denied.
+
+                        Are you logged in as the correct user?  Current user: {user.username}.
+
+                        If your permissions were recently changed (e.g. new group
+                        membership), it might help to run `nextstrain login --renew`
+                        and then retry your command.
+                        """) from err
             else:
                 raise UserError(f"""
                     Permission denied.
@@ -598,6 +631,49 @@ def raise_for_status(response: requests.Response) -> None:
 
         else:
             raise
+
+
+def authn_challenge(response: requests.Response) -> Optional[Dict[str, str]]:
+    """
+    Extract the Bearer authentication challenge parameters from the HTTP
+    ``WWW-Authenticate`` header of *response*.
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Bearer error="invalid_token", error_description="token is expired"'
+    >>> authn_challenge(r)
+    {'error': 'invalid_token', 'error_description': 'token is expired'}
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Basic realm="nunya"'
+    >>> authn_challenge(r) # None
+
+    >>> r = requests.Response()
+    >>> authn_challenge(r) # None
+
+    A limitation is that this assumes only one challenge is provided, though
+    multiple challenges are permitted by the RFCs.  The Bearer challenge must
+    be first to be found:
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Basic realm="nunya", Bearer error="invalid_token"'
+    >>> authn_challenge(r) # None
+
+    and challenges following an initial Bearer challenge will be parsed
+    incorrectly as params:
+
+    >>> r = requests.Response()
+    >>> r.headers["WWW-Authenticate"] = 'Bearer error="invalid_token", Basic realm="nunya"'
+    >>> authn_challenge(r)
+    {'error': 'invalid_token', 'Basic realm': 'nunya'}
+    """
+    challenge = response.headers.get("WWW-Authenticate")
+
+    if not challenge or not challenge.startswith("Bearer "):
+        return None
+
+    challenge_params = remove_prefix("Bearer ", challenge).lstrip(" ")
+
+    return parse_dict_header(challenge_params)
 
 
 def content_media_type(response: requests.Response) -> str:
