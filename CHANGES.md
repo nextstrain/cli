@@ -1,6 +1,19 @@
 # __NEXT__
 
 
+# 3.2.5 (23 May 2022)
+
+## Improvements
+
+* A better error message with a potential remediation is emitted when requests
+  to nextstrain.org fail due to stale user tokens.
+
+## Documentation
+
+* The cross-reference to Nextstrain Groups documentation is now up to date with
+  the latest Groups docs.
+
+
 # 3.2.4 (6 April 2022)
 
 ## Bug fixes
