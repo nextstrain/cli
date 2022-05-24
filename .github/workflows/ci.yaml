@@ -55,7 +55,7 @@ jobs:
       - name: Run Nextstrain CLI commands
         run: |
           nextstrain version --verbose
-          nextstrain check-setup
+          nextstrain check-setup --set-default
 
           # XXX TODO: Stop ignoring errors once `update` is improved.  See
           # <https://github.com/nextstrain/cli/issues/87>.

@@ -22,7 +22,7 @@ from textwrap import indent
 from .. import config
 from ..types import Options
 from ..util import colored, check_for_new_version, remove_prefix, runner_name
-from ..runner import all_runners
+from ..runner import all_runners, default_runner
 
 
 def register_parser(subparser):
@@ -37,6 +37,8 @@ def register_parser(subparser):
 
 
 def run(opts: Options) -> int:
+    global default_runner
+
     success = partial(colored, "green")
     failure = partial(colored, "red")
     warning = partial(colored, "yellow")
@@ -100,7 +102,7 @@ def run(opts: Options) -> int:
     ]
 
     if supported_runners:
-        print("All good!  Supported Nextstrain environments:", ", ".join(success(runner_name(r)) for r in supported_runners))
+        print("Supported Nextstrain environments:", ", ".join(success(runner_name(r)) for r in supported_runners))
 
         if opts.set_default:
             default_runner = supported_runners[0]
@@ -109,7 +111,17 @@ def run(opts: Options) -> int:
             config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
     else:
-        print(failure("No good.  No support for any Nextstrain environment."))
+        print(failure("No support for any Nextstrain environment."))
+
+    print()
+    if default_runner in supported_runners:
+        print(f"All good!  Default environment ({runner_name(default_runner)}) is supported.")
+    else:
+        print(failure(f"No good.  Default environment ({runner_name(default_runner)}) is not supported."))
+
+        if supported_runners and not opts.set_default:
+            print()
+            print("Try running check-setup again with the --set-default option to pick a supported runner above.")
 
     # Return a 1 or 0 exit code
-    return int(not supported_runners)
+    return int(0 if default_runner in supported_runners else 1)
