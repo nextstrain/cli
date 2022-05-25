@@ -9,6 +9,7 @@ from . import (
     aws_batch as __aws_batch,
 )
 from .. import config
+from ..errors import UserError
 from ..types import Options, RunnerModule
 from ..util import runner_name, runner_help, warn
 from ..volume import NamedVolume
@@ -190,11 +191,12 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
         )
     ]
 
-    if (opts.image != docker.DEFAULT_IMAGE # type: ignore
+    if (opts.image is not docker.DEFAULT_IMAGE # type: ignore
     and opts.__runner__ is native):
-        warn(dedent("""
-            Warning: The specified --image=%s option is not used by --native.
-            """ % opts.image))
+        why_native = "the configured default" if default_runner is native else "selected by --native"
+        raise UserError(f"""
+            The --image option is incompatible with the "native" runner ({why_native}).
+            """)
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 
