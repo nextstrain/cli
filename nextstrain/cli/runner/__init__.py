@@ -196,6 +196,14 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
         why_native = "the configured default" if default_runner is native else "selected by --native"
         raise UserError(f"""
             The --image option is incompatible with the "native" runner ({why_native}).
+
+            If you need to use the "native" runner, please omit the --image option.
+
+            If you need the --image option, please select another runner (e.g.
+            with the --docker option) that supports it.  Currently --image is
+            supported by the Docker (--docker) and AWS Batch (--aws-batch)
+            runners.  You can check if your setup supports these runners with
+            `nextstrain check-setup`.
             """)
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
