@@ -177,8 +177,10 @@ def submit(name: str,
                 *forwarded_environment(),
                 *[{"name": name, "value": value} for name, value in env.items()]
             ],
-            **({ "vcpus": cpus } if cpus else {}),
-            **({ "memory": memory } if memory else {}),
+            "resourceRequirements": [
+                *([{ "type": "VCPU", "value": str(cpus) }] if cpus else []),
+                *([{ "type": "MEMORY", "value": str(memory) }] if memory else []),
+            ],
             "command": [
                 "/sbin/entrypoint-aws-batch",
                 *exec
