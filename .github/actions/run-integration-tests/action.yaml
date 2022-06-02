@@ -1,0 +1,38 @@
+name: Run integration tests
+description: >-
+  Runs integration tests excercising common commands and behaviour.
+
+  Jobs which use this action must have
+
+    1. Called the setup-integration-tests action.
+    2. Installed Nextstrain CLI on the PATH.
+
+  before calling this action.
+
+runs:
+  using: composite
+  steps:
+    - name: Run Nextstrain CLI commands
+      shell: bash -l -eo pipefail {0}
+      run: |
+        nextstrain version --verbose
+        nextstrain check-setup --set-default
+
+        # XXX TODO: Stop ignoring errors once `update` is improved.  See
+        # <https://github.com/nextstrain/cli/issues/87>.
+        nextstrain update || true
+
+        nextstrain version --verbose
+
+    - if: runner.os != 'macOS'
+      name: Build zika-tutorial with --docker
+      shell: bash -l -eo pipefail {0}
+      run: |
+        git -C zika-tutorial clean -dfqx
+        nextstrain build --docker --cpus 2 zika-tutorial
+
+    - name: Build zika-tutorial with --native
+      shell: bash -l -eo pipefail {0}
+      run: |
+        git -C zika-tutorial clean -dfqx
+        nextstrain build --native --cpus 2 zika-tutorial

@@ -69,23 +69,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
+        # Add -l for setup-integration-tests → setup-miniconda → automatic
+        # activation of "test" environment.
         shell: bash -l -eo pipefail {0}
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v3
+        with:
+          path: src/
+
+      - uses: ./src/.github/actions/setup-integration-tests
         with:
           python-version: ${{ matrix.python }}
-          mamba-version: "*"
-          channels: conda-forge,bioconda
-          channel-priority: true
-          activate-environment: test
-      - run: cat ~/.profile || true
-      - run: cat ~/.bashrc || true
-
-      - name: Set up test environment
-        run: |
-          mamba install augur auspice snakemake
-          # The small build we'll use as an integration test case.
-          git clone https://github.com/nextstrain/zika-tutorial
 
       - uses: actions/download-artifact@v3
         with:
@@ -95,36 +89,7 @@ jobs:
       - name: Install Nextstrain CLI
         run: python3 -m pip install --upgrade dist/nextstrain_cli-*-py3-none-any.whl
 
-      - run: conda info
-      - run: conda list
-
-      - name: Check python version
-        run: |
-          # Assert that we're on the expected Python version, in case the GH
-          # Actions environment is messed up.
-          python3 --version | grep -F 'Python ${{ matrix.python }}.'
-
-      - name: Run Nextstrain CLI commands
-        run: |
-          nextstrain version --verbose
-          nextstrain check-setup --set-default
-
-          # XXX TODO: Stop ignoring errors once `update` is improved.  See
-          # <https://github.com/nextstrain/cli/issues/87>.
-          nextstrain update || true
-
-          nextstrain version --verbose
-
-      - if: runner.os != 'macOS'
-        name: Build zika-tutorial with --docker
-        run: |
-          git -C zika-tutorial clean -dfqx
-          nextstrain build --docker --cpus 2 zika-tutorial
-
-      - name: Build zika-tutorial with --native
-        run: |
-          git -C zika-tutorial clean -dfqx
-          nextstrain build --native --cpus 2 zika-tutorial
+      - uses: ./src/.github/actions/run-integration-tests
 
   doc:
     name: doc
