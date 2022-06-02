@@ -5,6 +5,32 @@ on:
   - pull_request
 
 jobs:
+  test-source:
+    name: test-source (python=${{ matrix.python }} os=${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        python:
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Nextstrain CLI
+        run: python3 -m pip install --upgrade '.[dev]'
+
+      - name: Run pytest
+        run: pytest -v
+
   build-dist:
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +71,6 @@ jobs:
       run:
         shell: bash -l -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: ${{ matrix.python }}
@@ -68,7 +93,7 @@ jobs:
           path: dist/
 
       - name: Install Nextstrain CLI
-        run: python3 -m pip install --upgrade "$(echo dist/nextstrain_cli-*-py3-none-any.whl)[dev]"
+        run: python3 -m pip install --upgrade dist/nextstrain_cli-*-py3-none-any.whl
 
       - run: conda info
       - run: conda list
@@ -89,9 +114,6 @@ jobs:
           nextstrain update || true
 
           nextstrain version --verbose
-
-      - name: Run pytest
-        run: pytest -v
 
       - if: runner.os != 'macOS'
         name: Build zika-tutorial with --docker
