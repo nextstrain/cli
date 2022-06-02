@@ -13,8 +13,20 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+_See also changes in 6.0.1 which was an unreleased version._
+
+## Bug fixes
+
+* A new deprecation warning from the `cryptography` module (version 39) when
+  running on Python 3.6 is now suppressed as it's just noise to an end user.
+  This probably moves us closer to dropping 3.6 support ourselves, but it's not
+  so onerous yet.
+  ([#246](https://github.com/nextstrain/cli/issues/246))
+
 
 # 6.0.1 (3 January 2023)
+
+_Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/245). Changes first released as part of 6.0.2._
 
 ## Improvements
 

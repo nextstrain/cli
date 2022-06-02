@@ -4,11 +4,11 @@ AWS Cognito helpers.
 import boto3
 import warnings
 
-# Ignore noisy warning from cryptography 37.0.0 about deprecated support for Python 3.6.
+# Ignore noisy warning from cryptography 37.0.0 and 39.0.0 about deprecated support for Python 3.6.
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore",
-        message  = "Python 3\\.6 is no longer supported by the Python core team\\. Therefore, support for it is deprecated in cryptography and will be removed in a future release\\.",
+        message  = "Python 3\\.6 is no longer supported by the Python core team\\. Therefore, support for it is deprecated in cryptography",
         category = UserWarning)
 
     import jwt
