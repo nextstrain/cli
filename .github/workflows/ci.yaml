@@ -5,8 +5,30 @@ on:
   - pull_request
 
 jobs:
-  test:
-    name: python=${{ matrix.python }} os=${{ matrix.os }}
+  build-dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      # Install up-to-date packaging toolchain.
+      - run: python3 -m pip install --upgrade pip setuptools wheel
+      - run: python3 -m pip install --upgrade build
+
+      # Build dists.
+      - run: python3 -m build
+
+      # Upload dists as workflow artifacts.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  test-dist:
+    needs: build-dist
+    name: test-dist (python=${{ matrix.python }} os=${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -40,8 +62,13 @@ jobs:
           # The small build we'll use as an integration test case.
           git clone https://github.com/nextstrain/zika-tutorial
 
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
       - name: Install Nextstrain CLI
-        run: python3 -m pip install --upgrade '.[dev]'
+        run: python3 -m pip install --upgrade "$(echo dist/nextstrain_cli-*-py3-none-any.whl)[dev]"
 
       - run: conda info
       - run: conda list
