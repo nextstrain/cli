@@ -24,7 +24,6 @@ from docutils.utils import column_width
 # The builder in Sphinx is a global context object ("god object") which isn't
 # very amenable to extraction.
 class TextConfig:
-    text_newlines = "native"
     text_sectionchars = '*=-~"+`'
     text_add_secnumbers = False   # Sphinx default is True, but we don't want 'em.
     text_secnumber_suffix = ". "  # referenced but not used because above is False.
@@ -447,13 +446,7 @@ class TextTranslator(SphinxTranslator):
     def __init__(self, document: nodes.document, builder: "TextBuilder") -> None:
         super().__init__(document, builder)
 
-        newlines = self.config.text_newlines
-        if newlines == 'windows':
-            self.nl = '\r\n'
-        elif newlines == 'native':
-            self.nl = os.linesep
-        else:
-            self.nl = '\n'
+        self.nl = '\n'
         self.sectionchars = self.config.text_sectionchars
         self.add_secnumbers = self.config.text_add_secnumbers
         self.secnumber_suffix = self.config.text_secnumber_suffix
