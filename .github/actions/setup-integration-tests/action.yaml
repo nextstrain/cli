@@ -51,9 +51,13 @@ runs:
       run: |
         # Assert that we're on the expected Python version, in case the GH
         # Actions environment is messed up.
+        type python
+        python --version
         type python3
         python3 --version
+        python --version | grep -F 'Python ${{ inputs.python-version }}.'
         python3 --version | grep -F 'Python ${{ inputs.python-version }}.'
+        [[ "$(python --version)" == "$(python3 --version)" ]]
 
     # Clone the small build we'll use as an integration test case.
     - run: git clone https://github.com/nextstrain/zika-tutorial
