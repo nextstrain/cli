@@ -24,14 +24,15 @@ runs:
 
         nextstrain version --verbose
 
-    - if: runner.os != 'macOS'
+    - if: runner.os != 'macOS' && runner.os != 'Windows'
       name: Build zika-tutorial with --docker
       shell: bash -l -eo pipefail {0}
       run: |
         git -C zika-tutorial clean -dfqx
         nextstrain build --docker --cpus 2 zika-tutorial
 
-    - name: Build zika-tutorial with --native
+    - if: runner.os != 'Windows'
+      name: Build zika-tutorial with --native
       shell: bash -l -eo pipefail {0}
       run: |
         git -C zika-tutorial clean -dfqx

@@ -33,11 +33,15 @@ runs:
     - run: cat ~/.profile || true
       shell: bash -l -eo pipefail {0}
 
+    - run: cat ~/.bash_profile || true
+      shell: bash -l -eo pipefail {0}
+
     - run: cat ~/.bashrc || true
       shell: bash -l -eo pipefail {0}
 
-    # Install software for the "native" runner.
-    - run: mamba install augur auspice snakemake
+    # Install software for the "native" runner; not supported on Windows.
+    - if: runner.os != 'Windows'
+      run: mamba install augur auspice snakemake
       shell: bash -l -eo pipefail {0}
 
     - run: conda info
@@ -45,6 +49,13 @@ runs:
 
     - run: conda list
       shell: bash -l -eo pipefail {0}
+
+    - if: runner.os == 'Windows'
+      name: Fix python vs. python3 mismatch on Windows
+      shell: bash -l -eo pipefail {0}
+      run: |
+        python="$(type -p python)"
+        cp -v "$python" "$(dirname "$python")"/python3
 
     - name: Check python version
       shell: bash -l -eo pipefail {0}
