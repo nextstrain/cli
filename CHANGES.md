@@ -59,6 +59,11 @@ development source code and as such may not be routinely kept up to date.
 * This changelog now sports a preamble to set the scene and provide context for
   the content.
 
+## Development
+
+* The source repo now uses a `+git` local version part to distinguish
+  actual releases from installations of unreleased code.
+
 
 # 3.2.5 (23 May 2022)
 
