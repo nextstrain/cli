@@ -1,12 +1,15 @@
 name: CI
 
 on:
-  - push
-  - pull_request
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  test:
-    name: python=${{ matrix.python }} os=${{ matrix.os }}
+  test-source:
+    name: test-source (python=${{ matrix.python }} os=${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
@@ -18,64 +21,80 @@ jobs:
           - '3.7'
           - '3.8'
           - '3.9'
+          - '3.10'
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -l -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python }}
-          mamba-version: "*"
-          channels: conda-forge,bioconda
-          channel-priority: true
-          activate-environment: test
-      - run: cat ~/.profile || true
-      - run: cat ~/.bashrc || true
-
-      - name: Set up test environment
-        run: |
-          mamba install augur auspice snakemake
-          # The small build we'll use as an integration test case.
-          git clone https://github.com/nextstrain/zika-tutorial
 
       - name: Install Nextstrain CLI
         run: python3 -m pip install --upgrade '.[dev]'
 
-      - run: conda info
-      - run: conda list
-
-      - name: Check python version
-        run: |
-          # Assert that we're on the expected Python version, in case the GH
-          # Actions environment is messed up.
-          python3 --version | grep -F 'Python ${{ matrix.python }}.'
-
-      - name: Run Nextstrain CLI commands
-        run: |
-          nextstrain version --verbose
-          nextstrain check-setup --set-default
-
-          # XXX TODO: Stop ignoring errors once `update` is improved.  See
-          # <https://github.com/nextstrain/cli/issues/87>.
-          nextstrain update || true
-
-          nextstrain version --verbose
-
       - name: Run pytest
         run: pytest -v
 
-      - if: runner.os != 'macOS'
-        name: Build zika-tutorial with --docker
-        run: |
-          git -C zika-tutorial clean -dfqx
-          nextstrain build --docker --cpus 2 zika-tutorial
+  build-dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
 
-      - name: Build zika-tutorial with --native
-        run: |
-          git -C zika-tutorial clean -dfqx
-          nextstrain build --native --cpus 2 zika-tutorial
+      # Install up-to-date packaging toolchain.
+      - run: python3 -m pip install --upgrade pip setuptools wheel
+      - run: python3 -m pip install --upgrade build
+
+      # Build dists.
+      - run: python3 -m build
+
+      # Upload dists as workflow artifacts.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+  test-dist:
+    needs: build-dist
+    name: test-dist (python=${{ matrix.python }} os=${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        python:
+          - '3.6'
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          # XXX TODO: Add 3.10 here once supported by Conda/Bioconda/Conda Forge.
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # Add -l for setup-integration-tests → setup-miniconda → automatic
+        # activation of "test" environment.
+        shell: bash -l -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: src/
+
+      - uses: ./src/.github/actions/setup-integration-tests
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install Nextstrain CLI
+        run: python3 -m pip install --upgrade dist/nextstrain_cli-*-py3-none-any.whl
+
+      - uses: ./src/.github/actions/run-integration-tests
 
   doc:
     name: doc
@@ -84,7 +103,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
-          python-version: '3.6'
+          python-version: '3.10'
 
       - name: Upgrade Python toolchain
         run: python3 -m pip install --upgrade pip setuptools wheel

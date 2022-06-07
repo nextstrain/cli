@@ -1,0 +1,64 @@
+name: Setup integration tests
+description: >-
+  Sets up prerequisites for run-integration-tests, namely installing software
+  needed by the "native" runner and cloning zika-tutorial for use as an test
+  build.
+
+  Jobs which use this action must also set
+
+    defaults:
+      run:
+        shell: bash -l -eo pipefail {0}
+
+  at the job level (or the equivalent "shell:" key at the step level) to
+  activate the integration Conda environment by default.
+
+inputs:
+  python-version:
+    description: Version of Python to use for conda-incubator/setup-miniconda.
+    type: string
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: ${{ inputs.python-version }}
+        mamba-version: "*"
+        channels: conda-forge,bioconda
+        channel-priority: true
+        activate-environment: test
+
+    - run: cat ~/.profile || true
+      shell: bash -l -eo pipefail {0}
+
+    - run: cat ~/.bashrc || true
+      shell: bash -l -eo pipefail {0}
+
+    # Install software for the "native" runner.
+    - run: mamba install augur auspice snakemake
+      shell: bash -l -eo pipefail {0}
+
+    - run: conda info
+      shell: bash -l -eo pipefail {0}
+
+    - run: conda list
+      shell: bash -l -eo pipefail {0}
+
+    - name: Check python version
+      shell: bash -l -eo pipefail {0}
+      run: |
+        # Assert that we're on the expected Python version, in case the GH
+        # Actions environment is messed up.
+        type python
+        python --version
+        type python3
+        python3 --version
+        python --version | grep -F 'Python ${{ inputs.python-version }}.'
+        python3 --version | grep -F 'Python ${{ inputs.python-version }}.'
+        [[ "$(python --version)" == "$(python3 --version)" ]]
+
+    # Clone the small build we'll use as an integration test case.
+    - run: git clone https://github.com/nextstrain/zika-tutorial
+      shell: bash -l -eo pipefail {0}
