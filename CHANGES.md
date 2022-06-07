@@ -54,6 +54,11 @@ development source code and as such may not be routinely kept up to date.
   continue to work with `--cpus` and `--memory` as expected.  See
   [#144](https://github.com/nextstrain/cli/issues/144) for more details.
 
+* A deprecation warning from the `cryptography` module (version 37 and higher)
+  when running on Python 3.6 is now suppressed as it's just noise to an end
+  user.  This probably moves us closer to dropping 3.6 support ourselves, but
+  it's not so onerous yet.
+
 ## Documentation
 
 * This changelog now sports a preamble to set the scene and provide context for
@@ -63,6 +68,14 @@ development source code and as such may not be routinely kept up to date.
 
 * The source repo now uses a `+git` local version part to distinguish
   actual releases from installations of unreleased code.
+
+* The CI workflow has seen some significant sprucing up, including sporting a
+  more typical lifecycle with separate build and test steps.  This all makes it
+  easier to extend CI later with more steps that follow from build, like
+  automatic publishing of releases and other derived artifacts.  The single
+  test step is also now split between source tests (unit tests, type checking,
+  linting, etc) and dist tests (functional tests, integration tests, interface
+  tests, etc).  Various other small improvements to CI were also made.
 
 
 # 3.2.5 (23 May 2022)
