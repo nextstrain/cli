@@ -18,6 +18,7 @@ jobs:
           - '3.7'
           - '3.8'
           - '3.9'
+          - '3.10'
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -66,6 +67,7 @@ jobs:
           - '3.7'
           - '3.8'
           - '3.9'
+          # XXX TODO: Add 3.10 here once supported by Conda/Bioconda/Conda Forge.
     runs-on: ${{ matrix.os }}
     defaults:
       run:
