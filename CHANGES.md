@@ -1,4 +1,68 @@
+This is the changelog for Nextstrain CLI.  All notable changes in a release
+will be documented in this file.
+
+This changelog is intended for _humans_ and follows many of the principles from
+[Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+
+Versions for this project follow the [Semantic Versioning
+rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
+released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
+was released.  The "__NEXT__" heading below describes changes in the unreleased
+development source code and as such may not be routinely kept up to date.
+
+
 # __NEXT__
+
+## Improvements
+
+* It is now an error (instead of a warning) to use the `--image` option to
+  `nextstrain build` when using the "native" runner (either explicitly via
+  `--native` or implicitly via config set by `nextstrain check-setup
+  --set-default`).  The error message is:
+
+      The --image option is incompatible with the "native" runner (…).
+
+      If you need to use the "native" runner, please omit the --image option.
+
+      If you need the --image option, please select another runner (e.g.
+      with the --docker option) that supports it.  Currently --image is
+      supported by the Docker (--docker) and AWS Batch (--aws-batch)
+      runners.  You can check if your setup supports these runners with
+      `nextstrain check-setup`.
+
+  This is a **potentially-breaking change** as invocations using the "native"
+  runner with the `--image` option may exist and be working for users as they
+  expect.  If you encounter this new error after upgrading but your results of
+  running `nextstrain` commands has always been as-expected, then you can
+  safely drop the `--image` option from your invocations and avoid the new
+  error.
+
+* The `version --verbose` and `check-setup` commands now indicate the default
+  runner in their output, which is useful context when troubleshooting or just
+  plain unsure what the default is.
+
+* The `check-setup` command now exits with an error code if the default runner
+  is not supported.  Prior to this it only exited with an error code if no
+  runners were supported.
+
+## Bug fixes
+
+* When using the AWS Batch runner, the `--cpus` and `--memory` options for
+  `build` now correctly override the corresponding resource requests in newer
+  style AWS Batch job definitions.  Prior to this they would be ignored by AWS
+  Batch.  Older style AWS Batch job definitions were never affected by this and
+  continue to work with `--cpus` and `--memory` as expected.  See
+  [#144](https://github.com/nextstrain/cli/issues/144) for more details.
+
+## Documentation
+
+* This changelog now sports a preamble to set the scene and provide context for
+  the content.
+
+## Development
+
+* The source repo now uses a `+git` local version part to distinguish
+  actual releases from installations of unreleased code.
 
 
 # 3.2.5 (23 May 2022)

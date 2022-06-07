@@ -16,6 +16,7 @@ main() {
     update-changelog $version
     commit-and-tag $version
     build-dist
+    unreleased-version $version+git
     remind-to-push $version
 }
 
@@ -34,7 +35,7 @@ assert-clean-working-dir() {
 
 assert-changelog-has-additions() {
     local current_version="$(read-version)"
-    local numstat="$(git diff --numstat "$current_version" -- "$changes_file")"
+    local numstat="$(git diff --numstat "${current_version%%+*}" -- "$changes_file")"
     local insertions deletions rest
 
     if [[ -z $numstat ]]; then
@@ -54,6 +55,7 @@ assert-changelog-has-additions() {
 
 next-version() {
     local current_version="$(read-version)"
+    current_version="${current_version%%+*}"
 
     read -e -p "Current version is $current_version."$'\n'"New version? " -i "$current_version" new_version
 
@@ -100,6 +102,15 @@ build-dist() {
     rm -rfv dist nextstrain_cli.egg-info
     python3 setup.py clean
     python3 setup.py sdist bdist_wheel
+}
+
+unreleased-version() {
+    local unreleased_version="$1"
+
+    # Add +git local part to mark any further development
+    update-version "$unreleased_version"
+
+    git commit -m "dev: Bump version to $unreleased_version" "$version_file"
 }
 
 remind-to-push() {
