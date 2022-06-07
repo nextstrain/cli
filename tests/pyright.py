@@ -5,10 +5,13 @@ from subprocess import run
 
 topdir = Path(__file__).resolve().parent.parent
 
-if which("pyright"):
-    pyright = ["pyright"]
-elif which("npx"):
-    pyright = ["npx", "pyright@<1.1.217 || >1.1.218"]
+pyright = which("pyright")
+npx = which("npx")
+
+if pyright:
+    pyright = [pyright]
+elif npx:
+    pyright = [npx, "pyright@<1.1.217 || >1.1.218"]
 else:
     pyright = None
 

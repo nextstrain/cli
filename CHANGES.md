@@ -59,6 +59,16 @@ development source code and as such may not be routinely kept up to date.
   user.  This probably moves us closer to dropping 3.6 support ourselves, but
   it's not so onerous yet.
 
+* The rST to plain text conversion used to format `--help` text was fixed to
+  avoid emitting `\r\n` in the wrong context.
+
+* The stdout and stderr streams are now configured at program start to always
+  emit UTF-8.  Previously they used the Python defaults, determined in part by
+  the system defaults, which often resolved to UTF-8, but not always.  The code
+  base assumes UTF-8, and now the streams are guaranteed to match.  In
+  particular, this fixes `UnicodeEncodeError` issues in some contexts on
+  Windows even when UTF-8 is supported.
+
 ## Documentation
 
 * This changelog now sports a preamble to set the scene and provide context for
@@ -76,6 +86,10 @@ development source code and as such may not be routinely kept up to date.
   test step is also now split between source tests (unit tests, type checking,
   linting, etc) and dist tests (functional tests, integration tests, interface
   tests, etc).  Various other small improvements to CI were also made.
+
+* We now run CI tests on Windows. \o/ It's not perfect, but this should help
+  avoid basic Windows-only pitfalls which we might not otherwise notice in a
+  timely fashion.
 
 
 # 3.2.5 (23 May 2022)
