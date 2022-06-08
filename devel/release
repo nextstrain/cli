@@ -7,10 +7,13 @@ version_file="$repo/nextstrain/cli/__version__.py"
 changes_file="$repo/CHANGES.md"
 
 main() {
+    local version
+
     assert-clean-working-dir
     assert-changelog-has-additions
 
-    version=$(next-version)
+    version="${1:-$(next-version)}"
+    echo "New version will be $version."
 
     update-version $version
     update-changelog $version
