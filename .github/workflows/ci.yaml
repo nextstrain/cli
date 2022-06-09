@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - master
+    tags:
+      # Version tags.
+      #
+      # Tags matching this pattern will cause the "release" job below to run,
+      # so edit it carefully!  It should not match arbitrary tags.
+      - "[0-9]+.[0-9]+.[0-9]+*"
   pull_request:
   workflow_dispatch:
 
@@ -293,3 +299,50 @@ jobs:
         run: make -C doc dirhtml
         env:
           SPHINXOPTS: -W --keep-going
+
+  release:
+    # Restricted to version tags by the "on: push: tags: …" config at the top.
+    if: |2
+         github.event_name == 'push'
+      && github.ref_type == 'tag'
+    needs:
+      - build-dist
+      - build-standalone
+      - test-source
+      - test-dist
+      - test-standalone
+      - doc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - run: python3 -m pip install --upgrade twine
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: standalone-x86_64-unknown-linux-gnu
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: standalone-x86_64-apple-darwin
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: standalone-x86_64-pc-windows-msvc
+
+      - run: twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_REPOSITORY_URL: https://upload.pypi.org/legacy/
+
+      - run: ./devel/create-github-release "${{github.ref_name}}" dist/* nextstrain-cli-*-standalone-*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

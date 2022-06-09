@@ -1,0 +1,70 @@
+#!/bin/bash
+set -euo pipefail
+shopt -s extglob
+
+devel="$(dirname "$0")"
+
+main() {
+    local version="${1:?version is required}"
+    local commit pre_release
+    shift
+    local -a assets=("$@")
+
+    if [[ ${#assets[@]} -eq 0 ]]; then
+        echo "ERROR: no assets provided" >&2
+        exit 1
+    fi
+
+    # Asserts that $version is an actual tag, not a branch name or other ref.
+    #
+    # Prefixing with refs/tags/ is a bit hacky and suffixing with ^{tag} would
+    # be more proper to restrict to a proper annotated, meant-for-release tag.
+    # While this is dandy in any given clone, in the GitHub Actions context the
+    # annotated tag is intentionally **overwritten** and converted to a
+    # lightweight tag by actions/checkout@v3, which doesn't/can't pass the
+    # muster of ^{tag}.
+    git rev-parse --verify "refs/tags/$version" >/dev/null
+
+    # Translate from tag into commit for `gh release create --target`.
+    commit="$(git rev-parse --verify "$version^{commit}")"
+
+    if is-pre-release "$version"; then
+        pre_release=1
+    fi
+
+    gh release create \
+        "$version" \
+        --repo "${GITHUB_REPOSITORY:-nextstrain/cli}" \
+        --title "$version" \
+        --target "$commit" \
+        ${pre_release:+--prerelease} \
+        --notes-file <(preamble; "$devel"/changes "$version") \
+        "${assets[@]}"
+}
+
+is-pre-release() {
+    # See https://peps.python.org/pep-0440/
+    local version="$1"
+    case "$version" in
+        *@(a|b|rc|c)+([0-9])*)  # alpha, beta, release candidate (PEP 440 pre-releases)
+            return 0;;
+        *.dev+([0-9])*)         # dev release
+            return 0;;
+        *+*)                    # local version
+            return 0;;
+        *)
+            return 1;;
+    esac
+}
+
+preamble() {
+    cat <<~~
+
+_These release notes are automatically extracted from the full [changelog][]._
+
+[changelog]: https://github.com/nextstrain/cli/blob/master/CHANGES.md#readme
+
+~~
+}
+
+main "$@"

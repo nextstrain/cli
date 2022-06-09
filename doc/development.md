@@ -51,13 +51,14 @@ run `./bin/nextstrain` to test your local changes without installing them.
 ## Releasing
 
 New releases are made frequently and tagged in git using a [_signed_ tag][].
-The source and wheel (binary) distributions are uploaded to [the nextstrain-cli
-project on PyPi](https://pypi.org/project/nextstrain-cli).
-
 There is a `./devel/release` script which will prepare a new release from your
 local repository.  It ends with instructions for you on how to push the release
-commit/tag and how to upload the built distributions to PyPi.  You'll need [a
-PyPi account][] and [twine][] installed.
+commit/tag.
+
+When a release tag is pushed, the [CI workflow][] builds [source
+distributions][] and [built distributions][] (wheels), tests them, and if tests
+pass, uploads them to [the nextstrain-cli project on
+PyPi](https://pypi.org/project/nextstrain-cli).
 
 ## Tests
 
@@ -102,8 +103,9 @@ safety and correctness.  You can run them like this:
 
 [Semantic Versioning rules]: https://semver.org
 [_signed_ tag]: https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work
-[a PyPi account]: https://pypi.org/account/register/
-[twine]: https://pypi.org/project/twine
+[CI workflow]: ../.github/workflows/ci.yaml
+[source distributions]: https://packaging.python.org/en/latest/glossary/#term-Source-Distribution
+[built distributions]: https://packaging.python.org/en/latest/glossary/#term-Built-Distribution
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [mypy]: http://mypy-lang.org/
 [pyright]: https://github.com/microsoft/pyright
