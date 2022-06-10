@@ -91,6 +91,26 @@ development source code and as such may not be routinely kept up to date.
   avoid basic Windows-only pitfalls which we might not otherwise notice in a
   timely fashion.
 
+* Our CI now builds (and tests) standalone installation archives (`.tar.gz` for
+  Linux and macOS, `.zip` for Windows) comprising of:
+
+    1. A `nextstrain` executable containing a bundled Python interpreter + the
+       Python stdlib + the Nextstrain CLI code + its dependencies.
+
+    2. External files (lib, data, etc) that are necessary but can't (for a
+       variety of reasons) be bundled into the executable.
+
+  These installation archives can be downloaded, extracted, and run in-place
+  without even a Python interpreter being installed on the host computer, hence
+  the "standalone" moniker.
+
+  Currently these are for development/testing/experimentation purposes only.
+  We don't distribute them with/as releases or provide an automated means of
+  "installing" or unpacking them; those are ultimate goals, but this is just a
+  first step towards those.  If you try out the standalone archives in the
+  meantime, though, please let us know how it goes (good or bad) by opening an
+  issue with your experience/feedback/questions.
+
 
 # 3.2.5 (23 May 2022)
 
