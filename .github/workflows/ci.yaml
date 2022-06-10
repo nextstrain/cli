@@ -57,6 +57,123 @@ jobs:
           name: dist
           path: dist/
 
+  build-standalone:
+    needs: build-dist
+    strategy:
+      fail-fast: false
+      matrix:
+        # Generally we want to build on the oldest supported OS to maximize the
+        # final binary's compatibility.  See pyoxidizer's docs for more
+        # considerations affecting the choice of build machine OS¹ and future
+        # plans for robust, turnkey build environments².
+        #
+        # ¹ https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_distributing_binary_portability.html
+        # ² https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_status.html#an-official-build-environment
+        #
+        # XXX TODO: GitHub doesn't yet host any runners on M1 (Apple Silicon,
+        # aarch64, arm64) hardware, and we don't have M1 hardware on which to
+        # self-host a runner.  Amazon's mac2.metal EC2 instances are M1, but
+        # they cost a minimum of ~$15/day.  It would be cheaper to buy an M1
+        # Mac Mini for ~$700 which would pay for itself in less than 2 months.
+        #   -trs, 31 May 2022
+        include:
+          - os: ubuntu-18.04
+            target: x86_64-unknown-linux-gnu
+            exe: nextstrain
+
+          - os: macos-10.15
+            target: x86_64-apple-darwin
+            exe: nextstrain
+
+          - os: windows-2019
+            target: x86_64-pc-windows-msvc
+            exe: nextstrain.exe
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Install pyoxidizer.
+      #
+      # Even though it's a Rust project, the easiest cross-platform way to
+      # install it is via pip since they publish wheels with the binaries. :-)
+      # Note that this Python version doesn't impact the actual build.
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - run: pip install pyoxidizer
+
+      # Build the executable + necessary external files from the dists.
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      - name: Set DIST, DIST_VERSION, and INSTALLATION_ARCHIVE_STEM
+        run: |
+          DIST=(dist/nextstrain_cli-*-py3-none-any.whl)
+          DIST_VERSION="$DIST"
+          DIST_VERSION="${DIST_VERSION#dist/nextstrain_cli-}"
+          DIST_VERSION="${DIST_VERSION%-py3-none-any.whl}"
+          INSTALLATION_ARCHIVE_STEM="nextstrain-cli-${DIST_VERSION}-standalone-${{ matrix.target }}"
+
+          for var in DIST DIST_VERSION INSTALLATION_ARCHIVE_STEM; do
+            echo "${var}=${!var}" | tee -a "$GITHUB_ENV"
+          done
+
+      - run: |
+          pyoxidizer build \
+            --release \
+            --target-triple ${{ matrix.target }} \
+            --var NEXTSTRAIN_CLI_DIST "$DIST"
+
+      # Analyze the executable for potential portability issues.
+      #
+      # This is for informational purposes only in build logs, so we don't care
+      # if it fails.  Currently it only works on Linux, though it's supposed to
+      # eventually work on all platforms supported by pyoxidizer.
+      - if: runner.os == 'Linux'
+        run: pyoxidizer analyze build/${{ matrix.target }}/release/installation/${{ matrix.exe }}
+        continue-on-error: true
+
+      # XXX TODO: Review and report on licensing of all the stuff built into
+      # the binary, as bundling things statically can trigger different license
+      # terms than "normal" installs (e.g. via pip).  See also pyoxidizer's
+      # docs about this and the tooling it includes to support license review.¹
+      #   -trs, 1 June 2022
+      #
+      # ¹ https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_packaging_licensing.html#licensing-considerations
+
+      # Create installation archive.
+      #
+      # Use tar on Unix to preserve file modes (e.g. the executable bit), thus
+      # avoiding having to restore them manually after archive extraction.  Use
+      # zip on Windows because it's a native format which requires no extra
+      # tooling.
+      - if: runner.os != 'Windows'
+        run: tar czvpf "$INSTALLATION_ARCHIVE_STEM.tar.gz" -C build/${{ matrix.target }}/release/installation/ .
+
+      - if: runner.os == 'Windows'
+        run: Compress-Archive -DestinationPath "$Env:INSTALLATION_ARCHIVE_STEM.zip" -Path build/${{ matrix.target }}/release/installation/*
+        shell: pwsh
+
+      # Upload installation archive as a workflow artifact.
+      #
+      # At least one path needs to match, or this errors.
+      - uses: actions/upload-artifact@v3
+        with:
+          name: standalone-${{ matrix.target }}
+          path: |
+            ${{ env.INSTALLATION_ARCHIVE_STEM }}.tar.gz
+            ${{ env.INSTALLATION_ARCHIVE_STEM }}.zip
+          if-no-files-found: error
+
+      # Quick smoke test that the executable at least runs!  Useful before
+      # launching the more extensive tests below.
+      - run: ./build/${{ matrix.target }}/release/installation/${{ matrix.exe }} --help
+
   test-dist:
     needs: build-dist
     name: test-dist (python=${{ matrix.python }} os=${{ matrix.os }})
@@ -95,6 +212,65 @@ jobs:
 
       - name: Install Nextstrain CLI
         run: python3 -m pip install --upgrade dist/nextstrain_cli-*-py3-none-any.whl
+
+      - uses: ./src/.github/actions/run-integration-tests
+
+  test-standalone:
+    needs: build-standalone
+    name: test-standalone (os=${{ matrix.os}}, target=${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # Test on all the platforms available via GitHub Actions.
+        #
+        # Ideally we'd test on machines with ~fresh OS installs.  The kitchen
+        # sink of development/build software pre-installed into GitHub Action's
+        # virtual-environments has a decent risk of making this CI blind to
+        # end-user runtime issues with our binaries (e.g. missing DLLs).  Such
+        # fresh CI machines are not readily available, however, since
+        # pre-installation is convenient for builds.
+        #
+        # XXX TODO: macOS aarch64 (M1, Apple Silicon, arm64); see above.
+        #
+        # XXX TODO: Include macos-12 once it includes a pre-installed Conda.
+        # <https://github.com/actions/virtual-environments/issues/5623>
+        include:
+          - { os: ubuntu-18.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-20.04, target: x86_64-unknown-linux-gnu }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
+          - { os: macos-10.15,  target: x86_64-apple-darwin }
+          - { os: macos-11,     target: x86_64-apple-darwin }
+          - { os: windows-2019, target: x86_64-pc-windows-msvc }
+          - { os: windows-2022, target: x86_64-pc-windows-msvc }
+
+    runs-on: ${{matrix.os}}
+    defaults:
+      run:
+        # Add -l for setup-integration-tests → setup-miniconda → automatic
+        # activation of "test" environment.
+        shell: bash -l -eo pipefail {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: src/
+
+      - uses: ./src/.github/actions/setup-integration-tests
+        with:
+          python-version: '3.9'
+
+      # Download and extract the installation archive.
+      - uses: actions/download-artifact@v3
+        with:
+          name: standalone-${{ matrix.target }}
+
+      - if: runner.os != 'Windows'
+        run: tar xzvpf nextstrain-cli-*-standalone-${{ matrix.target }}.tar.gz
+
+      - if: runner.os == 'Windows'
+        run: Expand-Archive -Path nextstrain-cli-*-standalone-${{ matrix.target }}.zip -DestinationPath .
+        shell: pwsh
+
+      - run: echo "$PWD" >> "$GITHUB_PATH"
 
       - uses: ./src/.github/actions/run-integration-tests
 
