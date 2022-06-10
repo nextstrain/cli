@@ -111,11 +111,23 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Set DIST, DIST_VERSION, and INSTALLATION_ARCHIVE_STEM
+        run: |
+          DIST=(dist/nextstrain_cli-*-py3-none-any.whl)
+          DIST_VERSION="$DIST"
+          DIST_VERSION="${DIST_VERSION#dist/nextstrain_cli-}"
+          DIST_VERSION="${DIST_VERSION%-py3-none-any.whl}"
+          INSTALLATION_ARCHIVE_STEM="nextstrain-cli-${DIST_VERSION}-standalone-${{ matrix.target }}"
+
+          for var in DIST DIST_VERSION INSTALLATION_ARCHIVE_STEM; do
+            echo "${var}=${!var}" | tee -a "$GITHUB_ENV"
+          done
+
       - run: |
           pyoxidizer build \
             --release \
             --target-triple ${{ matrix.target }} \
-            --var NEXTSTRAIN_CLI_DIST dist/nextstrain_cli-*-py3-none-any.whl
+            --var NEXTSTRAIN_CLI_DIST "$DIST"
 
       # Analyze the executable for potential portability issues.
       #
@@ -141,10 +153,10 @@ jobs:
       # zip on Windows because it's a native format which requires no extra
       # tooling.
       - if: runner.os != 'Windows'
-        run: tar czvpf ${{ matrix.target }}.tar.gz -C build/${{ matrix.target }}/release/installation/ .
+        run: tar czvpf "$INSTALLATION_ARCHIVE_STEM.tar.gz" -C build/${{ matrix.target }}/release/installation/ .
 
       - if: runner.os == 'Windows'
-        run: Compress-Archive -DestinationPath ${{ matrix.target }}.zip -Path build/${{ matrix.target }}/release/installation/*
+        run: Compress-Archive -DestinationPath "$Env:INSTALLATION_ARCHIVE_STEM.zip" -Path build/${{ matrix.target }}/release/installation/*
         shell: pwsh
 
       # Upload installation archive as a workflow artifact.
@@ -152,10 +164,10 @@ jobs:
       # At least one path needs to match, or this errors.
       - uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.target }}
+          name: standalone-${{ matrix.target }}
           path: |
-            ${{ matrix.target }}.tar.gz
-            ${{ matrix.target }}.zip
+            ${{ env.INSTALLATION_ARCHIVE_STEM }}.tar.gz
+            ${{ env.INSTALLATION_ARCHIVE_STEM }}.zip
           if-no-files-found: error
 
       # Quick smoke test that the executable at least runs!  Useful before
@@ -249,13 +261,13 @@ jobs:
       # Download and extract the installation archive.
       - uses: actions/download-artifact@v3
         with:
-          name: ${{ matrix.target }}
+          name: standalone-${{ matrix.target }}
 
       - if: runner.os != 'Windows'
-        run: tar xzvpf ${{ matrix.target }}.tar.gz
+        run: tar xzvpf nextstrain-cli-*-standalone-${{ matrix.target }}.tar.gz
 
       - if: runner.os == 'Windows'
-        run: Expand-Archive -Path ${{ matrix.target }}.zip -DestinationPath .
+        run: Expand-Archive -Path nextstrain-cli-*-standalone-${{ matrix.target }}.zip -DestinationPath .
         shell: pwsh
 
       - run: echo "$PWD" >> "$GITHUB_PATH"
