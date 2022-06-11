@@ -77,7 +77,10 @@ development source code and as such may not be routinely kept up to date.
 ## Development
 
 * The source repo now uses a `+git` local version part to distinguish
-  actual releases from installations of unreleased code.
+  actual releases from installations of unreleased code.  Relatedly, the
+  development builds created by CI use a `+git.${commit}` local version part to
+  pin down the specific commit from which they were built.  This is mostly
+  helpful when reading CI logs or downloading the builds from the CI artifacts.
 
 * The CI workflow has seen some significant sprucing up, including sporting a
   more typical lifecycle with separate build and test steps.  This all makes it
