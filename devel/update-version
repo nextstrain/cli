@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+devel="$(dirname $0)"
+repo="$devel/.."
+version_file="$repo/nextstrain/cli/__version__.py"
+
+main() {
+    local new_version="${1:?version is required}"
+    local current_version="$("$devel"/read-version)"
+
+    perl -pi -e "s/(?<=^__version__ = ')(.*)(?='$)/$new_version/" "$version_file"
+
+    if [[ $new_version != $("$devel"/read-version) ]]; then
+        echo "Failed to update $version_file!" >&2
+        exit 1
+    fi
+}
+
+main "$@"
