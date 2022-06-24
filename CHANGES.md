@@ -13,6 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+
+# 4.0.0 (24 June 2022)
+
 This release contains **two potentially-breaking changes** for existing usages.
 The circumstances and implications of each are described below.
 
