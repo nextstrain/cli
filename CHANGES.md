@@ -13,6 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release contains **two potentially-breaking changes** for existing usages.
+The circumstances and implications of each are described below.
+
 ## Improvements
 
 * It is now an error (instead of a warning) to use the `--image` option to
@@ -36,6 +39,44 @@ development source code and as such may not be routinely kept up to date.
   running `nextstrain` commands has always been as-expected, then you can
   safely drop the `--image` option from your invocations and avoid the new
   error.
+
+* When running a Snakemake workflow, `nextstrain build` now defaults
+  Snakemake's `--cores` option to `all` unless `build`'s own `--cpus` option is
+  provided.  If you provide your own `--cores` (or equivalent, e.g.  `-j`)
+  option to Snakemake via `nextstrain build`, as in `nextstrain build .
+  --cores 2`, then this new default isn't applicable.
+
+  This is a **potentially-breaking change** if you're…
+
+    - …using Snakemake version 5.10 or earlier (such as via our standard Docker
+      runtime image), _and_
+
+    - …are not already providing a `--cores` (or equivalent, e.g. `-j`) option
+      to Snakemake via `nextstrain build`, _and_
+
+    - …expect your `nextstrain build` invocations to use only a single CPU/core
+      instead of all CPUs/cores available on your computer.
+
+  If this is the case, you can pass `--cpus 1` to `nextstrain build` to regain
+  the original behaviour, e.g. `nextstrain build --cpus 1 .`.
+
+  This change will allow upgrading of Snakemake in our Docker runtime image
+  without inflicting the addition of `--cores` (or equivalent) arguments onto
+  every existing `nextstrain build` invocation that lacks it.
+
+  For context, Snakemake [requires the `--cores` option as of
+  5.11](https://github.com/snakemake/snakemake/issues/283).  This has spawned
+  much discussion
+  ([1](https://github.com/snakemake/snakemake/issues/308),
+   [2](https://github.com/snakemake/snakemake/issues/312),
+   [3](https://github.com/snakemake/snakemake/issues/450),
+   [4](https://github.com/snakemake/snakemake/issues/885))
+  where it was made clear this is an intentional, permanent change and a
+  default will not be added.  By adding our own default, we can insulate our
+  users from the upstream change and make Nextstrain builds fast-by-default.
+  Our `--cpus` option can be used to limit CPU usage back from this default if
+  necessary, and users can always specify `--cores` (or equivalents)
+  themselves.
 
 * The `version --verbose` and `check-setup` commands now indicate the default
   runner in their output, which is useful context when troubleshooting or just

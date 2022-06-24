@@ -60,7 +60,9 @@ def register_parser(subparser):
         help    = "Number of CPUs/cores/threads/jobs to utilize at once.  "
                   "Limits containerized (Docker, AWS Batch) builds to this amount.  "
                   "Informs Snakemake's resource scheduler when applicable.  "
-                  "Informs the AWS Batch instance size selection.",
+                  "Informs the AWS Batch instance size selection.  "
+                  "By default, no constraints are placed on how many CPUs are used by a build; "
+                  "builds may use all that are available if they're able to.",
         metavar = "<count>",
         type    = int)
 
@@ -125,10 +127,18 @@ def run(opts):
     if opts.exec == "snakemake":
         snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
 
-        if opts.cpus:
-            if not snakemake_opts["--cores"]:
+        if not snakemake_opts["--cores"]:
+            if opts.cpus:
                 opts.extra_exec_args += ["--cores=%d" % opts.cpus]
             else:
+                # Snakemake requires the --cores option as of 5.11, so provide
+                # a default to insulate our users from this and make Nextstrain
+                # builds fast-by-default.  See the message of the commit which
+                # introduced this line for more details.
+                #   -trs, 25 May 2022
+                opts.extra_exec_args += ["--cores=all"]
+        else:
+            if opts.cpus:
                 warn(dedent("""
                     Warning: The explicit %s option passed to Snakemake prevents
                     the Nextstrain CLI from automatically providing one based on its
