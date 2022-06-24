@@ -315,6 +315,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      # In actions/checkout@v3 above, annotated tags are intentionally
+      # **overwritten** and converted to a lightweight tag.  Forcibly restore
+      # the annotated tag object from the remote so we can verify/use it later.
+      - run: git fetch --force origin tag "$GITHUB_REF_NAME"
+
       - uses: actions/setup-python@v3
         with:
           python-version: "3.10"
