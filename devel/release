@@ -16,7 +16,7 @@ main() {
     version="${1:-$(next-version)}"
     echo "New version will be $version."
 
-    update-version $version
+    "$devel"/update-version $version
     update-changelog $version
     commit-and-tag $version
     unreleased-version $version+git
@@ -37,7 +37,7 @@ assert-clean-working-dir() {
 }
 
 assert-changelog-has-additions() {
-    local current_version="$(read-version)"
+    local current_version="$("$devel"/read-version)"
     local numstat="$(git diff --numstat "${current_version%%+*}" -- "$changes_file")"
     local insertions deletions rest
 
@@ -64,7 +64,7 @@ assert-changelog-has-changes-for-next() {
 }
 
 next-version() {
-    local current_version="$(read-version)"
+    local current_version="$("$devel"/read-version)"
     current_version="${current_version%%+*}"
 
     read -e -p "Current version is $current_version."$'\n'"New version? " -i "$current_version" new_version
@@ -75,18 +75,6 @@ next-version() {
     fi
 
     echo "$new_version"
-}
-
-update-version() {
-    local new_version="$1"
-    local current_version="$(read-version)"
-
-    perl -pi -e "s/(?<=^__version__ = ')(.*)(?='$)/$new_version/" "$version_file"
-
-    if [[ $new_version != $(read-version) ]]; then
-        echo "Failed to update $version_file!" >&2
-        exit 1
-    fi
 }
 
 update-changelog() {
@@ -112,7 +100,7 @@ unreleased-version() {
     local unreleased_version="$1"
 
     # Add +git local part to mark any further development
-    update-version "$unreleased_version"
+    "$devel"/update-version "$unreleased_version"
 
     git commit -m "dev: Bump version to $unreleased_version" "$version_file"
 }
@@ -130,10 +118,6 @@ remind-to-push() {
     echo
     echo "CI will build dists for the release tag and publish them after tests pass."
     echo
-}
-
-read-version() {
-    python3 -c "exec(open('''$version_file''').read()); print(__version__)"
 }
 
 main "$@"

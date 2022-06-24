@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+devel = Path(__file__).parent
+repo = devel.parent
+version_file = repo / "nextstrain/cli/__version__.py"
+
+exec(version_file.read_text())
+print(__version__)

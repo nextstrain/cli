@@ -54,6 +54,13 @@ jobs:
       - run: python3 -m pip install --upgrade pip setuptools wheel
       - run: python3 -m pip install --upgrade build
 
+      # Update version to include local git rev if we're not building a release tag.
+      - if: github.ref_type != 'tag'
+        run: |
+          version="$(./devel/read-version)"
+          git_rev="$(git rev-parse --short @)"
+          ./devel/update-version "${version%%+*}+git.${git_rev}"
+
       # Build dists.
       - run: python3 -m build
 
