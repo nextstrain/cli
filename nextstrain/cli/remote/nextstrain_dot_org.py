@@ -215,12 +215,33 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
 
         def put(endpoint, file, media_type):
             with GzipCompressingReader(file.open("rb")) as data:
-                response = http.put(
-                    endpoint,
-                    data = data, # type: ignore
-                    headers = {
-                        "Content-Type": media_type,
-                        "Content-Encoding": "gzip" })
+                try:
+                    response = http.put(
+                        endpoint,
+                        data = data, # type: ignore
+                        headers = {
+                            "Content-Type": media_type,
+                            "Content-Encoding": "gzip" })
+
+                except requests.exceptions.ConnectionError as err:
+                    raw_err = err.args[0] if err.args else None
+
+                    if isinstance(raw_err, BrokenPipeError):
+                        raise UserError("""
+                            The connection to the remote server was severed before the
+                            upload finished.
+
+                            Retrying may help if the problem happens to be transient (e.g. a
+                            network error like a lost wifi signal), or there might be a bug
+                            somewhere that needs to be fixed.
+
+                            If retrying after a bit doesn't help, please open a new issue
+                            at <https://github.com/nextstrain/cli/issues/new/choose> and
+                            include the complete output above and the command you were
+                            running.
+                            """) from err
+                    else:
+                        raise
 
                 raise_for_status(response)
 
