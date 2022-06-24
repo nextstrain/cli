@@ -123,13 +123,14 @@ The circumstances and implications of each are described below.
   pin down the specific commit from which they were built.  This is mostly
   helpful when reading CI logs or downloading the builds from the CI artifacts.
 
-* The CI workflow has seen some significant sprucing up, including sporting a
-  more typical lifecycle with separate build and test steps.  This all makes it
-  easier to extend CI later with more steps that follow from build, like
-  automatic publishing of releases and other derived artifacts.  The single
-  test step is also now split between source tests (unit tests, type checking,
-  linting, etc) and dist tests (functional tests, integration tests, interface
-  tests, etc).  Various other small improvements to CI were also made.
+* The CI workflow has seen some significant sprucing up and additions,
+  including sporting a more typical lifecycle with separate steps for build,
+  test, and release (a new addition).  The single test step is also now split
+  between source tests (unit tests, type checking, linting, etc) and dist tests
+  (functional tests, integration tests, interface tests, etc).  The release
+  step uploads to PyPI after a release tag is pushed, built, and tested,
+  replacing manual uploads from a local development environment.  Various other
+  small improvements to CI were also made.
 
 * We now run CI tests on Windows. \o/ It's not perfect, but this should help
   avoid basic Windows-only pitfalls which we might not otherwise notice in a
@@ -149,11 +150,21 @@ The circumstances and implications of each are described below.
   the "standalone" moniker.
 
   Currently these are for development/testing/experimentation purposes only.
-  We don't distribute them with/as releases or provide an automated means of
-  "installing" or unpacking them; those are ultimate goals, but this is just a
-  first step towards those.  If you try out the standalone archives in the
-  meantime, though, please let us know how it goes (good or bad) by opening an
-  issue with your experience/feedback/questions.
+  We include them as assets on GitHub Releases, but do not provide an automated
+  means of "installing" or unpacking them; those are ultimate goals, but this
+  is just a first step towards those.  If you try out the standalone archives
+  in the meantime, though, please let us know how it goes (good or bad) by
+  opening an issue with your experience/feedback/questions.
+
+* GitHub Releases are now created by CI after making a release to PyPI.  These
+  are visible on the GitHub repo's [releases
+  page](https://github.com/nextstrain/cli/releases) and various other places on
+  GitHub.  Each GitHub Release includes a copy of the relevant changelog
+  section and release assets like the Python distributions and standalone
+  installation archives (see above).  Releases on GitHub are currently intended
+  mostly for informational and notification purposes; the primary release
+  distribution method is still PyPI and sources downstream of PyPI (e.g.
+  Conda).
 
 
 # 3.2.5 (23 May 2022)
