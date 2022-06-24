@@ -568,6 +568,7 @@ def raise_for_status(response: requests.Response) -> None:
     - 401
     - 403
     - 404
+    - 5xx
 
     Unhandled errors are re-raised so callers can handle them.
     """
@@ -627,6 +628,19 @@ def raise_for_status(response: requests.Response) -> None:
                 Remote resource not found.
 
                 Check for typos in the parameters you used?
+                """) from err
+
+        elif status in range(500, 600):
+            raise UserError(f"""
+                The remote server had a problem processing our request.
+
+                Retrying may help if the problem happens to be transient, or
+                there might be a bug somewhere that needs to be fixed.
+
+                If retrying after a bit doesn't help, please open a new issue
+                at <https://github.com/nextstrain/cli/issues/new/choose> and
+                include the complete output above and the command you were
+                running.
                 """) from err
 
         else:
