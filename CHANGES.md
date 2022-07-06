@@ -13,6 +13,16 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The `nextstrain remote` family of commands now output a nicer error message
+  that's more interpretable and actionable when a server error (HTTP status
+  5xx) is received during an operation against the nextstrain.org remote.
+
+* The `nextstrain remote upload` command now outputs a nicer error message
+  that's more interpretable and actionable when the connection to the
+  nextstrain.org remote server is broken during transfer.
+
 
 # 4.0.0 (24 June 2022)
 
