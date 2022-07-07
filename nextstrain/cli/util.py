@@ -90,11 +90,18 @@ def check_for_new_version():
 
 def new_version_available():
     """
-    Return the latest version of nextstrain-cli on PyPi if it's newer than the
+    Return the latest version of nextstrain-cli on PyPI if it's newer than the
     currently running version.  Otherwise return None.
+
+    .. envvar:: NEXTSTRAIN_CLI_LATEST_VERSION
+
+        If set, the value will be used as the latest released version of
+        nextstrain-cli and the query to PyPI will be skipped.  Primarily
+        intended for development and testing but can also be used to disable
+        the update check by setting the value to 0.
     """
     this_version   = parse_version(__version__)
-    latest_version = parse_version(fetch_latest_pypi_version("nextstrain-cli"))
+    latest_version = parse_version(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
 
     return latest_version if latest_version > this_version else None
 

@@ -15,6 +15,11 @@ development source code and as such may not be routinely kept up to date.
 
 ## Development
 
+* The `NEXTSTRAIN_CLI_LATEST_VERSION` environment variable can be set to `0` to
+  disable the new version check performed by default during `nextstrain update`
+  and `nextstrain check-setup`.  Other values can be provided to override the
+  result of querying PyPI for the latest version.
+
 * A new command, `debugger`, was added as a tool to help with troubleshooting
   environment and execution context issues.  The only thing it does is invoke
   pdb from within the command's context.
