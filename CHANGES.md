@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* A new command, `debugger`, was added as a tool to help with troubleshooting
+  environment and execution context issues.  The only thing it does is invoke
+  pdb from within the command's context.
+
 
 # 4.1.0 (11 July 2022)
 
