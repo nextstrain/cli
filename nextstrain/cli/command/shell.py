@@ -9,7 +9,7 @@ check-setup` to check if Docker is installed and works.
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker
-from ..util import colored, resolve_path, warn
+from ..util import colored, warn
 from ..volume import store_volume
 
 
@@ -63,7 +63,7 @@ def run(opts):
         # command supports (and the only one it makes sense to).
         #   -trs, 25 Sept 2018
         for volume in opts.volumes:
-            print("  /nextstrain/%s is from %s" % (volume.name, resolve_path(volume.src)))
+            print("  /nextstrain/%s is from %s" % (volume.name, volume.src.resolve(strict = True)))
 
         print()
 
