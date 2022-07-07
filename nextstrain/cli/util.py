@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import requests
 import site
@@ -73,19 +74,66 @@ def check_for_new_version():
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
-        print("Upgrade by running:")
-        print()
-        if "/pipx/venvs/nextstrain-cli/" in python:
-            print("    pipx upgrade nextstrain-cli")
+
+        if standalone_installation():
+            print("Upgrade your standalone installation by downloading a new archive from:")
+            print()
+            print(f"    {standalone_installation_archive_url(newer_version)}")
+            print()
         else:
-            print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-                  "    " + python + " -m pip install --upgrade nextstrain-cli")
-        print()
+            print("Upgrade by running:")
+            print()
+            if "/pipx/venvs/nextstrain-cli/" in python:
+                print("    pipx upgrade nextstrain-cli")
+            else:
+                print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+                      "    " + python + " -m pip install --upgrade nextstrain-cli")
+            print()
     else:
         print("nextstrain-cli is up to date!")
         print()
 
     return newer_version
+
+
+def standalone_installation():
+    """
+    Return True if this is a standalone installation, i.e. a self-contained
+    executable built with PyOxidizer.
+
+    Relies on a compiled-in -X flag set at build time by our PyOxidizer config.
+    """
+    # sys._xoptions is documented for use but specific to CPython.  Our
+    # standalone executables are built upon CPython, so this works in that
+    # context, but this code may also run on other interpreters (e.g. PyPy) in
+    # other contexts.
+    #
+    # I think using an explicit, compiled-in flag is best, but we could
+    # alternatively choose to inspect something like:
+    #
+    #     nextstrain.cli.__loader__.__module__ == "oxidized_importer"
+    #
+    # if necessary in the future.
+    #   -trs, 7 July 2022
+    return "nextstrain-cli-is-standalone" in getattr(sys, "_xoptions", {})
+
+
+def standalone_installation_archive_url(version: str) -> str:
+    machine = platform.machine()
+    system = platform.system()
+
+    if system == "Linux":
+        vendor, os, archive_format = "unknown", "linux-gnu", "tar.gz"
+    elif system == "Darwin":
+        vendor, os, archive_format = "apple", "darwin", "tar.gz"
+    elif system == "Windows":
+        vendor, os, archive_format = "pc", "windows-msvc", "zip"
+    else:
+        raise RuntimeError(f"unknown system {system!r}")
+
+    target_triple = f"{machine}-{vendor}-{os}"
+
+    return f"https://github.com/nextstrain/cli/releases/download/{version}/nextstrain-cli-{version}-standalone-{target_triple}.{archive_format}"
 
 
 def new_version_available():

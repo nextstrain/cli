@@ -13,6 +13,11 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The new version check now detects standalone installations and provides
+  correct upgrade instructions.
+
 ## Development
 
 * The `NEXTSTRAIN_CLI_LATEST_VERSION` environment variable can be set to `0` to
