@@ -74,6 +74,10 @@ def check_for_new_version():
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
+        print("See what's new in the changelog:")
+        print()
+        print(f"    https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme")
+        print()
 
         if standalone_installation():
             print("Upgrade your standalone installation by downloading a new archive from:")

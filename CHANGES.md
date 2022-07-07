@@ -15,6 +15,9 @@ development source code and as such may not be routinely kept up to date.
 
 ## Improvements
 
+* The new version check now links out to the changelog for the latest version
+  so you know what you're gonna get.
+
 * The new version check now detects standalone installations and provides
   correct upgrade instructions.
 

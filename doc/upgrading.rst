@@ -27,6 +27,10 @@ Otherwise, you're using another installation method and running:
     $ nextstrain check-setup
     A new version of nextstrain-cli, X.Y.Z, is available!  You're running A.B.C.
 
+    See what's new in the changelog:
+
+        https://github.com/nextstrain/cli/blob/X.Y.Z/CHANGES.md#readme
+
     Upgrade by running:
 
         [UPGRADE COMMAND]
