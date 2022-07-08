@@ -6,6 +6,7 @@ import os
 import shlex
 import signal
 import subprocess
+from datetime import datetime
 from pathlib import Path
 from sys import exit
 from textwrap import dedent
@@ -319,7 +320,14 @@ def print_job_log(entry):
     """
     Print an AWS Batch job log entry.
     """
-    print("[batch]", entry.get("message", ""))
+    msg = entry.get("message", "")
+    ts = entry.get("timestamp", entry.get("ingestionTime")) # milliseconds since epoch
+
+    if ts is not None:
+        ts = datetime.fromtimestamp(round(ts / 1000)).astimezone().isoformat()
+        print(f"[batch] [{ts}] {msg}")
+    else:
+        print(f"[batch] {msg}")
 
 
 def generate_run_id() -> str:
