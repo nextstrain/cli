@@ -16,7 +16,7 @@ main() {
     version="${1:-$(next-version)}"
     echo "New version will be $version."
 
-    "$devel"/update-version $version
+    update-version $version
     update-changelog $version
     commit-and-tag $version
     unreleased-version $version+git
@@ -77,6 +77,13 @@ next-version() {
     echo "$new_version"
 }
 
+update-version() {
+    local version="$1"
+
+    "$devel"/update-version "$version"
+    git add "$version_file"
+}
+
 update-changelog() {
     local new_version="$1"
     local today="$(date +"%d %B %Y")"
@@ -87,12 +94,42 @@ update-changelog() {
     # Add the new version heading immediately after the __NEXT__ heading,
     # preserving the __NEXT__ heading itself.
     perl -pi -e "s/(?<=^# __NEXT__$)/\n\n\n# $new_version ($today)/" "$changes_file"
+
+    # Remove the __NEXT__ heading and the sentence «The "__NEXT__" heading
+    # below…» for the next commit, but leave the working tree untouched.
+    perl -0p -e '
+        s/^# __NEXT__\n\n\n//m;
+        s/\s*The "__NEXT__" heading below .+?\.//s;
+    ' "$changes_file" | git-add-stdin-as "$changes_file"
+}
+
+git-add-stdin-as() {
+    local path="$1"
+    local repo_path mode object
+
+    # Convert filesystem $path to a canonicalized path from the root of the
+    # repo.  This is required for the commands below.
+    repo_path="$(git ls-files --full-name --error-unmatch "$path")"
+
+    # Use existing mode (e.g. 100644)
+    mode="$(git ls-tree --format "%(objectmode)" HEAD :/"$repo_path")"
+
+    # Create new object in git's object database from the contents on stdin.
+    # Using --path ensures that any filters (e.g. eol textconv or otherwise)
+    # that would apply to $path are applied to the contents on stdin too.
+    object="$(git hash-object -w --stdin --path "$repo_path")"
+
+    # Stage the new object as an update to $path (as if with `git add` after
+    # actually modifying $path).
+    git update-index --cacheinfo "$mode,$object,$repo_path"
 }
 
 commit-and-tag() {
     local version="$1"
 
-    git commit -m "version $version" "$version_file" "$changes_file"
+    # Staged changes to commit are added to the index by update-version and
+    # update-changelog above.
+    git commit -m "version $version"
     git tag -sm "version $version" "$version"
 }
 
@@ -102,7 +139,8 @@ unreleased-version() {
     # Add +git local part to mark any further development
     "$devel"/update-version "$unreleased_version"
 
-    git commit -m "dev: Bump version to $unreleased_version" "$version_file"
+    git add "$version_file" "$changes_file"
+    git commit -m "dev: Bump version to $unreleased_version"
 }
 
 remind-to-push() {
