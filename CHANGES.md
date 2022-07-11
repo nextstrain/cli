@@ -13,6 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+
+# 4.1.0 (11 July 2022)
+
 ## Improvements
 
 * The `nextstrain remote` family of commands now output a nicer error message
