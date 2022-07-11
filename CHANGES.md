@@ -23,6 +23,8 @@ development source code and as such may not be routinely kept up to date.
   that's more interpretable and actionable when the connection to the
   nextstrain.org remote server is broken during transfer.
 
+* Timestamps are now shown for each line of output from an AWS Batch build.
+
 
 # 4.0.0 (24 June 2022)
 
