@@ -12,7 +12,7 @@ from textwrap import dedent
 from typing import Iterable, List
 from .. import runner, hostenv, config
 from ..types import RunnerTestResults, RunnerTestResultStatus
-from ..util import warn, colored, capture_output, exec_or_return, resolve_path, split_image_name
+from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume
 from ..__version__ import __version__
 
@@ -118,7 +118,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         *(["--user=%d:%d" % (uid, gid)] if uid and gid else []),
 
         # Map directories to bind mount into the container.
-        *["--volume=%s:/nextstrain/%s" % (resolve_path(v.src), v.name)
+        *["--volume=%s:/nextstrain/%s" % (v.src.resolve(strict = True), v.name)
             for v in opts.volumes
              if v.src is not None],
 

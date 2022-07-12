@@ -202,26 +202,6 @@ def format_usage(doc: str) -> str:
     return indent(dedent(doc.strip("\n")), padding).lstrip()
 
 
-def resolve_path(path: Path) -> Path:
-    """
-    Resolves the given *path* **strictly**, throwing a
-    :class:`FileNotFoundError` if it is not resolvable.
-
-    This function exists only because Path.resolve()'s default behaviour
-    changed from strict to not strict in 3.5 → 3.6.  In most places we want the
-    strict behaviour, but the "strict" keyword argument didn't exist until 3.6
-    when the behaviour became optional (and not the default).
-
-    All this function does is call ``path.resolve()`` on 3.5 and
-    ``path.resolve(strict = True)`` on 3.6.
-    """
-    if python_version >= (3,6):
-        # mypy doesn't know we did a version check
-        return path.resolve(strict = True) # type: ignore
-    else:
-        return path.resolve()
-
-
 def byte_quantity(quantity: str) -> int:
     """
     Parses a string *quantity* consisting of a number, optional whitespace, and

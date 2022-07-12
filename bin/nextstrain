@@ -4,16 +4,8 @@
 # similar "nextstrain" script automatically created using the entry point
 # feature of setuptools.
 #
-from sys import path, exit, version_info as python_version
+from sys import path, exit
 from pathlib import Path
-
-# Path.resolve() changed default behaviour from 3.5 → 3.6.  We want the
-# stricter (3.5) behaviour in most places, but the "strict" keyword argument
-# didn't exist until 3.6 when the behaviour became optional.
-#
-# This doesn't use nextstrain.cli.utils.resolve_path() because here we're
-# bootstrapping the lib path before loading nextstrain.cli itself.
-strictly = { "strict": True } if python_version > (3,6) else {}
 
 # Try to add our containing package source directory to the Python module
 # search path so that we load nextstrain.cli from there instead of any
@@ -22,7 +14,7 @@ try:
     dev_path = Path(__file__).parent.parent
 
     # Raises an exception if the path doesn't exist.
-    (dev_path / "nextstrain/cli/__init__.py").resolve(**strictly)
+    (dev_path / "nextstrain/cli/__init__.py").resolve(strict = True)
 except:
     pass
 else:

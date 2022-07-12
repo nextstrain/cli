@@ -14,7 +14,7 @@ from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
 from ...types import RunnerTestResults, Tuple
-from ...util import colored, resolve_path, warn
+from ...util import colored, warn
 from ... import config
 from . import jobs, logs, s3
 
@@ -95,7 +95,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     #   -trs, 28 Feb 2022
     assert working_volume is not None
 
-    local_workdir = resolve_path(working_volume.src)
+    local_workdir = working_volume.src.resolve(strict = True)
 
     if opts.attach:
         print_stage("Attaching to Nextstrain AWS Batch Job ID:", opts.attach)
