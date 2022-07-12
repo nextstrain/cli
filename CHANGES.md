@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* The "__NEXT__" heading (and description) is no longer included in the
+  _CHANGES.md_ file in release artifacts and tags, as it's a development-only
+  section that's always empty in releases.
+
 
 # 4.1.0 (11 July 2022)
 
