@@ -1,4 +1,5 @@
 import os
+import platform
 import re
 import requests
 import site
@@ -58,7 +59,7 @@ def check_for_new_version():
     installed_into_user_site = \
             site.ENABLE_USER_SITE \
         and site.USER_SITE is not None \
-        and __file__.startswith(site.USER_SITE)
+        and (__file__ or "").startswith(site.USER_SITE)
 
     if sys.executable:
         exe_name = Path(sys.executable).name
@@ -73,14 +74,25 @@ def check_for_new_version():
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
-        print("Upgrade by running:")
+        print("See what's new in the changelog:")
         print()
-        if "/pipx/venvs/nextstrain-cli/" in python:
-            print("    pipx upgrade nextstrain-cli")
+        print(f"    https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme")
+        print()
+
+        if standalone_installation():
+            print("Upgrade your standalone installation by downloading a new archive from:")
+            print()
+            print(f"    {standalone_installation_archive_url(newer_version)}")
+            print()
         else:
-            print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-                  "    " + python + " -m pip install --upgrade nextstrain-cli")
-        print()
+            print("Upgrade by running:")
+            print()
+            if "/pipx/venvs/nextstrain-cli/" in python:
+                print("    pipx upgrade nextstrain-cli")
+            else:
+                print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+                      "    " + python + " -m pip install --upgrade nextstrain-cli")
+            print()
     else:
         print("nextstrain-cli is up to date!")
         print()
@@ -88,13 +100,60 @@ def check_for_new_version():
     return newer_version
 
 
+def standalone_installation():
+    """
+    Return True if this is a standalone installation, i.e. a self-contained
+    executable built with PyOxidizer.
+
+    Relies on a compiled-in -X flag set at build time by our PyOxidizer config.
+    """
+    # sys._xoptions is documented for use but specific to CPython.  Our
+    # standalone executables are built upon CPython, so this works in that
+    # context, but this code may also run on other interpreters (e.g. PyPy) in
+    # other contexts.
+    #
+    # I think using an explicit, compiled-in flag is best, but we could
+    # alternatively choose to inspect something like:
+    #
+    #     nextstrain.cli.__loader__.__module__ == "oxidized_importer"
+    #
+    # if necessary in the future.
+    #   -trs, 7 July 2022
+    return "nextstrain-cli-is-standalone" in getattr(sys, "_xoptions", {})
+
+
+def standalone_installation_archive_url(version: str) -> str:
+    machine = platform.machine()
+    system = platform.system()
+
+    if system == "Linux":
+        vendor, os, archive_format = "unknown", "linux-gnu", "tar.gz"
+    elif system == "Darwin":
+        vendor, os, archive_format = "apple", "darwin", "tar.gz"
+    elif system == "Windows":
+        vendor, os, archive_format = "pc", "windows-msvc", "zip"
+    else:
+        raise RuntimeError(f"unknown system {system!r}")
+
+    target_triple = f"{machine}-{vendor}-{os}"
+
+    return f"https://github.com/nextstrain/cli/releases/download/{version}/nextstrain-cli-{version}-standalone-{target_triple}.{archive_format}"
+
+
 def new_version_available():
     """
-    Return the latest version of nextstrain-cli on PyPi if it's newer than the
+    Return the latest version of nextstrain-cli on PyPI if it's newer than the
     currently running version.  Otherwise return None.
+
+    .. envvar:: NEXTSTRAIN_CLI_LATEST_VERSION
+
+        If set, the value will be used as the latest released version of
+        nextstrain-cli and the query to PyPI will be skipped.  Primarily
+        intended for development and testing but can also be used to disable
+        the update check by setting the value to 0.
     """
     this_version   = parse_version(__version__)
-    latest_version = parse_version(fetch_latest_pypi_version("nextstrain-cli"))
+    latest_version = parse_version(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
 
     return latest_version if latest_version > this_version else None
 

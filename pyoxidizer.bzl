@@ -60,6 +60,10 @@ def make_exe():
     python_config = python_dist.make_python_interpreter_config()
     python_config.run_module = "nextstrain.cli"
 
+    # Equivalent to: -Xnextstrain-cli-is-standalone, which we use to know if
+    # we're in a standalone installation or not at runtime.
+    python_config.x_options = ["nextstrain-cli-is-standalone"]
+
     # Produce a PythonExecutable from a Python distribution, embedded
     # resources, and other options. The returned object represents the
     # standalone executable that will be built.
