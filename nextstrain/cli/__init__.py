@@ -18,7 +18,7 @@ from .argparse    import HelpFormatter, register_commands, register_default_comm
 from .command     import build, view, deploy, remote, shell, update, check_setup, login, logout, whoami, version, debugger
 from .errors      import NextstrainCliError
 from .util        import warn
-from .__version__ import __version__
+from .__version__ import __version__ # noqa: F401 (for re-export)
 
 
 def run(args):
@@ -36,7 +36,7 @@ def run(args):
         warn(error)
         return 1
 
-    except AssertionError as error:
+    except AssertionError:
         traceback.print_exc()
         warn("\n")
         warn(dedent("""\

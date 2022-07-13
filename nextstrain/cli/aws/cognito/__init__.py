@@ -14,7 +14,7 @@ with warnings.catch_warnings():
     import jwt
     import jwt.exceptions
 
-from .srp import CognitoSRP, NewPasswordRequiredError
+from .srp import CognitoSRP, NewPasswordRequiredError # noqa: F401 (NewPasswordRequiredError is for re-export)
 
 
 class CognitoError(Exception):

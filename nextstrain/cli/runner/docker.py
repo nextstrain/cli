@@ -7,10 +7,9 @@ import json
 import requests
 import shutil
 import subprocess
-from sys import stdin
 from textwrap import dedent
 from typing import Iterable, List
-from .. import runner, hostenv, config
+from .. import hostenv, config
 from ..types import RunnerTestResults, RunnerTestResultStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume

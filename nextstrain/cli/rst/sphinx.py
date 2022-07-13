@@ -9,7 +9,6 @@ Subsequent modifications have been made.  These and any future modifications
 are licensed under the MIT license of this project.
 """
 import math
-import os
 import re
 import textwrap
 from itertools import chain, groupby

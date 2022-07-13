@@ -63,8 +63,8 @@ from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
 from requests.utils import parse_dict_header
 from textwrap import indent
-from typing import Dict, Iterable, List, NamedTuple, NewType, Optional, Tuple, Union
-from urllib.parse import urljoin, urlsplit, quote as urlquote, quote_plus as urlquote_plus
+from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
+from urllib.parse import urljoin, urlsplit, quote as urlquote
 from ..authn import current_user
 from ..errors import UserError
 from ..gzip import GzipCompressingReader
@@ -180,7 +180,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
         # appropriate API requests to the group endpoint (which doesn't yet
         # exist).
         #   -trs, 23 Sept 2021
-        raise UserError(f"""
+        raise UserError("""
             Only datasets (v2) and narratives are currently supported for
             upload to nextstrain.org, but other files were given:
 
@@ -622,7 +622,7 @@ def raise_for_status(response: requests.Response) -> None:
                     # enough to handle things like re-seeking streams (which
                     # may not be possible without cooperation).
                     #   -trs, 10 May 2022
-                    raise UserError(f"""
+                    raise UserError("""
                         Login credentials appear to be out of date.
 
                         Please run `nextstrain login --renew` and then retry your command.
@@ -638,21 +638,21 @@ def raise_for_status(response: requests.Response) -> None:
                         and then retry your command.
                         """) from err
             else:
-                raise UserError(f"""
+                raise UserError("""
                     Permission denied.
 
                     Logging in with `nextstrain login` might help?
                     """) from err
 
         elif status == 404:
-            raise UserError(f"""
+            raise UserError("""
                 Remote resource not found.
 
                 Check for typos in the parameters you used?
                 """) from err
 
         elif status in range(500, 600):
-            raise UserError(f"""
+            raise UserError("""
                 The remote server had a problem processing our request.
 
                 Retrying may help if the problem happens to be transient, or

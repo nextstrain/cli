@@ -6,7 +6,6 @@ logged-in user are shown.
 
 Exits with an error if no one is logged in.
 """
-from textwrap import dedent
 from ..authn import current_user
 from ..errors import UserError
 

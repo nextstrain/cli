@@ -22,7 +22,7 @@ from textwrap import indent
 from .. import config
 from ..types import Options
 from ..util import colored, check_for_new_version, remove_prefix, runner_name
-from ..runner import all_runners, default_runner
+from ..runner import all_runners, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
 def register_parser(subparser):

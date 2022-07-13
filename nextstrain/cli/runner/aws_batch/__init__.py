@@ -5,7 +5,6 @@ Run commands remotely on AWS Batch inside the Nextstrain container image.
 import os
 import shlex
 import signal
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from sys import exit
@@ -13,10 +12,10 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
-from ...types import RunnerTestResults, Tuple
+from ...types import RunnerTestResults
 from ...util import colored, warn
 from ... import config
-from . import jobs, logs, s3
+from . import jobs, s3
 
 
 DEFAULT_JOB = os.environ.get("NEXTSTRAIN_AWS_BATCH_JOB") \

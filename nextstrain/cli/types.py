@@ -6,7 +6,6 @@ import argparse
 import builtins
 import urllib.parse
 from pathlib import Path
-from types import ModuleType
 from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 from typing_extensions import Protocol
 from .volume import NamedVolume
