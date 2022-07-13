@@ -8,9 +8,8 @@ and Auspice across computing environments such as Docker, Conda, and AWS Batch.
 
 
 import sys
-import argparse
 import traceback
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Action, SUPPRESS
 from textwrap import dedent
 from types    import SimpleNamespace
 
@@ -91,7 +90,7 @@ def register_version_alias(parser):
     argument, so its useful to make that Just Work.
     """
 
-    class run_version_command(argparse.Action):
+    class run_version_command(Action):
         def __call__(self, *args, **kwargs):
             opts = SimpleNamespace(verbose = False)
             sys.exit( version.run(opts) )
@@ -99,5 +98,5 @@ def register_version_alias(parser):
     parser.add_argument(
         "--version",
         nargs  = 0,
-        help   = argparse.SUPPRESS,
+        help   = SUPPRESS,
         action = run_version_command)
