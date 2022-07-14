@@ -4,9 +4,7 @@
 [flake8]
 select =
     E9,     # syntax errors
-    F63,    # syntax warnings (e.g., "==" versus "is")
-    F7,     # type hint logic/syntax errors
-    F82,    # undefined names
+    F       # all pyflakes correctness issues
 
 exclude =
     .git,

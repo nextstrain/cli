@@ -48,7 +48,6 @@ import mimetypes
 import re
 import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
-from operator import methodcaller
 from os.path import commonprefix
 from pathlib import Path
 from time import time
@@ -205,7 +204,7 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
     try:
         boto3.client("s3").head_bucket(Bucket = bucket.name)
 
-    except ClientError as error:
+    except ClientError:
         raise UserError(f"""
             No bucket exists with the name "{bucket.name}".
 
@@ -349,7 +348,7 @@ def purge_prefix(cloudfront, distribution: dict, origin: dict, prefix: str) -> N
             Id             = invalidation_id,
             DistributionId = distribution_id,
             WaiterConfig   = waiter_config)
-    except WaiterError as e:
+    except WaiterError:
         print("not yet complete")
         warn("Warning: Invalidation %s did not complete within %ds, but it will probably do so soon."
             % (invalidation_id, waiter_config["Delay"] * waiter_config["MaxAttempts"]))

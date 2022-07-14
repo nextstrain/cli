@@ -5,7 +5,7 @@
 # and avoids introducing "upload" as a top-level command.
 
 from textwrap import dedent
-from .remote.upload import register_arguments, run, __doc__
+from .remote.upload import register_arguments, run, __doc__ # noqa: F401 (these are for re-export)
 
 def register_parser(subparser):
     parser = subparser.add_parser("deploy", help = "Deploy pathogen build")

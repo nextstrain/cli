@@ -3,7 +3,6 @@ Job handling for AWS Batch.
 """
 
 import re
-from botocore.exceptions import ClientError
 from copy import deepcopy
 from operator import itemgetter
 from time import time
@@ -46,7 +45,7 @@ class JobState:
 
         try:
             self.state = jobs[0]
-        except IndexError as error:
+        except IndexError:
             raise ValueError("Invalid or unknown job id %s" % self.id) from None
 
     @property

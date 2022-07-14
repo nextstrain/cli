@@ -5,13 +5,12 @@ import requests
 import site
 import subprocess
 import sys
-from types import ModuleType
 from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
 from pathlib import Path
 from pkg_resources import parse_version
 from shutil import which
-from sys import exit, stderr, version_info as python_version
+from sys import exit, stderr
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__

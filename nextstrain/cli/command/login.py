@@ -81,7 +81,7 @@ def run(opts):
             username = prompt(getuser)
 
         if password is not None:
-            print(f"Password: (from environment)")
+            print("Password: (from environment)")
         else:
             password = prompt(getpass)
 
