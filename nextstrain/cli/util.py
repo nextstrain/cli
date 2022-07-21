@@ -7,8 +7,8 @@ import subprocess
 import sys
 from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
+from packaging.version import parse as parse_version
 from pathlib import Path
-from pkg_resources import parse_version
 from shutil import which
 from sys import exit, stderr
 from textwrap import dedent, indent
@@ -154,7 +154,7 @@ def new_version_available():
     this_version   = parse_version(__version__)
     latest_version = parse_version(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
 
-    return latest_version if latest_version > this_version else None
+    return str(latest_version) if latest_version > this_version else None
 
 
 def fetch_latest_pypi_version(project):

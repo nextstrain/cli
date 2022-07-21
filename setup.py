@@ -81,6 +81,7 @@ setup(
     install_requires = [
         "docutils",
         "fasteners",
+        "packaging",
         "pyjwt[crypto] >=2.0.0",
         "requests",
         "typing_extensions >=3.7.4",
@@ -110,11 +111,6 @@ setup(
         # What a mess.
         "fsspec",
         "s3fs[boto3] >=2021.04.0",
-
-        # We use pkg_resources.parse_version(), which (confusingly) is provided
-        # by setuptools.  setuptools is nearly ever-present, but it can be
-        # missing!
-        "setuptools >=8.0.3",
     ],
 
     extras_require = {
