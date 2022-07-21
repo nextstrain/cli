@@ -68,7 +68,7 @@ def check_for_new_version():
         else:
             python = sys.executable
     else:
-        python = next(filter(which, ["python3", "python"])) or "python3"
+        python = next(filter(which, ["python3", "python"]), "python3")
 
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
