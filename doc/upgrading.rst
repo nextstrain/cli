@@ -6,20 +6,8 @@ This page describes how to upgrade the Nextstrain CLI--the ``nextstrain``
 command--itself, without also upgrading the entire Nextstrain
 :term:`docs:runtime`.
 
-The first step is to figure out what kind of Nextstrain CLI installation you
-have.
-
-If you run ``conda activate nextstrain`` before running ``nextstrain``
-commands, then you're using a **Conda-based installation** like we describe in
-the Nextstrain :doc:`installation steps <docs:install>`.  In this case, run the
-following to upgrade:
-
-.. code-block:: bash
-
-    conda activate nextstrain
-    mamba update -c conda-forge -c bioconda nextstrain-cli
-
-Otherwise, you're using another installation method and running:
+The way to upgrade depends on what kind of Nextstrain CLI installation you have
+(i.e. how it was first installed), so running ``nextstrain check-setup``:
 
 .. code-block:: console
     :emphasize-lines: 10
@@ -38,12 +26,12 @@ Otherwise, you're using another installation method and running:
     Testing your setup…
     …
 
-will suggest a command to run to upgrade ``nextstrain``.  Run the suggested
-command to perform the upgrade.
+will suggest a command to run to upgrade ``nextstrain``, if there are any
+upgrades available.  Run the suggested command to perform the upgrade.
 
-Either way, you can check the new version that was installed by running:
+Afterwards, you can check that the new version was installed by running:
 
 .. code-block:: console
 
     $ nextstrain version
-    nextstrain.cli 3.2.1
+    nextstrain.cli X.Y.Z
