@@ -1,3 +1,8 @@
+try:
+    from importlib.metadata import distribution as distribution_info, PackageNotFoundError
+except ModuleNotFoundError:
+    from importlib_metadata import distribution as distribution_info, PackageNotFoundError
+
 import os
 import platform
 import re
@@ -60,6 +65,7 @@ def check_for_new_version():
         and site.USER_SITE is not None \
         and (__file__ or "").startswith(site.USER_SITE)
 
+    # Find our Python executable/command.
     if sys.executable:
         exe_name = Path(sys.executable).name
 
@@ -70,6 +76,19 @@ def check_for_new_version():
     else:
         python = next(filter(which, ["python3", "python"]), "python3")
 
+    # Find our installer (e.g. pip).
+    try:
+        distribution = distribution_info("nextstrain-cli")
+    except PackageNotFoundError:
+        installer = None
+    else:
+        installer = (distribution.read_text("INSTALLER") or '').strip() or None
+
+    # Determine if we're pipx or not.
+    if installer == "pip" and "/pipx/venvs/nextstrain-cli/" in python:
+        installer = "pipx"
+
+    # Put it all together into an upgrade command!
     if newer_version:
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
@@ -82,16 +101,22 @@ def check_for_new_version():
             print("Upgrade your standalone installation by downloading a new archive from:")
             print()
             print(f"    {standalone_installation_archive_url(newer_version)}")
+
+        elif installer == "pip":
+            print("Upgrade your Pip-based installation by running:")
             print()
+            print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
+                  "    " + python + " -m pip install --upgrade nextstrain-cli")
+
+        elif installer == "pipx":
+            print("Upgrade your pipx-based installation by running:")
+            print()
+            print("    pipx upgrade nextstrain-cli")
+
         else:
-            print("Upgrade by running:")
-            print()
-            if "/pipx/venvs/nextstrain-cli/" in python:
-                print("    pipx upgrade nextstrain-cli")
-            else:
-                print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-                      "    " + python + " -m pip install --upgrade nextstrain-cli")
-            print()
+            print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
+
+        print()
     else:
         print("nextstrain-cli is up to date!")
         print()
