@@ -21,6 +21,19 @@ development source code and as such may not be routinely kept up to date.
   already performed.
   ([#209](https://github.com/nextstrain/cli/pull/209))
 
+* Detection of the installation method during self-upgrade checks in
+  `nextstrain update` and `nextstrain check-setup` now looks for explicit
+  installer metadata files and no longer assumes Pip as the final fallback.  If
+  the installation method is not explicitly detected, then no upgrade
+  instructions are shown.  Better to suggest nothing than to suggest the wrong
+  thing.
+  ([#207][])
+
+* An uncaught `StopIteration` error that could have occurred in very specific
+  and limited circumstances during self-upgrade checks in `nextstrain update`
+  and `nextstrain check-setup` can no longer occur.
+  ([#207][])
+
 ## Improvements
 
 * The `nextstrain remote download`, `upload`, and `delete` commands now support
@@ -35,6 +48,15 @@ development source code and as such may not be routinely kept up to date.
   don't make sense and aren't included.
   ([#210](https://github.com/nextstrain/cli/pull/210))
 
+* Installations via a Conda package are now detected during self-upgrade checks
+  and the suggested upgrade command uses `mamba install` or `conda install`.
+  ([#207][])
+
+* Suggested upgrade commands now specify the expected new version so they fail
+  if that version is not found rather than succeed but do nothing (or do
+  something different).
+  ([#207][])
+
 ## Development
 
 * A new debugging mode can be enabled by setting the `NEXTSTRAIN_DEBUG`
@@ -44,6 +66,14 @@ development source code and as such may not be routinely kept up to date.
   normally omitted for handled errors, but setting this env var includes them.
   Future debugging and troubleshooting features, like verbose operation
   logging, will likely also condition on this new debugging mode.
+
+* We now avoid a runtime dep on setuptools by switching from
+  `pkg_resources.parse_version` to `packaging.version.parse`.  The latter was
+  already transitively in our dep tree.
+  ([#207][])
+
+
+[#207]: https://github.com/nextstrain/cli/pull/207
 
 
 # 4.1.1 (18 July 2022)
