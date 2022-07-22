@@ -14,6 +14,7 @@ from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Unio
 from typing_extensions import Literal
 from packaging.version import parse as parse_version
 from pathlib import Path
+from shlex import quote as shquote
 from shutil import which
 from sys import exit, stderr
 from textwrap import dedent, indent
@@ -76,7 +77,7 @@ def check_for_new_version():
     else:
         python = next(filter(which, ["python3", "python"]), "python3")
 
-    # Find our installer (e.g. pip).
+    # Find our installer (e.g. pip, conda).
     try:
         distribution = distribution_info("nextstrain-cli")
     except PackageNotFoundError:
@@ -87,6 +88,33 @@ def check_for_new_version():
     # Determine if we're pipx or not.
     if installer == "pip" and "/pipx/venvs/nextstrain-cli/" in python:
         installer = "pipx"
+
+    # Find our Conda details, if applicable.
+    if installer == "conda":
+        # Prefer mamba over conda, if available on PATH.
+        #
+        # If we can't find either mamba or conda on the current PATH but we're
+        # positively installed via a Conda package, then we have to assume that
+        # a) one of them is available _somehow_ and b) that the user knows (or
+        # will figure out) how to run one of them. We could default to either
+        # conda or mamba, but since our official install instructions use mamba
+        # and conda sometimes has dep-solving memory issues, I figured that
+        # mamba was the best thing to use in this edge case.
+        #
+        # There's several reasons why neither command may be available on PATH
+        # when we go looking with `which`, e.g. the commands could be off PATH
+        # but available via shell alias or shell function wrappers or they
+        # could be behind a modules system like Environment Modules and need
+        # enabling with e.g. `module load …`.
+        #   -trs, 28 July 2022
+        conda = next(filter(which, ["mamba", "conda"]), "mamba")
+
+        # Search upwards for first parent directory which contains a
+        # "conda-meta" dir.  This is the env prefix.
+        parent_dirs = Path(__file__).resolve(strict = True).parents
+        conda_prefix = next((str(d) for d in parent_dirs if (d / "conda-meta").is_dir()), None)
+    else:
+        conda, conda_prefix = None, None
 
     # Put it all together into an upgrade command!
     if newer_version:
@@ -112,6 +140,14 @@ def check_for_new_version():
             print("Upgrade your pipx-based installation by running:")
             print()
             print("    pipx upgrade nextstrain-cli")
+
+        elif installer == "conda":
+            print("Upgrade your Conda-based installation running:")
+            print()
+            if conda_prefix:
+                print(f"    {conda} update -p {shquote(conda_prefix)} nextstrain-cli")
+            else:
+                print(f"    {conda} update nextstrain-cli   # add -n NAME or -p PATH if necessary")
 
         else:
             print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
