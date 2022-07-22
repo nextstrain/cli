@@ -118,6 +118,8 @@ def check_for_new_version():
 
     # Put it all together into an upgrade command!
     if newer_version:
+        pkgreq = shquote(f"nextstrain-cli=={newer_version}")
+
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
         print("See what's new in the changelog:")
@@ -133,21 +135,21 @@ def check_for_new_version():
         elif installer == "pip":
             print("Upgrade your Pip-based installation by running:")
             print()
-            print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-                  "    " + python + " -m pip install --upgrade nextstrain-cli")
+            print(f"    {python} -m pip install --user {pkgreq}" if installed_into_user_site else \
+                  f"    {python} -m pip install {pkgreq}")
 
         elif installer == "pipx":
             print("Upgrade your pipx-based installation by running:")
             print()
-            print("    pipx upgrade nextstrain-cli")
+            print(f"    pipx install -f {pkgreq}")
 
         elif installer == "conda":
             print("Upgrade your Conda-based installation running:")
             print()
             if conda_prefix:
-                print(f"    {conda} update -p {shquote(conda_prefix)} nextstrain-cli")
+                print(f"    {conda} install -p {shquote(conda_prefix)} {pkgreq}")
             else:
-                print(f"    {conda} update nextstrain-cli   # add -n NAME or -p PATH if necessary")
+                print(f"    {conda} install {pkgreq}   # add -n NAME or -p PATH if necessary")
 
         else:
             print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
