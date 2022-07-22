@@ -38,6 +38,10 @@ development source code and as such may not be routinely kept up to date.
   type checks!
   ([#419][])
 
+* [Cram](https://bitheap.org/cram/) test files are now supported, with one
+  example file for now.
+  ([#419][])
+
 * `NEXTSTRAIN_HOME` is now set for tests so as to avoid interference with the
   local user's personal config and data.
   ([#419][])

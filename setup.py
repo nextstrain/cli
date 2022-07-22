@@ -136,6 +136,7 @@ setup(
 
     extras_require = {
         "dev": [
+            "cram >=0.7",
             "flake8 >=4.0.0",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",

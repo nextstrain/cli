@@ -24,7 +24,8 @@ Now test that you can run:
 
 The development environment includes our dev tools (described below):
 
-    pytest           # runs doctests as well as pyright and flake8
+    pytest           # runs doctests as well as cram, pyright, and flake8
+    cram tests/*.cram
     pyright
     flake8
     make -C doc livehtml
@@ -138,7 +139,21 @@ Tests are run with [pytest](https://pytest.org).  To run everything, use:
 
     ./devel/pytest
 
-This includes the type annotation and static analysis checks described below.
+This includes Cram and the type annotation and static analysis checks described
+below.
+
+## Cram
+
+Tests for the command-line interface use [Cram](https://bitheap.org/cram/) and
+are written in `tests/*.cram` files.  You can run individual test files, e.g.:
+
+    $ cram -v tests/version.cram
+    tests/version.cram: passed
+    # Ran 1 tests, 0 skipped, 0 failed.
+
+Cram tests should always start by sourcing `tests/env` so that they run
+identically regardless of if they're run directly with `cram` or via
+`./devel/pytest`.
 
 ## Type annotations and static analysis
 

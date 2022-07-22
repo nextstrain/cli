@@ -20,3 +20,6 @@ environment*
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# cram test run outputs
+/tests/*.cram.err
