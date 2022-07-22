@@ -22,7 +22,7 @@ following to upgrade:
 Otherwise, you're using another installation method and running:
 
 .. code-block:: console
-    :emphasize-lines: 6
+    :emphasize-lines: 10
 
     $ nextstrain check-setup
     A new version of nextstrain-cli, X.Y.Z, is available!  You're running A.B.C.
