@@ -136,7 +136,7 @@ def standalone_installation_archive_url(version: str) -> str:
 
     target_triple = f"{machine}-{vendor}-{os}"
 
-    return f"https://github.com/nextstrain/cli/releases/download/{version}/nextstrain-cli-{version}-standalone-{target_triple}.{archive_format}"
+    return f"https://nextstrain.org/cli/download/{version}/standalone-{target_triple}.{archive_format}"
 
 
 def new_version_available():
