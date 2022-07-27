@@ -122,7 +122,7 @@ setup(
             "docutils<0.16",
             "flake8",
             "mypy",
-            "nextstrain-sphinx-theme",
+            "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
             "recommonmark",
