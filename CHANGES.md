@@ -13,6 +13,16 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* A new debugging mode can be enabled by setting the `NEXTSTRAIN_DEBUG`
+  environment variable to `1` (or another truthy value).  Currently the only
+  effect is to print more information about handled (i.e. anticipated) errors.
+  For example, stack traces and parent exceptions in an exception chain are
+  normally omitted for handled errors, but setting this env var includes them.
+  Future debugging and troubleshooting features, like verbose operation
+  logging, will likely also condition on this new debugging mode.
+
 
 # 4.1.1 (18 July 2022)
 
