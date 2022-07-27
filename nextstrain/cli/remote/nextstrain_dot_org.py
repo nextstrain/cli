@@ -438,13 +438,13 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
             raise UserError(f"Path {path} does not seem to exist")
 
         for resource in resources:
+            yield "nextstrain.org" + str(resource.path)
+
             response = http.delete(api_endpoint(resource.path))
 
             raise_for_status(response)
 
             assert response.status_code == 204
-
-            yield "nextstrain.org" + str(resource.path)
 
 
 def remote_path(url: urllib.parse.ParseResult) -> NormalizedPath:

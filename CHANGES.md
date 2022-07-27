@@ -13,6 +13,14 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* Using `remote delete` on nextstrain.org now correctly outputs the "Deleting…"
+  message *before* performing each delete, as intended (and as S3 remotes do).
+  Previously, the message was misleadingly output *after* each delete was
+  already performed.
+  ([#209](https://github.com/nextstrain/cli/pull/209))
+
 ## Development
 
 * A new debugging mode can be enabled by setting the `NEXTSTRAIN_DEBUG`
