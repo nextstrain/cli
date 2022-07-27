@@ -158,9 +158,11 @@ class Narrative(Resource):
     ]
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, str]]:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the given nextstrain.org *url*.
+
+    Doesn't actually upload anything if *dry_run* is truthy.
     """
     path = remote_path(url)
 
@@ -255,6 +257,9 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
 
                 yield file, destination
 
+                if dry_run:
+                    continue
+
                 put(endpoint, file, media_type)
 
         # Upload narratives
@@ -272,13 +277,18 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
 
             yield file, destination
 
+            if dry_run:
+                continue
+
             put(endpoint, file, markdown_type)
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[str, Path]]:
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the datasets or narratives deployed at the given remote *url*,
     optionally *recursively*, saving them into the *local_dir*.
+
+    Doesn't actually download anything if *dry_run* is truthy.
     """
     path = remote_path(url)
 
@@ -360,6 +370,9 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
                     yield source, destination
 
+                    if dry_run:
+                        continue
+
                     # Stream response data to local file
                     with destination.open("w") as local_file:
                         for chunk in response.iter_content(chunk_size = None, decode_unicode = True):
@@ -415,10 +428,12 @@ def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session 
     ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[str]:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
     """
     Delete the datasets and narratives deployed at the given nextstrain.org
     *url*, optionally *recursively*.
+
+    Doesn't actually delete anything if *dry_run* is truthy.
     """
     path = remote_path(url)
 
@@ -439,6 +454,9 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
 
         for resource in resources:
             yield "nextstrain.org" + str(resource.path)
+
+            if dry_run:
+                continue
 
             response = http.delete(api_endpoint(resource.path))
 

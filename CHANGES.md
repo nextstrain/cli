@@ -21,6 +21,20 @@ development source code and as such may not be routinely kept up to date.
   already performed.
   ([#209](https://github.com/nextstrain/cli/pull/209))
 
+## Improvements
+
+* The `nextstrain remote download`, `upload`, and `delete` commands now support
+  a `--dry-run` mode.
+
+  This mode, as is broader convention, goes through the motions of doing the
+  thing, as much as possible, but doesn't _actually_ do the thing.  That is, no
+  changes should occur when `--dry-run` is active.
+
+  This is particularly useful for seeing what will happen if you're unsure of
+  how a path or argument is handled.  Dry runs of the `list` (`ls`) command
+  don't make sense and aren't included.
+  ([#210](https://github.com/nextstrain/cli/pull/210))
+
 ## Development
 
 * A new debugging mode can be enabled by setting the `NEXTSTRAIN_DEBUG`

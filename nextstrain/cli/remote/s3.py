@@ -66,9 +66,11 @@ mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[Tuple[Path, str]]:
+def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the bucket and optional prefix specified by *url*.
+
+    Doesn't actually upload anything if *dry_run* is truthy.
     """
     bucket, prefix = split_url(url)
 
@@ -80,6 +82,9 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
 
     for local_file, remote_file in files:
         yield local_file, remote_file
+
+        if dry_run:
+            continue
 
         content_type, encoding_type = guess_type(local_file)
 
@@ -96,13 +101,15 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path]) -> Iterable[T
             bucket.upload_fileobj(data, remote_file, meta)
 
     # Purge any CloudFront caches for this bucket
-    purge_cloudfront(bucket, [remote for local, remote in files])
+    purge_cloudfront(bucket, [remote for local, remote in files], dry_run)
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False) -> Iterable[Tuple[str, Path]]:
+def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
+
+    Doesn't actually download anything if *dry_run* is truthy.
     """
     bucket, path = split_url(url)
 
@@ -134,6 +141,9 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
     for remote_object, local_file in files:
         yield remote_object.key, local_file
 
+        if dry_run:
+            continue
+
         encoding = remote_object.content_encoding
 
         with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
@@ -149,9 +159,11 @@ def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     return [ obj.key for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable[str]:
+def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
+
+    Doesn't actually delete anything if *dry_run* is truthy.
     """
     bucket, path = split_url(url)
 
@@ -174,10 +186,14 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False) -> Iterable
 
     for object in objects:
         yield object.key
+
+        if dry_run:
+            continue
+
         object.delete()
 
     if objects:
-        purge_cloudfront(bucket, [ obj.key for obj in objects ])
+        purge_cloudfront(bucket, [ obj.key for obj in objects ], dry_run)
 
 
 def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
@@ -291,7 +307,7 @@ def guess_type(path: Path) -> Tuple[str, Optional[str]]:
     return type, encoding_type
 
 
-def purge_cloudfront(bucket, paths: List[str]) -> None:
+def purge_cloudfront(bucket, paths: List[str], dry_run: bool = False) -> None:
     """
     Invalidate any CloudFront distribution paths which match the given list of
     file paths originating in the given S3 bucket.
@@ -304,10 +320,10 @@ def purge_cloudfront(bucket, paths: List[str]) -> None:
     # For each CloudFront distribution origin serving from this bucket (with a
     # matching or broader prefix), if any, purge the prefix path.
     for distribution, origin in distribution_origins_for_bucket(cloudfront, bucket.name, prefix):
-        purge_prefix(cloudfront, distribution, origin, prefix)
+        purge_prefix(cloudfront, distribution, origin, prefix, dry_run)
 
 
-def purge_prefix(cloudfront, distribution: dict, origin: dict, prefix: str) -> None:
+def purge_prefix(cloudfront, distribution: dict, origin: dict, prefix: str, dry_run: bool = False) -> None:
     distribution_id     = distribution["Id"]
     distribution_domain = domain_names(distribution)[0]
 
@@ -317,8 +333,15 @@ def purge_prefix(cloudfront, distribution: dict, origin: dict, prefix: str) -> N
     # require a leading slash for proper invalidation.
     purge_prefix = "/%s*" % remove_origin_path(origin, prefix)
 
+    if dry_run:
+        print("DRY RUN: ", end = "")
+
     print("Purging %s from CloudFront distribution %s (%s)… " % (purge_prefix, distribution_domain, distribution_id),
         end = "", flush = True)
+
+    if dry_run:
+        print()
+        return
 
     # Send the invalidation request.
     #
