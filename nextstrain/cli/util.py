@@ -1,3 +1,8 @@
+try:
+    from importlib.metadata import distribution as distribution_info, PackageNotFoundError
+except ModuleNotFoundError:
+    from importlib_metadata import distribution as distribution_info, PackageNotFoundError
+
 import os
 import platform
 import re
@@ -7,8 +12,9 @@ import subprocess
 import sys
 from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
+from packaging.version import parse as parse_version
 from pathlib import Path
-from pkg_resources import parse_version
+from shlex import quote as shquote
 from shutil import which
 from sys import exit, stderr
 from textwrap import dedent, indent
@@ -60,6 +66,7 @@ def check_for_new_version():
         and site.USER_SITE is not None \
         and (__file__ or "").startswith(site.USER_SITE)
 
+    # Find our Python executable/command.
     if sys.executable:
         exe_name = Path(sys.executable).name
 
@@ -68,9 +75,55 @@ def check_for_new_version():
         else:
             python = sys.executable
     else:
-        python = next(filter(which, ["python3", "python"])) or "python3"
+        # We don't know our own executable, which is a bit unusual, so first
+        # see if either python3 or python is available on PATH and use the
+        # first one that is.  If neither is on PATH, use python3 and hope the
+        # user can figure it out.
+        python = next(filter(which, ["python3", "python"]), "python3")
 
+    # Find our installer (e.g. pip, conda).
+    try:
+        distribution = distribution_info("nextstrain-cli")
+    except PackageNotFoundError:
+        installer = None
+    else:
+        installer = (distribution.read_text("INSTALLER") or '').strip() or None
+
+    # Determine if we're pipx or not.
+    if installer == "pip" and "/pipx/venvs/nextstrain-cli/" in python:
+        installer = "pipx"
+
+    # Find our Conda details, if applicable.
+    if installer == "conda":
+        # Prefer mamba over conda, if available on PATH.
+        #
+        # If we can't find either mamba or conda on the current PATH but we're
+        # positively installed via a Conda package, then we have to assume that
+        # a) one of them is available _somehow_ and b) that the user knows (or
+        # will figure out) how to run one of them. We could default to either
+        # conda or mamba, but since our official install instructions use mamba
+        # and conda sometimes has dep-solving memory issues, I figured that
+        # mamba was the best thing to use in this edge case.
+        #
+        # There's several reasons why neither command may be available on PATH
+        # when we go looking with `which`, e.g. the commands could be off PATH
+        # but available via shell alias or shell function wrappers or they
+        # could be behind a modules system like Environment Modules and need
+        # enabling with e.g. `module load …`.
+        #   -trs, 28 July 2022
+        conda = next(filter(which, ["mamba", "conda"]), "mamba")
+
+        # Search upwards for first parent directory which contains a
+        # "conda-meta" dir.  This is the env prefix.
+        parent_dirs = Path(__file__).resolve(strict = True).parents
+        conda_prefix = next((str(d) for d in parent_dirs if (d / "conda-meta").is_dir()), None)
+    else:
+        conda, conda_prefix = None, None
+
+    # Put it all together into an upgrade command!
     if newer_version:
+        pkgreq = shquote(f"nextstrain-cli=={newer_version}")
+
         print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
         print()
         print("See what's new in the changelog:")
@@ -82,16 +135,30 @@ def check_for_new_version():
             print("Upgrade your standalone installation by downloading a new archive from:")
             print()
             print(f"    {standalone_installation_archive_url(newer_version)}")
+
+        elif installer == "pip":
+            print("Upgrade your Pip-based installation by running:")
             print()
-        else:
-            print("Upgrade by running:")
+            print(f"    {python} -m pip install --user {pkgreq}" if installed_into_user_site else \
+                  f"    {python} -m pip install {pkgreq}")
+
+        elif installer == "pipx":
+            print("Upgrade your pipx-based installation by running:")
             print()
-            if "/pipx/venvs/nextstrain-cli/" in python:
-                print("    pipx upgrade nextstrain-cli")
+            print(f"    pipx install -f {pkgreq}")
+
+        elif installer == "conda":
+            print("Upgrade your Conda-based installation running:")
+            print()
+            if conda_prefix:
+                print(f"    {conda} install -p {shquote(conda_prefix)} {pkgreq}")
             else:
-                print("    " + python + " -m pip install --user --upgrade nextstrain-cli" if installed_into_user_site else \
-                      "    " + python + " -m pip install --upgrade nextstrain-cli")
-            print()
+                print(f"    {conda} install {pkgreq}   # add -n NAME or -p PATH if necessary")
+
+        else:
+            print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
+
+        print()
     else:
         print("nextstrain-cli is up to date!")
         print()
@@ -154,7 +221,7 @@ def new_version_available():
     this_version   = parse_version(__version__)
     latest_version = parse_version(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
 
-    return latest_version if latest_version > this_version else None
+    return str(latest_version) if latest_version > this_version else None
 
 
 def fetch_latest_pypi_version(project):
