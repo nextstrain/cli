@@ -75,6 +75,10 @@ def check_for_new_version():
         else:
             python = sys.executable
     else:
+        # We don't know our own executable, which is a bit unusual, so first
+        # see if either python3 or python is available on PATH and use the
+        # first one that is.  If neither is on PATH, use python3 and hope the
+        # user can figure it out.
         python = next(filter(which, ["python3", "python"]), "python3")
 
     # Find our installer (e.g. pip, conda).
