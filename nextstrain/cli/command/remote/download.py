@@ -66,6 +66,11 @@ def register_parser(subparser):
         help   = "Download everything under the given remote URL path prefix",
         action = "store_true")
 
+    parser.add_argument(
+        "--dry-run",
+        help   = "Don't actually download anything, just show what would be downloaded",
+        action = "store_true")
+
     return parser
 
 
@@ -84,9 +89,11 @@ def run(opts):
                     mkdir -p {shlex.quote(str(opts.local_path))}
                 """)
 
-    downloads = remote.download(url, opts.local_path, recursively = opts.recursively)
+    downloads = remote.download(url, opts.local_path, recursively = opts.recursively, dry_run = opts.dry_run)
 
     for remote_file, local_file in downloads:
+        if opts.dry_run:
+            print("DRY RUN: ", end = "")
         print("Downloading", remote_file, "as", local_file)
 
     return 0

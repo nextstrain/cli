@@ -53,15 +53,22 @@ def register_arguments(parser):
         metavar = "<file> [<file2> […]]",
         nargs   = "+")
 
+    parser.add_argument(
+        "--dry-run",
+        help   = "Don't actually upload anything, just show what would be uploaded",
+        action = "store_true")
+
 
 def run(opts):
     remote, url = parse_remote_path(opts.destination)
 
     files = [Path(f) for f in opts.files]
 
-    uploads = remote.upload(url, files)
+    uploads = remote.upload(url, files, dry_run = opts.dry_run)
 
     for local_file, remote_file in uploads:
+        if opts.dry_run:
+            print("DRY RUN: ", end = "")
         print("Uploading", local_file, "as", remote_file)
 
     return 0

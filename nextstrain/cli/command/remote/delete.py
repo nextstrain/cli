@@ -39,16 +39,23 @@ def register_parser(subparser):
         help   = "Delete everything under the given remote URL path prefix",
         action = "store_true")
 
+    parser.add_argument(
+        "--dry-run",
+        help   = "Don't actually delete anything, just show what would be deleted",
+        action = "store_true")
+
     return parser
 
 
 def run(opts):
     remote, url = parse_remote_path(opts.remote_path)
 
-    deletions = remote.delete(url, recursively = opts.recursively)
+    deletions = remote.delete(url, recursively = opts.recursively, dry_run = opts.dry_run)
     deleted_count = 0
 
     for file in deletions:
+        if opts.dry_run:
+            print("DRY RUN: ", end = "")
         print("Deleting", file)
         deleted_count += 1
 
