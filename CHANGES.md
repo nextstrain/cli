@@ -13,6 +13,55 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release contains **a potentially-breaking change** for existing usages of
+`nextstrain remote download`.  The change is described below.
+
+## Improvements
+
+* The local filenames produced by `nextstrain remote download` now include
+  more of the remote dataset/narrative path.  This reduces the potential for
+  ambiguous filenames and makes it easier to copy datasets/narratives between
+  destinations (e.g. from one group to another) while retaining the same path.
+  It is, however, a **potentially-breaking change** if you're relying on the
+  filenames of the downloaded datasets/narratives (e.g. for automation).
+
+  For example, downloading `nextstrain.org/flu/seasonal/h3n2/ha/2y` previously
+  produced the local files:
+
+  ```
+  2y.json
+  2y_root-sequence.json
+  2y_tip-frequencies.json
+  ```
+
+  which could easily conflict with the similarly-named
+  `nextstrain.org/flu/seasonal/h3n2/na/2y`,
+  `nextstrain.org/flu/seasonal/h1n1pdm/ha/2y`, etc.  The downloaded files are
+  now named:
+
+  ```
+  flu_seasonal_h3n2_ha_2y.json
+  flu_seasonal_h3n2_ha_2y_root-sequence.json
+  flu_seasonal_h3n2_ha_2y_tip-frequencies.json
+  ```
+
+  Within groups, filenames are similarly longer but the group name is not
+  included.  For example, downloading `groups/blab/ncov/cross-species/cat`
+  previously produced:
+
+  ```
+  cat.json
+  cat_root-sequence.json
+  cat_tip-frequencies.json
+  ```
+
+  and now produces:
+
+  ```
+  ncov_cross-species_cat.json
+  ncov_cross-species_cat_root-sequence.json
+  ncov_cross-species_cat_tip-frequencies.json
+  ```
 
 # 4.2.0 (29 July 2022)
 

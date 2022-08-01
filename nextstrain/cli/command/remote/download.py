@@ -8,9 +8,9 @@ seasonal influenza datasets::
 
 which creates three files in the current directory::
 
-    2y.json
-    2y_root-sequence.json
-    2y_tip-frequencies.json
+    flu_seasonal_h3n2_ha_2y.json
+    flu_seasonal_h3n2_ha_2y_root-sequence.json
+    flu_seasonal_h3n2_ha_2y_tip-frequencies.json
 
 The --recursively option allows for downloading multiple datasets or narratives
 at once, e.g. to download all the datasets under "ncov/open/…" into an existing
@@ -20,12 +20,12 @@ directory named "sars-cov-2"::
 
 which creates files for each dataset::
 
-    sars-cov-2/global.json
-    sars-cov-2/global_root-sequence.json
-    sars-cov-2/global_tip-frequencies.json
-    sars-cov-2/africa.json
-    sars-cov-2/africa_root-sequence.json
-    sars-cov-2/africa_tip-frequencies.json
+    sars-cov-2/ncov_open_global.json
+    sars-cov-2/ncov_open_global_root-sequence.json
+    sars-cov-2/ncov_open_global_tip-frequencies.json
+    sars-cov-2/ncov_open_africa.json
+    sars-cov-2/ncov_open_africa_root-sequence.json
+    sars-cov-2/ncov_open_africa_tip-frequencies.json
     …
 
 See `nextstrain remote --help` for more information on remote sources.
