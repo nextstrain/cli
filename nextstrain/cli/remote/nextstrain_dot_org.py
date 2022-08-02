@@ -331,33 +331,10 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
 
                     # Local destination
                     if local_path.is_dir():
-                        if recursively:
-                            # If we're recursively downloading under a path
-                            # which is itself a dataset that exists, e.g.
-                            # `nextstrain remote download -r a/b` when the
-                            # following datasets exist:
-                            #
-                            #       a/b
-                            #       a/b/x
-                            #       a/b/y
-                            #       a/b/z
-                            #
-                            # then we need to include a little of the given
-                            # path in the local filenames, e.g. strip only "a",
-                            # leaving "b".  Otherwise, e.g. if a/b doesn't
-                            # exist itself only a/b/x, etc, then we can strip
-                            # "a/b" entirely.
-                            if path in {r.path for r in resources}:
-                                base_path = path.parent
-                            else:
-                                base_path = path
-
-                            local_name = (
-                                str(resource.path.relative_to(base_path))
-                                    .lstrip("/")
-                                    .replace("/", "_"))
-                        else:
-                            local_name = resource.path.name
+                        local_name = (
+                            str(resource.path.relative_to(namespace(resource.path)))
+                                .lstrip("/")
+                                .replace("/", "_"))
 
                         destination = local_path / local_name
                     else:
@@ -550,16 +527,72 @@ def prefixed(path: NormalizedPath) -> bool:
     >>> prefixed(normalize_path("narratives/"))
     False
     """
+    return str(path.relative_to(namespace(path))) != "."
+
+
+def namespace(path: NormalizedPath) -> NormalizedPath:
+    """
+    Return the top-level nextstrain.org namespace ("source" in that codebase's
+    parlance + optional "narratives/" part) for *path*.
+
+    >>> namespace(normalize_path("groups/blab/abc"))
+    NormalizedPath('/groups/blab')
+    >>> namespace(normalize_path("groups/blab/abc/def"))
+    NormalizedPath('/groups/blab')
+    >>> namespace(normalize_path("groups/blab/narratives/abc"))
+    NormalizedPath('/groups/blab/narratives')
+    >>> namespace(normalize_path("groups/blab/narratives/abc/def"))
+    NormalizedPath('/groups/blab/narratives')
+    >>> namespace(normalize_path("groups/blab"))
+    NormalizedPath('/groups/blab')
+    >>> namespace(normalize_path("groups/blab/narratives/"))
+    NormalizedPath('/groups/blab/narratives')
+
+    >>> namespace(normalize_path("staging/wxyz"))
+    NormalizedPath('/staging')
+    >>> namespace(normalize_path("staging/tuv/wxyz"))
+    NormalizedPath('/staging')
+    >>> namespace(normalize_path("staging/narratives/tuv"))
+    NormalizedPath('/staging/narratives')
+    >>> namespace(normalize_path("staging/narratives/tuv/wxyz"))
+    NormalizedPath('/staging/narratives')
+    >>> namespace(normalize_path("staging"))
+    NormalizedPath('/staging')
+    >>> namespace(normalize_path("staging/narratives/"))
+    NormalizedPath('/staging/narratives')
+
+    >>> namespace(normalize_path("abc"))
+    NormalizedPath('/')
+    >>> namespace(normalize_path("abc/def"))
+    NormalizedPath('/')
+    >>> namespace(normalize_path("narratives/abc"))
+    NormalizedPath('/narratives')
+    >>> namespace(normalize_path("narratives/abc/def"))
+    NormalizedPath('/narratives')
+    >>> namespace(normalize_path("/"))
+    NormalizedPath('/')
+    >>> namespace(normalize_path("narratives/"))
+    NormalizedPath('/narratives')
+    """
     path_ = str(path)
 
-    if glob_match(path_, "/groups/*{,/**}"):
-        return not glob_match(path_, ["/groups/*", "/groups/*/narratives"])
+    if glob_match(path_, "/groups/*/narratives{,/**}"):
+        return normalize_path(f"/groups/{path.parts[2]}/narratives")
+
+    elif glob_match(path_, "/groups/*{,/**}"):
+        return normalize_path(f"/groups/{path.parts[2]}")
+
+    elif glob_match(path_, "/staging/narratives{,/**}"):
+        return normalize_path("/staging/narratives")
 
     elif glob_match(path_, "/staging{,/**}"):
-        return path_ not in {"/staging", "/staging/narratives"}
+        return normalize_path("/staging")
+
+    elif glob_match(path_, "/narratives{,/**}"):
+        return normalize_path("/narratives")
 
     else:
-        return path_ not in {"/", "/narratives"}
+        return normalize_path("/")
 
 
 def api_endpoint(path: Union[str, PurePosixPath]) -> str:
