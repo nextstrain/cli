@@ -15,6 +15,7 @@ from typing import Callable, Generator, Iterable, List, Optional
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ...types import S3Bucket, S3Object
+from ...util import glob_matcher
 
 
 PathMatcher = Callable[[Path], bool]
@@ -79,8 +80,8 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
 
     The remote workdir's files **overwrite** local files!
 
-    An optional list of *patterns* (shell-style globs) can be passed to
-    selectively download only part of the remote workdir.
+    An optional list of *patterns* (shell-style advanced globs) can be passed
+    to selectively download only part of the remote workdir.
     """
 
     excluded = path_matcher([
@@ -102,7 +103,7 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
     ])
 
     if patterns:
-        selected = path_matcher(patterns)
+        selected = glob_matcher(patterns)
     else:
         selected = lambda path: True
 

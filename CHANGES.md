@@ -63,6 +63,15 @@ This release contains **a potentially-breaking change** for existing usages of
   ncov_cross-species_cat_tip-frequencies.json
   ```
 
+* Advanced globbing features are now supported in patterns for the `--download`
+  option of `nextstrain build`, including multi-part wildcards (`**`), extended
+  globbing (`@(…)`, `+(…)`, etc.), and negation (`!…`).  Basic globbing
+  features like single-part wildcards (`*`), character classes (`[…]`), and
+  brace expansion (`{…, …}`) are still supported.  Note that the `--download`
+  option continues to be applicable only to the AWS Batch runtime (e.g. the
+  `--aws-batch` option).
+
+
 # 4.2.0 (29 July 2022)
 
 ## Bug fixes
