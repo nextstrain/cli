@@ -79,13 +79,21 @@ def register_parser(subparser):
     parser.add_argument(
         "--download",
         metavar = "<pattern>",
-        help    = "Only download new or modified files matching <pattern> from the remote build. "
-                  "Basic shell-style globbing is supported, but be sure to escape wildcards "
-                  "or quote the whole pattern so your shell doesn't expand them. "
-                  "May be passed more than once. "
-                  "Currently only supported when also using --aws-batch. "
-                  "Default is to download every new or modified file."
-                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        help    = dedent(f"""\
+            Only download new or modified files matching <pattern> from the
+            remote build.  Shell-style advanced globbing is supported, but be
+            sure to escape wildcards or quote the whole pattern so your shell
+            doesn't expand them.  May be passed more than once.  Currently only
+            supported when also using --aws-batch.  Default is to download
+            every new or modified file.
+
+            Besides basic glob features like single-part wildcards (*),
+            character classes ([…]), and brace expansion ({{…, …}}), several
+            advanced globbing features are also supported: multi-part wildcards
+            (**), extended globbing (@(…), +(…), etc.), and negation (!…).
+
+            {SKIP_AUTO_DEFAULT_IN_HELP}
+            """),
         default = True,
         action  = AppendOverwriteDefault)
 
