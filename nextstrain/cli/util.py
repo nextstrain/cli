@@ -132,7 +132,11 @@ def check_for_new_version():
         print()
 
         if standalone_installation():
-            print("Upgrade your standalone installation by downloading a new archive from:")
+            print("Upgrade your standalone installation by running:")
+            print()
+            print(f"    {standalone_installer(newer_version)}")
+            print()
+            print("or by downloading a new archive from:")
             print()
             print(f"    {standalone_installation_archive_url(newer_version)}")
 
@@ -186,6 +190,22 @@ def standalone_installation():
     # if necessary in the future.
     #   -trs, 7 July 2022
     return "nextstrain-cli-is-standalone" in getattr(sys, "_xoptions", {})
+
+
+def standalone_installer(version: str) -> str:
+    system = platform.system()
+
+    if system == "Linux":
+        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash -s {shquote(version)}"
+
+    elif system == "Darwin":
+        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash -s {shquote(version)}"
+
+    elif system == "Windows":
+        return 'Invoke-Expression "& { $(Invoke-RestMethod https://nextstrain.org/cli/installer/windows) } %s"' % shquote(version)
+
+    else:
+        raise RuntimeError(f"unknown system {system!r}")
 
 
 def standalone_installation_archive_url(version: str) -> str:
