@@ -22,7 +22,7 @@ from textwrap import indent
 from .. import config
 from ..types import Options
 from ..util import colored, check_for_new_version, remove_prefix, runner_name
-from ..runner import all_runners, default_runner # noqa: F401 (it's wrong; we use it in run())
+from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
 def register_parser(subparser):
@@ -30,8 +30,11 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--set-default",
-        help   = "Set the default environment to the first which passes check-setup. Checks run in the order: %s." % (", ".join(map(runner_name, all_runners)),),
-        action = "store_true")
+        help    = "Set the default environment to the first which passes check-setup. Checks run in the order: %s. Alternatively, provide your own choice to override this automatic selection." % (", ".join(all_runners_by_name),),
+        nargs   = "?",
+        default = False,
+        const   = True,
+        choices = list(all_runners_by_name))
 
     return parser
 
@@ -103,16 +106,26 @@ def run(opts: Options) -> int:
 
     if supported_runners:
         print("Supported Nextstrain environments:", ", ".join(success(runner_name(r)) for r in supported_runners))
-
-        if opts.set_default:
-            default_runner = supported_runners[0]
-            print()
-            print("Setting default environment to %s." % runner_name(default_runner))
-            config.set("core", "runner", runner_name(default_runner))
-            default_runner.set_default_config()
     else:
         print(failure("No support for any Nextstrain environment."))
 
+    # Set default if requested.
+    set_default = None
+
+    if opts.set_default is True:
+        if supported_runners:
+            set_default = supported_runners[0]
+    elif opts.set_default:
+        set_default = all_runners_by_name[opts.set_default]
+
+    if set_default:
+        default_runner = set_default
+        print()
+        print("Setting default environment to %s." % runner_name(default_runner))
+        config.set("core", "runner", runner_name(default_runner))
+        default_runner.set_default_config()
+
+    # Print summary.
     print()
     if default_runner in supported_runners:
         print(f"All good!  Default environment ({runner_name(default_runner)}) is supported.")

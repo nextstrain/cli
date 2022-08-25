@@ -71,6 +71,13 @@ This release contains **a potentially-breaking change** for existing usages of
   option continues to be applicable only to the AWS Batch runtime (e.g. the
   `--aws-batch` option).
 
+* The `check-setup` command's `--set-default` option now accepts an optional
+  value to explicitly choose the desired runner (runtime environment),
+  overriding the automatic selection based on what's detected as supported.  If
+  the chosen runner isn't supported, it's still set as the default, but
+  `check-setup` nevertheless exits with an error.
+  ([#216](https://github.com/nextstrain/cli/pull/216))
+
 
 # 4.2.0 (29 July 2022)
 
