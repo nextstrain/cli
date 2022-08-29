@@ -1,0 +1,59 @@
+name: Standalone installers
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - bin/standalone-installer-unix
+      - bin/standalone-installer-windows
+
+  pull_request:
+    paths:
+      - bin/standalone-installer-unix
+      - bin/standalone-installer-windows
+
+  # Routinely check that the external resources the installers rely on keep
+  # functioning as expected.
+  schedule:
+    # Every day at 17:42 UTC / 9:42 Seattle (winter) / 10:42 Seattle (summer)
+    - cron: "42 17 * * *"
+
+  workflow_dispatch:
+
+jobs:
+  # The goal here is to make sure the installers run successfully on a variety
+  # of OS versions.  We're _not_ testing unreleased standalone builds here—the
+  # installation archives are downloaded from the latest release on GitHub via
+  # nextstrain.org endpoints—which is why this isn't part of CI.  That is, this
+  # is akin to testing `pip install nextstrain-cli` if we wanted to make sure
+  # `pip` worked.
+  #   -trs, 29 August 2022
+  test:
+    name: test (os=${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-18.04
+          - ubuntu-20.04
+          - ubuntu-22.04
+          - macos-11
+          - macos-12
+          - windows-2019
+          - windows-2022
+
+    runs-on: ${{matrix.os}}
+    steps:
+      - uses: actions/checkout@v3
+
+      # Use pipes like are used in the real instructions when the installer is
+      # fetched from nextstrain.org.  This tests that the shell programs work
+      # when they're specifically executed this way.
+      - if: runner.os != 'Windows'
+        run: cat ./bin/standalone-installer-unix | bash
+        shell: bash
+
+      - if: runner.os == 'Windows'
+        run: Get-Content -Raw ./bin/standalone-installer-windows | Invoke-Expression
+        shell: pwsh
