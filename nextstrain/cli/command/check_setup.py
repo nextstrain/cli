@@ -28,7 +28,7 @@ from textwrap import indent
 from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module
 from ..types import Options
-from ..util import colored, check_for_new_version, remove_prefix, runner_name
+from ..util import colored, check_for_new_version, remove_prefix, runner_name, runner_tests_ok
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -90,7 +90,7 @@ def run(opts: Options) -> int:
     ]
 
     runner_status = {
-        runner: False not in [result for test, result in tests]
+        runner: runner_tests_ok(tests)
             for runner, tests in runner_tests
     }
 

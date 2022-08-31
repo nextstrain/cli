@@ -20,7 +20,7 @@ from sys import exit, stderr
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
-from .types import RunnerModule
+from .types import RunnerModule, RunnerTestResults
 
 
 def warn(*args):
@@ -503,3 +503,10 @@ def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]]) -> b
     Implemented with with :func:`wcmatch.glob.globmatch`.
     """
     return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE)
+
+
+def runner_tests_ok(tests: RunnerTestResults) -> bool:
+    """
+    Returns True iff none of a runner's ``test_setup()`` results failed.
+    """
+    return False not in [result for test, result in tests]
