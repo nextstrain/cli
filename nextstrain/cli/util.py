@@ -10,6 +10,7 @@ import requests
 import site
 import subprocess
 import sys
+from functools import partial
 from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
 from packaging.version import parse as parse_version
@@ -510,3 +511,34 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     Returns True iff none of a runner's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
+
+
+def print_runner_tests(tests: RunnerTestResults):
+    """
+    Prints a formatted version of the return value of a runner's
+    ``test_setup()``.
+    """
+    success = partial(colored, "green")
+    failure = partial(colored, "red")
+    warning = partial(colored, "yellow")
+    unknown = partial(colored, "gray")
+
+    # XXX TODO: Now that there are special values other than True/False, these
+    # should probably become an enum or custom algebraic type or something
+    # similar.  That will cause a cascade into the test_setup() producers
+    # though, which I'm going to punt on for now.
+    #  -trs, 4 Oct 2018
+    status = {
+        True:  success("✔ yes"),
+        False: failure("✘ no"),
+        None:  warning("⚑ warning"),
+        ...:   unknown("? unknown"),
+    }
+
+    for description, result in tests:
+        # Indent subsequent lines of any multi-line descriptions so it
+        # lines up under the status marker.
+        formatted_description = \
+            remove_prefix("  ", indent(description, "  "))
+
+        print(status.get(result, str(result)) + ":", formatted_description)

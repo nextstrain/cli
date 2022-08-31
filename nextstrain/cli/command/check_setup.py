@@ -24,11 +24,10 @@ checked runtimes are supported.
 """
 
 from functools import partial
-from textwrap import indent
 from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module
 from ..types import Options
-from ..util import colored, check_for_new_version, remove_prefix, runner_name, runner_tests_ok
+from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, print_runner_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -63,20 +62,6 @@ def run(opts: Options) -> int:
 
     success = partial(colored, "green")
     failure = partial(colored, "red")
-    warning = partial(colored, "yellow")
-    unknown = partial(colored, "gray")
-
-    # XXX TODO: Now that there are special values other than True/False, these
-    # should probably become an enum or custom algebraic type or something
-    # similar.  That will cause a cascade into the test_setup() producers
-    # though, which I'm going to punt on for now.
-    #  -trs, 4 Oct 2018
-    status = {
-        True:  success("✔ yes"),
-        False: failure("✘ no"),
-        None:  warning("⚑ warning"),
-        ...:   unknown("? unknown"),
-    }
 
     # Check our own version for updates
     check_for_new_version()
@@ -105,15 +90,7 @@ def run(opts: Options) -> int:
             supported = failure("not supported")
 
         print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
-
-        for description, result in tests:
-            # Indent subsequent lines of any multi-line descriptions so it
-            # lines up under the status marker.
-            formatted_description = \
-                remove_prefix("  ", indent(description, "  "))
-
-            print(status.get(result, str(result)) + ":", formatted_description)
-
+        print_runner_tests(tests)
         print()
 
     # Print overall status.
