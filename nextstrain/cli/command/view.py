@@ -19,7 +19,7 @@ from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IP
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS
-from ..runner import docker, native
+from ..runner import docker, native, managed_conda
 from ..util import colored, remove_suffix, warn
 from ..volume import store_volume
 
@@ -62,11 +62,11 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("auspice/data"))
 
-    # Register runners; only Docker is supported for now.
+    # Register runners; excludes AWS Batch since that makes no sense.
     runner.register_runners(
         parser,
         exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
-        runners = [docker, native])
+        runners = [docker, native, managed_conda])
 
     return parser
 

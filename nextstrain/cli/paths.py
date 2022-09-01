@@ -28,6 +28,9 @@ except:
 # Path to our config/app data dir
 NEXTSTRAIN_HOME = from_env("NEXTSTRAIN_HOME", HOME / ".nextstrain/")
 
+# Path to runtime data dirs
+RUNTIMES = from_env("NEXTSTRAIN_RUNTIMES", NEXTSTRAIN_HOME / "runtimes/")
+
 # Path to our config file
 CONFIG = from_env("NEXTSTRAIN_CONFIG", NEXTSTRAIN_HOME / "config")
 

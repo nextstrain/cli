@@ -1,11 +1,16 @@
 """
 Checks for supported build environments (aka Nextstrain runtimes).
 
-Three runtimes are tested by default:
+Four runtimes are tested by default:
 
   • Our Docker image is the preferred build environment.  Docker itself must
     be installed and configured on your computer first, but once it is, the
     build environment is robust and reproducible.
+
+  • Our managed Conda environment will be tested for existence and appearance
+    of completeness. This runtime is more isolated and reproducible than your
+    native ambient environment, but is less isolated and robust than the Docker
+    runtime.
 
   • Your native ambient environment will be tested for snakemake, augur, and
     auspice. Their presence implies a working build environment, but does not
