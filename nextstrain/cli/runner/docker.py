@@ -294,6 +294,11 @@ def update() -> RunnerUpdateStatus:
         warn("Update succeeded, but an error occurred pruning old image versions:")
         warn("  ", error)
         warn()
+        warn("This can occur, for example, if you have a `nextstrain build`,")
+        warn("`nextstrain view`, or `nextstrain shell` command still running.")
+        warn()
+        warn("Not to worry, we'll try again the next time you run `nextstrain update`.")
+        warn()
 
     return True
 
