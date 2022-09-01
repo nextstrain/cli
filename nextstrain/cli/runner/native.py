@@ -6,7 +6,7 @@ import os
 import shutil
 from subprocess import CalledProcessError
 from typing import Iterable
-from ..types import RunnerTestResults, RunnerUpdateStatus
+from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, exec_or_return
 
 
@@ -26,6 +26,13 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     #   -trs, 21 May 2020
 
     return exec_or_return(argv, extra_env)
+
+
+def setup(force: bool = False) -> RunnerSetupStatus:
+    """
+    Not supported.
+    """
+    return None
 
 
 def test_setup() -> RunnerTestResults:

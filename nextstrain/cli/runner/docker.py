@@ -10,7 +10,7 @@ import subprocess
 from textwrap import dedent
 from typing import Iterable, List
 from .. import hostenv, config
-from ..types import RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
+from ..types import RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume
 from ..__version__ import __version__
@@ -141,6 +141,13 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         opts.image,
         *argv,
     ], extra_env)
+
+
+def setup(force: bool = False) -> RunnerSetupStatus:
+    """
+    Not supported.
+    """
+    return None
 
 
 def test_setup() -> RunnerTestResults:

@@ -12,6 +12,8 @@ from .volume import NamedVolume
 
 Options = argparse.Namespace
 
+RunnerSetupStatus = Optional[bool]
+
 RunnerTestResults = List['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
 RunnerTestResultStatus = Union[bool, None, 'builtins.ellipsis']
@@ -37,6 +39,9 @@ class RunnerModule(Protocol):
             cpus: Optional[int],
             memory: Optional[int]) -> int:
         ...
+
+    @staticmethod
+    def setup(force: bool = False) -> RunnerSetupStatus: ...
 
     @staticmethod
     def test_setup() -> RunnerTestResults: ...

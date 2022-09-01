@@ -12,7 +12,7 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
-from ...types import RunnerTestResults, RunnerUpdateStatus
+from ...types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
 from ... import config
 from . import jobs, s3
@@ -336,6 +336,13 @@ def generate_run_id() -> str:
     Currently this is just a version 4 UUID (GUID).
     """
     return str(uuid4())
+
+
+def setup(force: bool = False) -> RunnerSetupStatus:
+    """
+    Not supported.
+    """
+    return None
 
 
 def test_setup() -> RunnerTestResults:
