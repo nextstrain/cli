@@ -16,6 +16,8 @@ RunnerTestResults = List['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
 RunnerTestResultStatus = Union[bool, None, 'builtins.ellipsis']
 
+RunnerUpdateStatus = Optional[bool]
+
 # Cleaner-reading type annotations for boto3 S3 objects, which maybe can be
 # improved later.  The actual types are generated at runtime in
 # boto3.resources.factory, which means we can't use them here easily.  :(
@@ -43,7 +45,7 @@ class RunnerModule(Protocol):
     def set_default_config() -> None: ...
 
     @staticmethod
-    def update() -> bool: ...
+    def update() -> RunnerUpdateStatus: ...
 
     @staticmethod
     def versions() -> Iterable[str]: ...

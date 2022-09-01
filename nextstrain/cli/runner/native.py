@@ -6,7 +6,7 @@ import os
 import shutil
 from subprocess import CalledProcessError
 from typing import Iterable
-from ..types import RunnerTestResults
+from ..types import RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, exec_or_return
 
 
@@ -48,11 +48,11 @@ def set_default_config() -> None:
     pass
 
 
-def update() -> bool:
+def update() -> RunnerUpdateStatus:
     """
-    No-op.  Updating the native environment isn't reasonably possible.
+    Not supported.  Updating the native environment isn't reasonably possible.
     """
-    return True
+    return None
 
 
 def versions() -> Iterable[str]:

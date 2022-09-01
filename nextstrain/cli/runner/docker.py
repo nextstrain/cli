@@ -10,7 +10,7 @@ import subprocess
 from textwrap import dedent
 from typing import Iterable, List
 from .. import hostenv, config
-from ..types import RunnerTestResults, RunnerTestResultStatus
+from ..types import RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume
 from ..__version__ import __version__
@@ -248,7 +248,7 @@ def set_default_config() -> None:
     config.setdefault("docker", "image", latest_build_image(DEFAULT_IMAGE))
 
 
-def update() -> bool:
+def update() -> RunnerUpdateStatus:
     """
     Pull down the latest Docker image build and prune old image versions.
     """
