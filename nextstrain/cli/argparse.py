@@ -1,11 +1,14 @@
 """
 Custom helpers for extending the behaviour of argparse standard library.
 """
-from argparse import Action, ArgumentDefaultsHelpFormatter, SUPPRESS
+import re
+from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentTypeError, SUPPRESS
 from itertools import takewhile
 from textwrap import indent
 from types import SimpleNamespace
 from .rst import rst_to_text
+from .runner import all_runners_by_name
+from .types import RunnerModule
 from .util import format_usage
 
 
@@ -152,3 +155,45 @@ class AppendOverwriteDefault(Action):
             current = []
 
         setattr(namespace, self.dest, [*current, value])
+
+
+def runner_module(name: str) -> RunnerModule:
+    """
+    Converts a string *name* into a :py:cls:`RunnerModule`.
+
+    *name* is case-insensitive and underscores, hyphens, or spaces may be used
+    to separate words.  Internally, they're normalized to hyphens and the whole
+    string is lowercased.
+
+    Raises a :py:exc:`ArgumentTypeError` if *name* is unknown, which lets
+    :py:mod:`argparse` emit a nice error message when this function is used as
+    an argument ``type``.
+
+    >>> runner_module("docker") # doctest: +ELLIPSIS
+    <module 'cli.runner.docker' from '...'>
+
+    >>> runner_module("AWS-Batch") # doctest: +ELLIPSIS
+    <module 'cli.runner.aws_batch' from '...'>
+
+    >>> runner_module("AWS Batch") # doctest: +ELLIPSIS
+    <module 'cli.runner.aws_batch' from '...'>
+
+    >>> runner_module("invalid")
+    Traceback (most recent call last):
+        ...
+    argparse.ArgumentTypeError: invalid runtime name: 'invalid'
+
+    >>> runner_module("Invalid Name")
+    Traceback (most recent call last):
+        ...
+    argparse.ArgumentTypeError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name')
+    """
+    normalized_name = re.sub(r'(_|\s+)', '-', name).lower()
+
+    try:
+        return all_runners_by_name[normalized_name]
+    except KeyError as err:
+        if name != normalized_name:
+            raise ArgumentTypeError(f"invalid runtime name: {name!r} (normalized to {normalized_name!r})") from err
+        else:
+            raise ArgumentTypeError(f"invalid runtime name: {name!r}") from err
