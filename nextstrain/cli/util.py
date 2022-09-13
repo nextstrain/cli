@@ -192,6 +192,19 @@ def standalone_installation():
     return "nextstrain-cli-is-standalone" in getattr(sys, "_xoptions", {})
 
 
+def standalone_installation_path() -> Optional[Path]:
+    """
+    Return the path of this standalone installation, if applicable.
+    """
+    if not standalone_installation():
+        return None
+
+    if not sys.executable:
+        return None
+
+    return Path(sys.executable).resolve(strict = True).parent
+
+
 def standalone_installer(version: str) -> str:
     system = platform.system()
 

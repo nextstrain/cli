@@ -77,16 +77,20 @@ Nextstrain CLI ($("$DESTINATION"/nextstrain --version)) installed to $DESTINATIO
 ~~
 
     if [[ "$(type -p nextstrain 2>/dev/null)" != "$DESTINATION/nextstrain" ]]; then
+        local shell rc
+        shell="$(default-shell)"
+        rc="$(shell-rc "$shell")"
+
         cat <<~~
-To make the "nextstrain" command available without using its full path,
-please add the following to your shell initialization file (e.g. ~/.bashrc or
-~/.zshrc):
+To make the "nextstrain" command available in your default shell ($shell)
+without using the full path, please run these two commands now:
 
-    export PATH="$DESTINATION:\$PATH"
+    echo 'source <("$DESTINATION/nextstrain" init-shell $shell)' >> $rc
+    source <("$DESTINATION/nextstrain" init-shell $shell)
 
-and then logout and login again.  You only need to do this once.
-
-Your default shell appears to be $(default-shell).
+The first adds a line to your shell initialization file ($rc) for future
+sessions.  The second sets up your current shell session.  You only need to run
+these once.
 ~~
     fi
 }
@@ -153,7 +157,62 @@ default-shell() {
             die "unknown kernel: $KERNEL"
     esac
 
-    basename "$shell"
+    shell="$(basename "$shell")"
+
+    # Remove any -x.y version from the name
+    echo "${shell%%-*}"
+}
+
+shell-rc() {
+    local shell="$1"
+
+    # Paths below are presumed to be meta-char safe and returned with
+    # unexpanded ~/… prefixes for a nicer appearance in suggested commands,
+    # i.e. expansion of ~ is expected to happen after the user pastes and runs
+    # the commands, rather than here and now.
+    case "$shell" in
+        bash)
+            case "$KERNEL" in
+                Darwin)
+                    # macOS Terminal.app (and iTerm2.app) always launches login
+                    # shells, i.e. for all windows and tabs, so use the login
+                    # initialization file instead of the interactive one
+                    # because Bash (unlike zsh) only reads one or the other.
+                    # Although it's common practice for users to source their
+                    # bashrc from their bash_profile, we can't rely on this.
+                    #
+                    # The order and conditions on files here follows bash(1) §
+                    # INVOCATION:
+                    #
+                    #   After reading [/etc/profile], [bash] looks for
+                    #   ~/.bash_profile, ~/.bash_login, and ~/.profile, in that
+                    #   order, and reads and executes commands from the first one
+                    #   that exists and is readable.
+                    #
+                    if [[ -r ~/.bash_profile ]]; then
+                        echo "~/.bash_profile"
+
+                    elif [[ -r ~/.bash_login ]]; then
+                        echo "~/.bash_login"
+
+                    elif [[ -r ~/.profile ]]; then
+                        echo "~/.profile"
+
+                    else
+                        # If none exist, then we fallback to ~/.bash_profile
+                        # and expect it to be created by our suggested shell
+                        # init commands.
+                        echo "~/.bash_profile"
+                    fi;;
+                *)
+                    echo "~/.bashrc";;
+            esac;;
+        zsh)
+            echo "${ZDOTDIR:-~}/.zshrc";;
+        *)
+            # A decent guess?
+            echo "~/.${shell}rc";;
+    esac
 }
 
 debug() {
