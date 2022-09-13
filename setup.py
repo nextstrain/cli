@@ -30,6 +30,10 @@ setup(
     name     = "nextstrain-cli",
     version  = __version__, # noqa: F821
     packages = find_namespaced_packages("nextstrain"),
+    package_data = {
+        "nextstrain.cli.resources": [
+        ],
+    },
 
     description      = "Nextstrain command-line tool",
     long_description = long_description,
@@ -82,6 +86,7 @@ setup(
         "docutils",
         "fasteners",
         "importlib_metadata; python_version < '3.8'",
+        "importlib_resources >=5.3.0; python_version < '3.11'",
         "packaging",
         "pyjwt[crypto] >=2.0.0",
         "requests",
