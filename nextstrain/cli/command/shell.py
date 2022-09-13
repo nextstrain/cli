@@ -6,11 +6,12 @@ The shell runs inside a container, which requires Docker.  Run `nextstrain
 check-setup` to check if Docker is installed and works.
 """
 
+from typing import Tuple
 from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker
-from ..util import colored, warn
+from ..util import colored, remove_prefix, warn
 from ..volume import store_volume, NamedVolume
 
 
@@ -81,7 +82,41 @@ def run(opts):
 
 
 def ps1() -> str:
-    bold    = r'\[\e[1m\]'
-    magenta = r'\[\e[35m\]'
-    reset   = r'\[\e[0m\]'
-    return rf'{bold}nextstrain:{magenta}\w{reset} {bold}\$ {reset}'
+    # ESC[ 38;2;⟨r⟩;⟨g⟩;⟨b⟩ m — Select RGB foreground color
+    # ESC[ 48;2;⟨r⟩;⟨g⟩;⟨b⟩ m — Select RGB background color
+    def fg(color: str) -> str: return r'\[\e[38;2;{};{};{}m\]'.format(*rgb(color))
+    def bg(color: str) -> str: return r'\[\e[48;2;{};{};{}m\]'.format(*rgb(color))
+
+    def rgb(color: str) -> Tuple[int, int, int]:
+        color = remove_prefix("#", color)
+        r,g,b = (int(c, 16) for c in (color[0:2], color[2:4], color[4:6]))
+        return r,g,b
+
+    wordmark = (
+        (' ', '#4377cd'),
+        ('N', '#4377cd'),
+        ('e', '#5097ba'),
+        ('x', '#63ac9a'),
+        ('t', '#7cb879'),
+        ('s', '#9abe5c'),
+        ('t', '#b9bc4a'),
+        ('r', '#d4b13f'),
+        ('a', '#e49938'),
+        ('i', '#e67030'),
+        ('n', '#de3c26'),
+        (' ', '#de3c26'))
+
+    # Bold, bright white text (fg)…
+    PS1 = r'\[\e[1;97m\]'
+
+    # …on a colored background
+    for letter, color in wordmark:
+        PS1 += bg(color) + letter
+
+    # Add working dir and traditional prompt char (in magenta)
+    PS1 += r'\[\e[0m\] \w' + fg('#ff00ff') + r' \$ '
+
+    # Reset
+    PS1 += r'\[\e[0m\]'
+
+    return PS1
