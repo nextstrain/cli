@@ -1,17 +1,15 @@
 """
-Start a new shell inside the Nextstrain containerized build environment to
-run ad-hoc commands and perform debugging.
-
-The shell runs inside a container, which requires Docker.  Run `nextstrain
-check-setup` to check if Docker is installed and works.
+Start a new shell inside the Nextstrain build environment to run ad-hoc
+commands and perform debugging.
 """
 
 from typing import Tuple
 from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
-from ..runner import docker
-from ..util import colored, remove_prefix, warn
+from ..errors import UserError
+from ..runner import docker, managed_conda
+from ..util import colored, remove_prefix, runner_name, warn
 from ..volume import store_volume, NamedVolume
 
 
@@ -33,12 +31,12 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("build"))
 
-    # Register runner flags and arguments; only Docker is supported for now
-    # since a "native" shell doesn't make any sense.
+    # Register runner flags and arguments; excludes native and AWS Batch
+    # runners since those don't make any sense here.
     runner.register_runners(
         parser,
         exec    = ["bash", ...],
-        runners = [docker])
+        runners = [docker, managed_conda])
 
     return parser
 
@@ -54,10 +52,18 @@ def run(opts):
 
         return 1
 
+    overlay_volumes = [v for v in opts.volumes if v is not opts.build]
+
+    if overlay_volumes and opts.__runner__ is not docker:
+        raise UserError(f"""
+            The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
+            Use the Docker runtime (--docker) if overlays are necessary.
+            """)
+
     print(colored("bold", "Entering the Nextstrain build environment"))
     print()
 
-    if opts.volumes:
+    if opts.volumes and opts.__runner__ is docker:
         print(colored("bold", "Mapped volumes:"))
 
         # This is more tightly coupled to the Docker runner than I'd like (i.e.
@@ -73,7 +79,14 @@ def run(opts):
     print()
 
     with resources.as_file("bashrc") as bashrc:
-        opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
+        if opts.__runner__ is managed_conda:
+            opts.default_exec_args = [
+                *opts.default_exec_args,
+                "--rcfile", str(bashrc),
+            ]
+        elif opts.__runner__ is docker:
+            opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
+
         extra_env = {
             "NEXTSTRAIN_PS1": ps1(),
         }
