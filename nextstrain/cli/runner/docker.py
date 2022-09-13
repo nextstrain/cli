@@ -7,12 +7,13 @@ import json
 import requests
 import shutil
 import subprocess
+from pathlib import PurePosixPath
 from textwrap import dedent
 from typing import Iterable, List
 from .. import hostenv, config
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
-from ..volume import store_volume
+from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
 
 
@@ -64,7 +65,10 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     # doesn't match up well with our use case.  We're aiming to not surprise or
     # confuse the user.
     #
-    missing_volumes = [ vol for vol in opts.volumes if not vol.src.is_dir() ]
+    missing_volumes = [
+        vol for vol in opts.volumes
+             if (vol.dir and not vol.src.is_dir())
+             or not vol.src.exists() ]
 
     if missing_volumes:
         warn("Error: The path(s) given for the following components do not exist")
@@ -117,7 +121,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         *(["--user=%d:%d" % (uid, gid)] if uid and gid else []),
 
         # Map directories to bind mount into the container.
-        *["--volume=%s:/nextstrain/%s" % (v.src.resolve(strict = True), v.name)
+        *["--volume=%s:%s:%s" % (v.src.resolve(strict = True), mount_point(v), "rw" if v.writable else "ro")
             for v in opts.volumes
              if v.src is not None],
 
@@ -141,6 +145,16 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         opts.image,
         *argv,
     ], extra_env)
+
+
+def mount_point(volume: NamedVolume) -> PurePosixPath:
+    """
+    Determine the mount point of *volume* in the container.
+    """
+    if volume.name == "bashrc":
+        return PurePosixPath("/etc/bash.bashrc")
+
+    return PurePosixPath("/nextstrain", volume.name)
 
 
 def setup(force: bool = False) -> RunnerSetupStatus:

@@ -32,6 +32,7 @@ setup(
     packages = find_namespaced_packages("nextstrain"),
     package_data = {
         "nextstrain.cli.resources": [
+            "bashrc",
         ],
     },
 

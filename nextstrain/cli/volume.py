@@ -10,6 +10,8 @@ from pathlib import Path
 class NamedVolume(NamedTuple):
     name: str
     src: Path
+    dir: bool = True
+    writable: bool = True
 
 
 def store_volume(volume_name):

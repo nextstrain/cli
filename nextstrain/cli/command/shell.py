@@ -6,11 +6,12 @@ The shell runs inside a container, which requires Docker.  Run `nextstrain
 check-setup` to check if Docker is installed and works.
 """
 
+from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..runner import docker
 from ..util import colored, warn
-from ..volume import store_volume
+from ..volume import store_volume, NamedVolume
 
 
 def register_parser(subparser):
@@ -35,7 +36,7 @@ def register_parser(subparser):
     # since a "native" shell doesn't make any sense.
     runner.register_runners(
         parser,
-        exec    = ["bash", "--login", ...],
+        exec    = ["bash", ...],
         runners = [docker])
 
     return parser
@@ -70,4 +71,17 @@ def run(opts):
     print(colored("bold", 'Run the command "exit" to leave the build environment.'))
     print()
 
-    return runner.run(opts, working_volume = opts.build)
+    with resources.as_file("bashrc") as bashrc:
+        opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
+        extra_env = {
+            "NEXTSTRAIN_PS1": ps1(),
+        }
+
+        return runner.run(opts, working_volume = opts.build, extra_env = extra_env)
+
+
+def ps1() -> str:
+    bold    = r'\[\e[1m\]'
+    magenta = r'\[\e[35m\]'
+    reset   = r'\[\e[0m\]'
+    return rf'{bold}nextstrain:{magenta}\w{reset} {bold}\$ {reset}'
