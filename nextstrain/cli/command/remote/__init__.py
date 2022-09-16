@@ -27,6 +27,7 @@ see :doc:`docs:reference/data-formats`.
     files (``group-overview.md`` or ``group-logo.png``).
 """
 
+# Guard against __doc__ being None to appease the type checkers.
 __shortdoc__ = (__doc__ or "").strip().splitlines()[0]
 
 

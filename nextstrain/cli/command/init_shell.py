@@ -26,6 +26,7 @@ try:
 except:
     INSTALLATION_PATH = None
 
+# Guard against __doc__ being None to appease the type checkers.
 __doc__ = (__doc__ or "").format(
     INSTALLATION_PATH = (
              shquote(str(INSTALLATION_PATH))
