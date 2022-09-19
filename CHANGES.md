@@ -71,6 +71,25 @@ This release contains **a potentially-breaking change** for existing usages of
   option continues to be applicable only to the AWS Batch runtime (e.g. the
   `--aws-batch` option).
 
+## Development
+
+* We now provide standalone installers (i.e. shell programs) to download and
+  unpack the standalone installation archives into standard locations,
+  potentially upgrading/overwriting a prior standalone install.  These
+  installers will be served from GitHub directly out of this project's
+  repository via convenience redirects on nextstrain.org.
+
+  These will eventually form the basis for Nextstrain install instructions that
+  don't suffer from Python bootstrapping issues.  As a preview for now, you can
+  play around with the following platform-specific commands:
+
+      curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash
+      curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash
+      Invoke-RestMethod https://nextstrain.org/cli/installer/windows | Invoke-Expression
+
+  A new companion command, `init-shell`, exists to simplify shell configuration
+  (i.e. `PATH` modification) for such installations.
+
 
 # 4.2.0 (29 July 2022)
 
