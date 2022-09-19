@@ -1,0 +1,237 @@
+#!/bin/bash
+#
+# Bash program to download the latest Nextstrain CLI standalone installation
+# archive for Linux or macOS, extract it into the current user's app data
+# directory, and check if PATH includes the installation destination.
+#
+# It maintains rough parity with the PowerShell program for Windows,
+# standalone-installer-windows.
+#
+# Set DESTINATION to change the installation location.
+#
+# Set VERSION to change the version downloaded and installed, or pass the
+# desired version as the first argument to this program.
+#
+set -euo pipefail
+shopt -s failglob
+
+: "${NEXTSTRAIN_DOT_ORG:=https://nextstrain.org}"
+
+# Globals declared here to make them more obvious, but set by main() to avoid
+# source ordering requirements and delay execution until the full file is
+# parsed.
+declare KERNEL TARGET DESTINATION VERSION
+
+# Wrap everything in a function which we call at the end to avoid execution of
+# a partially-downloaded program.
+main() {
+    KERNEL="${KERNEL:-$(uname -s)}"
+    TARGET="${TARGET:-$(target-triple)}"
+    DESTINATION="${DESTINATION:-$(destination)}"
+
+    VERSION="${1:-${VERSION:-latest}}"
+
+    local archive archive_url tmp
+
+    archive="standalone-${TARGET}.tar.gz"
+    archive_url="${NEXTSTRAIN_DOT_ORG}/cli/download/${VERSION}/${archive}"
+
+    # Move into a temporary working dir
+    tmp="$(mktemp -d)"
+    if ! debug; then
+        trap "rm -rf $tmp" EXIT
+    fi
+    pushd "$tmp" >/dev/null
+    log "Temporary working directory: $tmp"
+
+    log "Downloading $archive_url"
+    curl "$archive_url" \
+        --fail --show-error --location --proto "=https" \
+        > "$archive"
+
+    log "Extracting $archive"
+    mkdir standalone
+    tar xz$(if-debug v)f "$archive" -C standalone
+
+    if [[ -d "$DESTINATION" ]]; then
+        log "Removing existing $DESTINATION"
+        rm -rf "$DESTINATION"
+    fi
+
+    log "Installing to $DESTINATION"
+    mkdir -p "$(dirname "$DESTINATION")"
+    mv standalone "$DESTINATION"
+
+    popd >/dev/null
+
+    if ! debug; then
+        log "Cleaning up"
+        rm -rf "$tmp"
+    fi
+
+    cat <<~~
+______________________________________________________________________________
+
+Nextstrain CLI ($("$DESTINATION"/nextstrain --version)) installed to $DESTINATION.
+
+~~
+
+    if [[ "$(type -p nextstrain 2>/dev/null)" != "$DESTINATION/nextstrain" ]]; then
+        local shell rc
+        shell="$(default-shell)"
+        rc="$(shell-rc "$shell")"
+
+        cat <<~~
+To make the "nextstrain" command available in your default shell ($shell)
+without using the full path, please run these two commands now:
+
+    echo 'source <("$DESTINATION/nextstrain" init-shell $shell)' >> $rc
+    source <("$DESTINATION/nextstrain" init-shell $shell)
+
+The first adds a line to your shell initialization file ($rc) for future
+sessions.  The second sets up your current shell session.  You only need to run
+these once.
+~~
+    fi
+}
+
+target-triple() {
+    local machine vendor os
+
+    machine="$(uname -m)"
+
+    case "$KERNEL" in
+        Linux)
+            [[ "$machine" == x86_64 ]] || die "unsupported architecture: $machine"
+            vendor=unknown
+            os=linux-gnu
+            ;;
+
+        Darwin)
+            [[ "$machine" == x86_64 || "$machine" == arm64 ]] || die "unsupported architecture: $machine"
+            machine=x86_64
+            vendor=apple
+            os=darwin
+            ;;
+
+        *)
+            die "unknown kernel: $KERNEL"
+    esac
+
+    echo "$machine-$vendor-$os"
+}
+
+destination() {
+    local user_data dest
+
+    # Paths from appdirs <https://github.com/ActiveState/appdirs/blob/master/appdirs.py>
+    case "$KERNEL" in
+        Linux)
+            user_data="${XDG_DATA_HOME:-$HOME/.local/share}";;
+
+        Darwin)
+            user_data="$HOME/Library/Application Support";;
+
+        *)
+            die "unknown kernel: $KERNEL"
+    esac
+
+    if [[ ! -d "$user_data" ]]; then
+        log "Current user's app data dir ($user_data) does not exist. Will create it." >&2
+    fi
+
+    echo "$user_data/nextstrain/cli/standalone"
+}
+
+default-shell() {
+    local shell
+
+    case "$KERNEL" in
+        Linux)
+            shell=$(getent passwd "$(id -u)" | awk -F: '{print $NF}');;
+
+        Darwin)
+            shell=$(dscl . -read ~/ UserShell | sed 's/UserShell: //');;
+
+        *)
+            die "unknown kernel: $KERNEL"
+    esac
+
+    shell="$(basename "$shell")"
+
+    # Remove any -x.y version from the name
+    echo "${shell%%-*}"
+}
+
+shell-rc() {
+    local shell="$1"
+
+    # Paths below are presumed to be meta-char safe and returned with
+    # unexpanded ~/… prefixes for a nicer appearance in suggested commands,
+    # i.e. expansion of ~ is expected to happen after the user pastes and runs
+    # the commands, rather than here and now.
+    case "$shell" in
+        bash)
+            case "$KERNEL" in
+                Darwin)
+                    # macOS Terminal.app (and iTerm2.app) always launches login
+                    # shells, i.e. for all windows and tabs, so use the login
+                    # initialization file instead of the interactive one
+                    # because Bash (unlike zsh) only reads one or the other.
+                    # Although it's common practice for users to source their
+                    # bashrc from their bash_profile, we can't rely on this.
+                    #
+                    # The order and conditions on files here follows bash(1) §
+                    # INVOCATION:
+                    #
+                    #   After reading [/etc/profile], [bash] looks for
+                    #   ~/.bash_profile, ~/.bash_login, and ~/.profile, in that
+                    #   order, and reads and executes commands from the first one
+                    #   that exists and is readable.
+                    #
+                    if [[ -r ~/.bash_profile ]]; then
+                        echo "~/.bash_profile"
+
+                    elif [[ -r ~/.bash_login ]]; then
+                        echo "~/.bash_login"
+
+                    elif [[ -r ~/.profile ]]; then
+                        echo "~/.profile"
+
+                    else
+                        # If none exist, then we fallback to ~/.bash_profile
+                        # and expect it to be created by our suggested shell
+                        # init commands.
+                        echo "~/.bash_profile"
+                    fi;;
+                *)
+                    echo "~/.bashrc";;
+            esac;;
+        zsh)
+            echo "${ZDOTDIR:-~}/.zshrc";;
+        *)
+            # A decent guess?
+            echo "~/.${shell}rc";;
+    esac
+}
+
+debug() {
+    [[ -n "${DEBUG:-}" ]]
+}
+
+if-debug() {
+    if debug; then
+        echo "$@"
+    fi
+}
+
+log() {
+    echo "--> $@"
+}
+
+die() {
+    echo "ERROR:" "$@" >&2
+    exit 1
+}
+
+main "$@"

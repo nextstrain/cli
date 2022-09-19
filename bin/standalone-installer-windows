@@ -1,0 +1,132 @@
+#
+# PowerShell 5+ program to download the latest Nextstrain CLI standalone
+# installation archive for Windows, extract it into the current user's app
+# data directory, and ensure PATH includes the installation destination.
+#
+# It maintains rough parity with the Bash program for Linux and macOS,
+# standalone-installer-unix.
+#
+# Set $env:DESTINATION to change the installation location.
+#
+# Set $env:VERSION to change the version downloaded and installed, or pass the
+# desired version as the first argument to this program.
+#
+Set-StrictMode -Version 3.0
+$ErrorActionPreference = "Stop"
+
+# Wrap everything in a function which we call at the end to avoid execution of
+# a partially-downloaded program.
+function main([string]$version) {
+    $destination = & {
+        if ($env:DESTINATION) {
+            return $env:DESTINATION
+        }
+        if (!$env:LOCALAPPDATA) {
+            throw "LOCALAPPDATA is not set"
+        }
+        if (!(Test-Path $env:LOCALAPPDATA)) {
+            throw "user's LOCALAPPDATA dir does not exist: ${env:LOCALAPPDATA}"
+        }
+        return "${env:LOCALAPPDATA}\nextstrain\cli\standalone"
+    }
+
+    $nextstrain_dot_org = & {
+        if ($env:NEXTSTRAIN_DOT_ORG) { return $env:NEXTSTRAIN_DOT_ORG }
+        return "https://nextstrain.org"
+    }
+
+    if (!$version) {
+        $version = & {
+            if ($env:VERSION) { return $env:VERSION }
+            return "latest"
+        }
+    }
+
+    # XXX TODO: Check for x86_64 arch; i.e. don't pass on 32-bit systems or
+    # non-Intel 64-bit (e.g. arm64).
+
+    $archive = "standalone-x86_64-pc-windows-msvc.zip"
+    $archive_url = "${nextstrain_dot_org}/cli/download/${version}/${archive}"
+
+    # Move into a temporary working dir
+    $tmp = New-Item -Type Directory (Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName()))
+    Push-Location $tmp
+    if (!$env:DEBUG) {
+        trap {
+            if ($tmp) {
+                Pop-Location
+                Remove-Item -Recurse -Force $tmp
+            }
+            break
+        }
+    }
+    log "Temporary working directory: $tmp"
+
+    # curl is built into PowerShell Core since version 6, but Windows 10 ships
+    # with Windows PowerShell 5.  orz
+    log "Downloading $archive_url"
+    Invoke-WebRequest $archive_url -OutFile $archive
+
+    log "Extracting $archive"
+    New-Item -Type Directory standalone | Out-Null
+    Expand-Archive -Path $archive -DestinationPath standalone
+
+    if (Test-Path $destination) {
+        log "Removing existing $destination"
+        Remove-Item -Recurse -Force $destination
+    }
+
+    log "Installing to $destination"
+    New-Item -Type Directory -Force $(Split-Path $destination) | Out-Null
+    Move-Item standalone $destination
+
+    # Naively splitting is wrong in the general case, but fine for this check as
+    # long as $destination itself doesn't contain a semi-colon.
+    if ($destination -notin ($env:PATH -split ";")) {
+        log "Prepending $destination to PATH for current user"
+
+        # Update it for this session
+        $env:PATH = "${destination};${env:PATH}"
+
+        # Make it stick for new sessions.
+        #
+        # Note that this intentionally doesn't use $env:PATH to get the
+        # previous value because $env:PATH is a dynamic per-process value
+        # constructed from multiple sources, including the sticky per-user
+        # environment we're modifying here.
+        #
+        # XXX TODO: This expands %VARS% in PATH, e.g. entries like
+        # %SystemRoot%\system32 → C:\Windows\system32, when it roundtrips the
+        # current value.  I think this is basically harmless, and most users
+        # probably have empty user environment PATHs anyway, but worth noting
+        # as a future improvement in case it's not so harmless.  I think to
+        # avoid it we'd have to query and manipulate the registry directly
+        # (instead of using this nice API), like
+        # https://aka.ms/install-powershell.ps1 does.
+        #   -trs, 24 Aug 2022
+        [Environment]::SetEnvironmentVariable("PATH", "$destination;" + [Environment]::GetEnvironmentVariable("PATH", "User"), "User")
+    }
+
+    Pop-Location
+
+    if (!$env:DEBUG) {
+        log "Cleaning up"
+        Remove-Item -Recurse -Force $tmp
+    }
+
+    $version = Invoke-Expression "$destination\nextstrain --version"
+
+    echo @"
+______________________________________________________________________________
+
+Nextstrain CLI ($version) installed to $destination.
+"@
+}
+
+function log {
+    echo "--> $Args"
+}
+
+main @args
+
+# vim: set ft=ps1 :
