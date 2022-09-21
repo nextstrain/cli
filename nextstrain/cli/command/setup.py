@@ -9,11 +9,13 @@ setup and set the runtime as the default on success.
 Exits with an error code if automated set up fails or if setup checks fail.
 """
 from functools import partial
+from shlex import quote as shquote
+from textwrap import dedent
 
 from .. import config
 from ..util import colored, runner_name, runner_tests_ok, print_runner_tests
 from ..types import Options
-from ..runner import all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
+from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
 def register_parser(subparser):
@@ -81,6 +83,19 @@ def run(opts: Options) -> int:
         print("Setting default environment to %s." % runner_name(default_runner))
         config.set("core", "runner", runner_name(default_runner))
         default_runner.set_default_config()
+
+    # Warn if there's no configured runner and the fallback default is not what
+    # we just set up.
+    if not configured_runner and default_runner is not runner:
+        print()
+        print(dedent(f"""\
+            Warning: No default environment is configured so {runner_name(default_runner)} will be used.
+
+            If you want to use {runner_name(runner)} by default instead, re-run this
+            command with the --set-default option, e.g.:
+
+                nextstrain setup --set-default {shquote(opts.runner)}\
+            """))
 
     print()
     print("All good!  Set up of", runner_name(runner), "complete.")
