@@ -14,6 +14,7 @@ at once, e.g. to delete all the "ncov/wa/…" datasets in the "blab" group::
 See `nextstrain remote --help` for more information on remote sources.
 """
 
+from ... import console
 from ...remote import parse_remote_path
 from ...util import warn
 
@@ -47,6 +48,7 @@ def register_parser(subparser):
     return parser
 
 
+@console.auto_dry_run_indicator()
 def run(opts):
     remote, url = parse_remote_path(opts.remote_path)
 
@@ -54,8 +56,6 @@ def run(opts):
     deleted_count = 0
 
     for file in deletions:
-        if opts.dry_run:
-            print("DRY RUN: ", end = "")
         print("Deleting", file)
         deleted_count += 1
 

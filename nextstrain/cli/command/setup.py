@@ -12,7 +12,7 @@ from functools import partial
 from shlex import quote as shquote
 from textwrap import dedent
 
-from .. import config
+from .. import config, console
 from ..util import colored, runner_name, runner_tests_ok, print_runner_tests
 from ..types import Options
 from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
@@ -47,6 +47,7 @@ def register_parser(subparser):
     return parser
 
 
+@console.auto_dry_run_indicator()
 def run(opts: Options) -> int:
     global default_runner
 

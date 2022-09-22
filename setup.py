@@ -93,6 +93,7 @@ setup(
         "requests",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
+        "wrapt",
 
         # We use fsspec's S3 support, which has a runtime dep on s3fs.  s3fs
         # itself requires aiobotocore, which in turn requires very specific
