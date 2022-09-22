@@ -338,7 +338,7 @@ def generate_run_id() -> str:
     return str(uuid4())
 
 
-def setup(force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
     """
     Not supported.
     """

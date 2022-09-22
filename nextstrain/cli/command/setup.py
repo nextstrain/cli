@@ -29,6 +29,11 @@ def register_parser(subparser):
         choices  = list(all_runners_by_name))
 
     parser.add_argument(
+        "--dry-run",
+        help   = "Don't actually set up anything, just show what would happen.",
+        action = "store_true")
+
+    parser.add_argument(
         "--force",
         help    = "Ignore existing setup, if any, and always start fresh.",
         action  = "store_true",
@@ -55,7 +60,7 @@ def run(opts: Options) -> int:
 
     # Setup
     print(heading(f"Setting up {runner_name(runner)}…"))
-    setup_ok = runner.setup(force = opts.force)
+    setup_ok = runner.setup(dry_run = opts.dry_run, force = opts.force)
 
     if setup_ok is None:
         print("Automated set up is not supported, but we'll check for a manual setup.")
@@ -67,22 +72,28 @@ def run(opts: Options) -> int:
     # Test
     print()
     print(heading(f"Checking setup…"))
-    tests = runner.test_setup()
 
-    print_runner_tests(tests)
+    if not opts.dry_run:
+        tests = runner.test_setup()
 
-    if not runner_tests_ok(tests):
-        print()
-        print(failure("Checks failed!  Setup is unlikely to be fully functional."))
-        return 1
+        print_runner_tests(tests)
+
+        if not runner_tests_ok(tests):
+            print()
+            print(failure("Checks failed!  Setup is unlikely to be fully functional."))
+            return 1
+    else:
+        print("Skipping checks for dry run.")
 
     # Optionally set as default
     if opts.set_default:
         default_runner = runner
         print()
         print("Setting default environment to %s." % runner_name(default_runner))
-        config.set("core", "runner", runner_name(default_runner))
-        default_runner.set_default_config()
+
+        if not opts.dry_run:
+            config.set("core", "runner", runner_name(default_runner))
+            default_runner.set_default_config()
 
     # Warn if there's no configured runner and the fallback default is not what
     # we just set up.

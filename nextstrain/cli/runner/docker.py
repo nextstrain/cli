@@ -157,7 +157,7 @@ def mount_point(volume: NamedVolume) -> PurePosixPath:
     return PurePosixPath("/nextstrain", volume.name)
 
 
-def setup(force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
     """
     Not supported.
     """

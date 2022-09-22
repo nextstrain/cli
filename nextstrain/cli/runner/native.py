@@ -28,7 +28,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     return exec_or_return(argv, extra_env)
 
 
-def setup(force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
     """
     Not supported.
     """

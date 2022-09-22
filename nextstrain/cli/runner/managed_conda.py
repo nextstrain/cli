@@ -72,17 +72,17 @@ def path_with_prefix() -> str:
     ]))
 
 
-def setup(force: bool = False) -> RunnerSetupStatus:
-    if not setup_micromamba(force):
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    if not setup_micromamba(dry_run, force):
         return False
 
-    if not setup_prefix(force):
+    if not setup_prefix(dry_run, force):
         return False
 
     return True
 
 
-def setup_micromamba(force: bool = False) -> bool:
+def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
     """
     Install Micromamba into our ``MICROMAMBA_ROOT``.
     """
@@ -93,7 +93,8 @@ def setup_micromamba(force: bool = False) -> bool:
 
     if MICROMAMBA_ROOT.exists():
         print(f"Removing existing directory {MICROMAMBA_ROOT} to start fresh…")
-        shutil.rmtree(str(MICROMAMBA_ROOT))
+        if not dry_run:
+            shutil.rmtree(str(MICROMAMBA_ROOT))
 
     # Query for latest Micromamba release
     dists = (
@@ -127,29 +128,32 @@ def setup_micromamba(force: bool = False) -> bool:
 
     print(f"Requesting Micromamba from {dist_url}…")
 
-    response = requests.get(dist_url, stream = True)
-    content_type = response.headers["Content-Type"]
+    if not dry_run:
+        response = requests.get(dist_url, stream = True)
+        content_type = response.headers["Content-Type"]
 
-    assert content_type == "application/x-tar", \
-        f"unknown content-type for micromamba dist: {content_type}"
+        assert content_type == "application/x-tar", \
+            f"unknown content-type for micromamba dist: {content_type}"
 
-    with tarfile.open(fileobj = response.raw, mode = "r|*") as tar:
-        # Ignore archive members starting with "/" and or including ".." parts,
-        # as these can be used (maliciously or accidentally) to overwrite
-        # unintended files (e.g. files outside of MICROMAMBA_ROOT).
-        safe_members = (
-            member
-                for member in tar
-                 if not member.name.startswith("/")
-                and ".." not in PurePosixPath(member.name).parts)
+        with tarfile.open(fileobj = response.raw, mode = "r|*") as tar:
+            # Ignore archive members starting with "/" and or including ".." parts,
+            # as these can be used (maliciously or accidentally) to overwrite
+            # unintended files (e.g. files outside of MICROMAMBA_ROOT).
+            safe_members = (
+                member
+                    for member in tar
+                     if not member.name.startswith("/")
+                    and ".." not in PurePosixPath(member.name).parts)
 
+            print(f"Downloading and extracting Micromamba to {MICROMAMBA_ROOT}…")
+            tar.extractall(path = str(MICROMAMBA_ROOT), members = safe_members)
+    else:
         print(f"Downloading and extracting Micromamba to {MICROMAMBA_ROOT}…")
-        tar.extractall(path = str(MICROMAMBA_ROOT), members = safe_members)
 
     return True
 
 
-def setup_prefix(force: bool = False) -> bool:
+def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     """
     Install Conda packages with Micromamba into our ``PREFIX``.
     """
@@ -160,7 +164,8 @@ def setup_prefix(force: bool = False) -> bool:
 
     if PREFIX.exists():
         print(f"Removing existing directory {PREFIX} to start fresh…")
-        shutil.rmtree(str(PREFIX))
+        if not dry_run:
+            shutil.rmtree(str(PREFIX))
 
     # Conda packages to install, based on our unmanaged "native" install docs.
     #
@@ -211,22 +216,25 @@ def setup_prefix(force: bool = False) -> bool:
     for pkg in packages:
         print(f"  - {pkg}")
 
-    try:
-        subprocess.run(create, check = True)
-    except (OSError, subprocess.CalledProcessError):
-        warn(f"Error running {create!r}")
-        traceback.print_exc()
-        return False
+    if not dry_run:
+        try:
+            subprocess.run(create, check = True)
+        except (OSError, subprocess.CalledProcessError):
+            warn(f"Error running {create!r}")
+            traceback.print_exc()
+            return False
 
     # Clean up unnecessary caches
     clean = micromamba("clean", "--all")
 
     print("Cleaning up…")
-    try:
-        subprocess.run(clean, check = True)
-    except (OSError, subprocess.CalledProcessError) as error:
-        warn(f"Error cleaning up with {clean!r}: {error}")
-        warn(f"Continuing anyway.")
+
+    if not dry_run:
+        try:
+            subprocess.run(clean, check = True)
+        except (OSError, subprocess.CalledProcessError) as error:
+            warn(f"Error cleaning up with {clean!r}: {error}")
+            warn(f"Continuing anyway.")
 
     return True
 
