@@ -17,7 +17,6 @@ from packaging.version import parse as parse_version
 from pathlib import Path
 from shlex import quote as shquote
 from shutil import which
-from sys import exit, stderr
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
@@ -25,7 +24,7 @@ from .types import RunnerModule, RunnerTestResults
 
 
 def warn(*args):
-    print(*args, file = stderr)
+    print(*args, file = sys.stderr)
 
 
 def colored(color, text):
@@ -330,7 +329,7 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
             warn("Error running %s: %s" % (argv, error))
             return 1
         else:
-            exit(process.returncode)
+            sys.exit(process.returncode)
 
 
 def runner_name(runner: RunnerModule) -> str:
