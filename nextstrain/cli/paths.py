@@ -24,11 +24,15 @@ try:
 except:
     HOME = Path(".")
 
+
+# Path to our config/app data dir
+NEXTSTRAIN_HOME = from_env("NEXTSTRAIN_HOME", HOME / ".nextstrain/")
+
 # Path to our config file
-CONFIG = from_env("NEXTSTRAIN_CONFIG", HOME / ".nextstrain/config")
+CONFIG = from_env("NEXTSTRAIN_CONFIG", NEXTSTRAIN_HOME / "config")
 
 # Path to our secrets file
-SECRETS = from_env("NEXTSTRAIN_SECRETS", HOME / ".nextstrain/secrets")
+SECRETS = from_env("NEXTSTRAIN_SECRETS", NEXTSTRAIN_HOME / "secrets")
 
 # Path to our global lock file
-LOCK = from_env("NEXTSTRAIN_LOCK", HOME / ".nextstrain/lock")
+LOCK = from_env("NEXTSTRAIN_LOCK", NEXTSTRAIN_HOME / "lock")
