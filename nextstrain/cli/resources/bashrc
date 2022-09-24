@@ -12,3 +12,11 @@ OLDPS1="${PS1:-}"
 if [[ -n "${NEXTSTRAIN_PS1:-}" ]]; then
     PS1="$NEXTSTRAIN_PS1"
 fi
+
+# Remember things…
+if [[ -n "${NEXTSTRAIN_HISTFILE:-}" ]]; then
+    HISTFILE="$NEXTSTRAIN_HISTFILE"
+    HISTCONTROL=ignoredups
+    HISTSIZE=-1
+    HISTTIMEFORMAT="%F %H:%M:%S %z"
+fi

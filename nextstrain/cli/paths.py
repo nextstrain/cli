@@ -39,3 +39,6 @@ SECRETS = from_env("NEXTSTRAIN_SECRETS", NEXTSTRAIN_HOME / "secrets")
 
 # Path to our global lock file
 LOCK = from_env("NEXTSTRAIN_LOCK", NEXTSTRAIN_HOME / "lock")
+
+# Path to our shell history file
+SHELL_HISTORY = from_env("NEXTSTRAIN_SHELL_HISTORY", NEXTSTRAIN_HOME / "shell-history")

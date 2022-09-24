@@ -8,6 +8,7 @@ from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..errors import UserError
+from ..paths import SHELL_HISTORY
 from ..runner import docker, managed_conda
 from ..util import colored, remove_prefix, runner_name, warn
 from ..volume import store_volume, NamedVolume
@@ -79,16 +80,24 @@ def run(opts):
     print()
 
     with resources.as_file("bashrc") as bashrc:
+        history_file = SHELL_HISTORY
+
         if opts.__runner__ is managed_conda:
             opts.default_exec_args = [
                 *opts.default_exec_args,
                 "--rcfile", str(bashrc),
             ]
+
         elif opts.__runner__ is docker:
             opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
 
+            history_volume = NamedVolume("bash_history", history_file, dir = False)
+            history_file = docker.mount_point(history_volume) # type: ignore[attr-defined] # for mypy
+            opts.volumes.append(history_volume)
+
         extra_env = {
             "NEXTSTRAIN_PS1": ps1(),
+            "NEXTSTRAIN_HISTFILE": str(history_file),
         }
 
         return runner.run(opts, working_volume = opts.build, extra_env = extra_env)
