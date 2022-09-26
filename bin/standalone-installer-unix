@@ -27,7 +27,7 @@ declare KERNEL TARGET DESTINATION VERSION
 main() {
     KERNEL="${KERNEL:-$(uname -s)}"
     TARGET="${TARGET:-$(target-triple)}"
-    DESTINATION="${DESTINATION:-$(destination)}"
+    DESTINATION="${DESTINATION:-${NEXTSTRAIN_HOME:-$HOME/.nextstrain}/cli-standalone}"
 
     VERSION="${1:-${VERSION:-latest}}"
 
@@ -119,28 +119,6 @@ target-triple() {
     esac
 
     echo "$machine-$vendor-$os"
-}
-
-destination() {
-    local user_data dest
-
-    # Paths from appdirs <https://github.com/ActiveState/appdirs/blob/master/appdirs.py>
-    case "$KERNEL" in
-        Linux)
-            user_data="${XDG_DATA_HOME:-$HOME/.local/share}";;
-
-        Darwin)
-            user_data="$HOME/Library/Application Support";;
-
-        *)
-            die "unknown kernel: $KERNEL"
-    esac
-
-    if [[ ! -d "$user_data" ]]; then
-        log "Current user's app data dir ($user_data) does not exist. Will create it." >&2
-    fi
-
-    echo "$user_data/nextstrain/cli/standalone"
 }
 
 default-shell() {
