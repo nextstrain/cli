@@ -36,15 +36,23 @@ def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
 
 
 def test_setup() -> RunnerTestResults:
+    def runnable(*argv) -> bool:
+        try:
+            capture_output(argv)
+            return True
+        except (OSError, CalledProcessError):
+            return False
+
+
     return [
-        ('snakemake is installed',
-            shutil.which("snakemake") is not None),
+        ('snakemake is installed and runnable',
+            shutil.which("snakemake") is not None and runnable("snakemake", "--version")),
 
-        ('augur is installed',
-            shutil.which("augur") is not None),
+        ('augur is installed and runnable',
+            shutil.which("augur") is not None and runnable("augur", "--version")),
 
-        ('auspice is installed',
-            shutil.which("auspice") is not None),
+        ('auspice is installed and runnable',
+            shutil.which("auspice") is not None and runnable("auspice", "--version")),
     ]
 
 

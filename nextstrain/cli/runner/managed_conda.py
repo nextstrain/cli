@@ -301,6 +301,15 @@ def test_setup() -> RunnerTestResults:
         else:
             return True
 
+
+    def runnable(*argv) -> bool:
+        try:
+            capture_output(argv, extra_env = {"PATH": path_with_prefix()})
+            return True
+        except (OSError, subprocess.CalledProcessError):
+            return False
+
+
     return [
         ('operating system is supported',
             supported_os()),
@@ -308,14 +317,14 @@ def test_setup() -> RunnerTestResults:
         ("runtime data dir doesn't have spaces",
             " " not in str(RUNTIME_ROOT)),
 
-        ('snakemake is installed',
-            which_finds_our("snakemake")),
+        ('snakemake is installed and runnable',
+            which_finds_our("snakemake") and runnable("snakemake", "--version")),
 
-        ('augur is installed',
-            which_finds_our("augur")),
+        ('augur is installed and runnable',
+            which_finds_our("augur") and runnable("augur", "--version")),
 
-        ('auspice is installed',
-            which_finds_our("auspice")),
+        ('auspice is installed and runnable',
+            which_finds_our("auspice") and runnable("auspice", "--version")),
     ]
 
 
