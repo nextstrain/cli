@@ -17,7 +17,7 @@ from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, exec_or_return, warn
 
 
-RUNTIME_ROOT = RUNTIMES / "managed-conda/"
+RUNTIME_ROOT = RUNTIMES / "conda/"
 
 PREFIX     = RUNTIME_ROOT / "env/"
 PREFIX_BIN = PREFIX / "bin"

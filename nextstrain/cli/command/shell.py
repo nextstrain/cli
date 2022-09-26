@@ -9,7 +9,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags
 from ..errors import UserError
 from ..paths import SHELL_HISTORY
-from ..runner import docker, managed_conda
+from ..runner import docker, conda
 from ..util import colored, remove_prefix, runner_name, warn
 from ..volume import store_volume, NamedVolume
 
@@ -37,7 +37,7 @@ def register_parser(subparser):
     runner.register_runners(
         parser,
         exec    = ["bash", ...],
-        runners = [docker, managed_conda])
+        runners = [docker, conda])
 
     return parser
 
@@ -82,7 +82,7 @@ def run(opts):
     with resources.as_file("bashrc") as bashrc:
         history_file = SHELL_HISTORY
 
-        if opts.__runner__ is managed_conda:
+        if opts.__runner__ is conda:
             opts.default_exec_args = [
                 *opts.default_exec_args,
                 "--rcfile", str(bashrc),

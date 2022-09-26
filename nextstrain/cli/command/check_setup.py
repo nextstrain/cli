@@ -7,8 +7,8 @@ Four runtimes are tested by default:
     be installed and configured on your computer first, but once it is, the
     build environment is robust and reproducible.
 
-  • Our managed Conda environment will be tested for existence and appearance
-    of completeness. This runtime is more isolated and reproducible than your
+  • Our Conda environment will be tested for existence and appearance of
+    completeness. This runtime is more isolated and reproducible than your
     native ambient environment, but is less isolated and robust than the Docker
     runtime.
 

@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from typing import cast, Mapping, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
-    managed_conda as __managed_conda,
+    conda as __conda,
     native as __native,
     aws_batch as __aws_batch,
 )
@@ -35,19 +35,19 @@ from ..volume import NamedVolume
 MYPY = False
 if TYPE_CHECKING and MYPY:
     docker = cast(RunnerModule, __docker)
-    managed_conda = cast(RunnerModule, __managed_conda)
+    conda = cast(RunnerModule, __conda)
     native = cast(RunnerModule, __native)
     aws_batch = cast(RunnerModule, __aws_batch)
 else:
     docker = __docker
-    managed_conda = __managed_conda
+    conda = __conda
     native = __native
     aws_batch = __aws_batch
 
 
 all_runners: List[RunnerModule] = [
     docker,
-    managed_conda,
+    conda,
     native,
     aws_batch,
 ]

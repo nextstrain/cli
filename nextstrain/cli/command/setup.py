@@ -2,9 +2,9 @@
 Sets up a Nextstrain runtime for use with `nextstrain build`, `nextstrain
 view`, etc.
 
-Only the managed Conda runtime currently supports automated set up, but this
-command may still be used with other runtimes to check an existing (manual)
-setup and set the runtime as the default on success.
+Only the Conda runtime currently supports automated set up, but this command
+may still be used with other runtimes to check an existing (manual) setup and
+set the runtime as the default on success.
 
 Exits with an error code if automated set up fails or if setup checks fail.
 """
