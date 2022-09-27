@@ -132,6 +132,7 @@ setup(
             "recommonmark",
             "sphinx>=3",
             "sphinx-argparse ~=0.3",
+            "sphinx-autobuild",
             "sphinx-markdown-tables",
             "sphinx_rtd_theme",
             "types-docutils",
