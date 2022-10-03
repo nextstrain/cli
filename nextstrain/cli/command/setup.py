@@ -96,12 +96,19 @@ def run(opts: Options) -> int:
             config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
 
-    # Warn if there's no configured runner and the fallback default is not what
-    # we just set up.
-    if not configured_runner and default_runner is not runner:
+    # Warn if this isn't the default runner.
+    if default_runner is not runner:
+        print()
+        if not configured_runner:
+            print(f"Warning: No default environment is configured so {runner_name(default_runner)} will be used.")
+        else:
+            print(f"Note that your default environment is still {runner_name(default_runner)}.")
         print()
         print(dedent(f"""\
-            Warning: No default environment is configured so {runner_name(default_runner)} will be used.
+            You can use {runner_name(runner)} on an ad-hoc basis with commands like `nextstrain build`,
+            `nextstrain view`, etc. by passing them the --{runner_name(runner)} option, e.g.:
+
+                nextstrain build --{runner_name(runner)} …
 
             If you want to use {runner_name(runner)} by default instead, re-run this
             command with the --set-default option, e.g.:
