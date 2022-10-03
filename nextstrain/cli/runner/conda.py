@@ -10,8 +10,9 @@ import subprocess
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable, Tuple
+from typing import Iterable
 from urllib.parse import urljoin
+from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, exec_or_return, warn
@@ -196,57 +197,57 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     )
 
     # Create environment
-    create = micromamba(
-        "create",
-
-        # Path-based env
-        "--prefix", PREFIX,
-
-        # BioConda config per <https://bioconda.github.io/#usage>
-        "--override-channels",
-        "--strict-channel-priority",
-        "--channel", "conda-forge",
-        "--channel", "bioconda",
-        "--channel", "defaults",
-
-        *packages,
-    )
-
     print(f"Installing Conda packages into {PREFIX}…")
     for pkg in packages:
         print(f"  - {pkg}")
 
     if not dry_run:
         try:
-            subprocess.run(create, check = True)
-        except (OSError, subprocess.CalledProcessError):
-            warn(f"Error running {create!r}")
+            micromamba(
+                "create",
+
+                # Path-based env
+                "--prefix", PREFIX,
+
+                # BioConda config per <https://bioconda.github.io/#usage>
+                "--override-channels",
+                "--strict-channel-priority",
+                "--channel", "conda-forge",
+                "--channel", "bioconda",
+                "--channel", "defaults",
+
+                *packages,
+            )
+        except InternalError as err:
+            warn(err)
             traceback.print_exc()
             return False
 
     # Clean up unnecessary caches
-    clean = micromamba("clean", "--all")
-
     print("Cleaning up…")
 
     if not dry_run:
         try:
-            subprocess.run(clean, check = True)
-        except (OSError, subprocess.CalledProcessError) as error:
-            warn(f"Error cleaning up with {clean!r}: {error}")
+            micromamba("clean", "--all")
+        except InternalError as err:
+            warn(err)
             warn(f"Continuing anyway.")
 
     return True
 
 
-def micromamba(*args) -> Tuple[str, ...]:
+def micromamba(*args) -> None:
     """
     Runs our installed Micromamba with appropriate global options.
 
-    For convenience, all arguments are converted to strings, making the return
-    value suitable for passing directly to :py:func:`subprocess.run`.
+    Invokes :py:func:`subprocess.run` and checks the exit status.  Raises a
+    :py:exc:`InternalError` on failure, chained from the original
+    :py:exc:`OSError` or :py:exc:`subprocess.CalledProcessError`.
+
+    For convenience, all arguments are converted to strings before being passed
+    to :py:func:`subprocess.run`.
     """
-    return tuple(map(str, (
+    argv = tuple(map(str, (
         MICROMAMBA,
 
         # Always use our custom root
@@ -261,6 +262,11 @@ def micromamba(*args) -> Tuple[str, ...]:
 
         *args,
     )))
+
+    try:
+        subprocess.run(argv, check = True)
+    except (OSError, subprocess.CalledProcessError) as err:
+        raise InternalError(f"Error running {argv!r}") from err
 
 
 def test_setup() -> RunnerTestResults:
@@ -339,13 +345,11 @@ def update() -> RunnerUpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
-    update = micromamba("update", "--all", "--prefix", PREFIX)
-
     print("Updating Conda packages…")
     try:
-        subprocess.run(update, check = True)
-    except (OSError, subprocess.CalledProcessError):
-        warn(f"Error running {update!r}")
+        micromamba("update", "--all", "--prefix", PREFIX)
+    except InternalError as err:
+        warn(err)
         traceback.print_exc()
         return False
 
