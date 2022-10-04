@@ -1,5 +1,15 @@
 # Installation
 
+<!-- XXX TODO: Replace with a ".. hint::" directive when we convert to rST -->
+<div class="admonition hint"><p class="admonition-title">Hint</p>
+
+This is a reference page with brief pointers for installing and setting up
+Nextstrain CLI.  For a more comprehensive installation guide, please see [our
+general Nextstrain installation
+page](https://docs.nextstrain.org/page/install.html).
+
+</div>
+
 ## Python 3.6 or newer
 
 This program is written in Python 3 and requires at least Python 3.6.  There are
