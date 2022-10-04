@@ -27,6 +27,7 @@ The development environment includes our dev tools (described below):
     pytest           # runs doctests as well as mypy and flake8
     mypy -p nextstrain.cli
     flake8
+    make -C doc livehtml
 
 ## Running with local changes
 
@@ -90,6 +91,21 @@ safety and correctness.  You can run them like this:
 
     $ flake8
     # No output is good!
+
+## Documentation
+
+A Sphinx project for Nextstrain CLI's documentation, primarily [reference and
+explanatory material](https://documentation.divio.com), lives in the `doc/`
+directory.  Pages are written in reStructuredText (rST), though some older
+pages originally written in Markdown haven't been converted yet.
+
+To locally build the HTML version of the documentation (i.e. what's served at
+<https://docs.nextstrain.org/projects/cli/>), run:
+
+    $ make -C doc livehtml
+
+This will start a server on <http://localhost:8000> which you can browse.
+Changes to source documentation files will be reflected automatically.
 
 
 [Semantic Versioning rules]: https://semver.org
