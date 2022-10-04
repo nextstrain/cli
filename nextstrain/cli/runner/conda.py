@@ -263,8 +263,16 @@ def micromamba(*args) -> None:
         *args,
     )))
 
+    # Override HOME so that micromamba's hardcoded paths under ~/.mamba/ don't
+    # get used.  This could lead to issues with a shared package cache at
+    # ~/.mamba/pkgs/ for example.
+    env = {
+        **os.environ.copy(),
+        "HOME": str(RUNTIME_ROOT),
+    }
+
     try:
-        subprocess.run(argv, check = True)
+        subprocess.run(argv, env = env, check = True)
     except (OSError, subprocess.CalledProcessError) as err:
         raise InternalError(f"Error running {argv!r}") from err
 
