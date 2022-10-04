@@ -124,7 +124,7 @@ setup(
     extras_require = {
         "dev": [
             "docutils<0.16",
-            "flake8",
+            "flake8 >=4.0.0",
             "mypy",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
