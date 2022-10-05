@@ -13,10 +13,39 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
-This release contains **a potentially-breaking change** for existing usages of
-`nextstrain remote download`.  The change is described below.
+The major improvement in this release is the introduction of a new Conda
+runtime, filling a gap between the Docker runtime and the "native" (soon to be
+"ambient") runtime.  See more details below.
+
+This release also contains **a potentially-breaking change** for existing
+usages of `nextstrain remote download` and `nextstrain update`.  The changes
+are described below.
 
 ## Improvements
+
+* A new Conda runtime (aka runner or build environment) now complements the
+  existing Docker and "native" runtimes and fills a gap between them.  This
+  runtime is more isolated and reproducible than your native ambient
+  environment, but is less isolated and robust than the Docker runtime.  Like
+  the Docker runtime, the Conda runtime is fully-managed by Nextstrain CLI and
+  receives updates via `nextstrain update`.
+
+  The new runtime uses the [Conda](https://docs.conda.io) ecosystem with
+  packages from [Bioconda](https://bioconda.github.io/) and
+  [Conda-Forge](https://conda-forge.org/), installed by
+  [Micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)
+  into an isolated location, typically `~/.nextstrain/runtimes/conda/env`.  It
+  does not interact with or impact other usage of Conda/Mamba environments and
+  will not, for example, appear in the output of `conda env list`.
+
+  Set up of the runtime is automated and can be performed by running:
+
+      nextstrain setup conda
+
+  When complete, you'll be able to use the `--conda` runtime option supported
+  by Nextstrain CLI commands such as `nextstrain build`, `nextstrain view`,
+  `nextstrain shell`, etc.
+  ([#218][])
 
 * The local filenames produced by `nextstrain remote download` now include
   more of the remote dataset/narrative path.  This reduces the potential for
@@ -73,6 +102,47 @@ This release contains **a potentially-breaking change** for existing usages of
   `--aws-batch` option).
   ([#215](https://github.com/nextstrain/cli/pull/215))
 
+* `check-setup` now accepts one or more runtime names as arguments.
+
+  The default behaviour doesn't change, but specifying runtimes now lets you
+  restrict checks to a single runtime or, with multiple runtimes, re-order them
+  by your preference for use with --set-default.
+  ([#218][])
+
+* `update` now only updates a specific runtime instead of all of them at once.
+
+  With no arguments, the default runtime is updated.  The name of another
+  runtime to update instead may be provided as an argument.
+
+  In practice this isn't much of a behaviour change because only one runtime
+  currently supports updating (Docker); the others (native, AWS Batch) just
+  pass.  Existing users are unlikely to notice the change unless they use
+  multiple runtimes and Docker is not their default.  In that case, `update`
+  may stop updating Docker for them when it would have done so previously,
+  which is a **potentially-breaking change**.
+  ([#218][])
+
+* A new command, `setup`, now exists to perform automatic set up of runtimes
+  that support it (currently only Conda).  For all runtimes, even those that
+  don't support automatic set up, the `setup` command will also run the same
+  checks as `check-setup` and optionally set the default runtime.
+  ([#218][])
+
+* The shell launched by the `shell` command now remembers its own command
+  history and differentiates its command prompt from other shells with a
+  stylized variant of the Nextstrain wordmark.
+  ([#218][])
+
+* The output of commands in dry run mode (e.g. with the `--dry-run` option) is
+  now uniformly indicated to be a dry run by the prefix `DRY RUN │ `.  This
+  includes the `remote` family of commands and the new `setup` command.
+  ([#218][])
+
+* Runtime checks in `check-setup` and `setup` now test for not just the
+  presence of Snakemake, Augur, and Auspice, but also that they can be
+  executed.
+  ([#218][])
+
 ## Development
 
 * We now provide standalone installers (i.e. shell programs) to download and
@@ -91,6 +161,23 @@ This release contains **a potentially-breaking change** for existing usages of
 
   A new companion command, `init-shell`, exists to simplify shell configuration
   (i.e. `PATH` modification) for such installations.
+
+* The `NEXTSTRAIN_HOME` environment variable can now be used to specify the
+  desired location for per-user settings, files, etc., overriding the default
+  of _~/.nextstrain/_.
+  ([#218][])
+
+* The development documentation now documents how to build the documentation
+  locally, and sphinx-autobuild is used to make a very nice edit-preview cycle
+  with quick turnaround.
+  ([#218][])
+
+* Development dependency issues with `flake8` and `sphinx-markdown-tables`,
+  caused by upstream changes, are now resolved.
+  ([#218][])
+
+
+[#218]: https://github.com/nextstrain/cli/pull/218
 
 
 # 4.2.0 (29 July 2022)
