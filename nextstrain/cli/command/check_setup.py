@@ -1,11 +1,16 @@
 """
-Checks your local setup to see if you have a supported build environment.
+Checks for supported build environments (aka Nextstrain runtimes).
 
-Three environments are supported, each of which will be tested:
+Four runtimes are tested by default:
 
   • Our Docker image is the preferred build environment.  Docker itself must
     be installed and configured on your computer first, but once it is, the
     build environment is robust and reproducible.
+
+  • Our Conda environment will be tested for existence and appearance of
+    completeness. This runtime is more isolated and reproducible than your
+    native ambient environment, but is less isolated and robust than the Docker
+    runtime.
 
   • Your native ambient environment will be tested for snakemake, augur, and
     auspice. Their presence implies a working build environment, but does not
@@ -15,22 +20,43 @@ Three environments are supported, each of which will be tested:
     in your environment or via aws-cli configuration, will be tested for the
     presence of appropriate resources.  Their presence implies a working AWS
     Batch environment, but does not guarantee it.
+
+Provide one or more runtime names as arguments to test just those instead.
+
+Exits with an error code if the default runtime ({default_runner_name}) is not
+supported or, when the default runtime is omitted from checks, if none of the
+checked runtimes are supported.
 """
 
 from functools import partial
-from textwrap import indent
 from .. import config
+from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module
 from ..types import Options
-from ..util import colored, check_for_new_version, remove_prefix, runner_name
-from ..runner import all_runners, default_runner # noqa: F401 (it's wrong; we use it in run())
+from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, print_runner_tests
+from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
+
+
+__doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runner))
 
 
 def register_parser(subparser):
-    parser = subparser.add_parser("check-setup", help = "Test your local setup")
+    parser = subparser.add_parser("check-setup", help = "Check runtime setups")
+
+    parser.add_argument(
+        "runners",
+        help     = "The Nextstrain build environments (aka Nextstrain runtimes) to check. "
+                   f"(default: {', '.join(all_runners_by_name)})"
+                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        metavar  = "<runtime>",
+        nargs    = "*",
+        type     = runner_module,
+        default  = all_runners)
 
     parser.add_argument(
         "--set-default",
-        help   = "Set the default environment to the first which passes check-setup. Checks run in the order: %s." % (", ".join(map(runner_name, all_runners)),),
+        help   = "Set the default environment to the first which passes check-setup. "
+                 "Checks run in the order given, if any, "
+                 "otherwise in the default order: %s." % (", ".join(all_runners_by_name),),
         action = "store_true")
 
     return parser
@@ -41,20 +67,6 @@ def run(opts: Options) -> int:
 
     success = partial(colored, "green")
     failure = partial(colored, "red")
-    warning = partial(colored, "yellow")
-    unknown = partial(colored, "gray")
-
-    # XXX TODO: Now that there are special values other than True/False, these
-    # should probably become an enum or custom algebraic type or something
-    # similar.  That will cause a cascade into the test_setup() producers
-    # though, which I'm going to punt on for now.
-    #  -trs, 4 Oct 2018
-    status = {
-        True:  success("✔ yes"),
-        False: failure("✘ no"),
-        None:  warning("⚑ warning"),
-        ...:   unknown("? unknown"),
-    }
 
     # Check our own version for updates
     check_for_new_version()
@@ -64,11 +76,11 @@ def run(opts: Options) -> int:
 
     runner_tests = [
         (runner, runner.test_setup())
-            for runner in all_runners
+            for runner in opts.runners
     ]
 
     runner_status = {
-        runner: False not in [result for test, result in tests]
+        runner: runner_tests_ok(tests)
             for runner, tests in runner_tests
     }
 
@@ -83,15 +95,7 @@ def run(opts: Options) -> int:
             supported = failure("not supported")
 
         print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
-
-        for description, result in tests:
-            # Indent subsequent lines of any multi-line descriptions so it
-            # lines up under the status marker.
-            formatted_description = \
-                remove_prefix("  ", indent(description, "  "))
-
-            print(status.get(result, str(result)) + ":", formatted_description)
-
+        print_runner_tests(tests)
         print()
 
     # Print overall status.
@@ -111,17 +115,26 @@ def run(opts: Options) -> int:
             config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
     else:
-        print(failure("No support for any Nextstrain environment."))
+        if set(opts.runners) == set(all_runners):
+            print(failure("No support for any Nextstrain environment."))
+        else:
+            print(failure("No support for selected Nextstrain environments."))
 
     print()
     if default_runner in supported_runners:
         print(f"All good!  Default environment ({runner_name(default_runner)}) is supported.")
     else:
-        print(failure(f"No good.  Default environment ({runner_name(default_runner)}) is not supported."))
+        if default_runner in opts.runners:
+            print(failure(f"No good.  Default environment ({runner_name(default_runner)}) is not supported."))
+        else:
+            print(f"Warning: Support for the default environment ({runner_name(default_runner)}) was not checked.")
 
         if supported_runners and not opts.set_default:
             print()
             print("Try running check-setup again with the --set-default option to pick a supported runner above.")
 
     # Return a 1 or 0 exit code
-    return int(0 if default_runner in supported_runners else 1)
+    if default_runner in opts.runners:
+        return 0 if default_runner in supported_runners else 1
+    else:
+        return 0 if supported_runners else 1

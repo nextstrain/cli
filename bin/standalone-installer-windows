@@ -21,13 +21,7 @@ function main([string]$version) {
         if ($env:DESTINATION) {
             return $env:DESTINATION
         }
-        if (!$env:LOCALAPPDATA) {
-            throw "LOCALAPPDATA is not set"
-        }
-        if (!(Test-Path $env:LOCALAPPDATA)) {
-            throw "user's LOCALAPPDATA dir does not exist: ${env:LOCALAPPDATA}"
-        }
-        return "${env:LOCALAPPDATA}\nextstrain\cli\standalone"
+        return "${HOME}\.nextstrain\cli-standalone"
     }
 
     $nextstrain_dot_org = & {

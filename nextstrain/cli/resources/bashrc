@@ -1,0 +1,22 @@
+# Don't run if we've already run once for whatever reason, or if PS1 isn't set
+# as that implies a non-interactive session.
+if [[ -n "${__NEXTSTRAIN_BASHRC:-}" || -z "${PS1:-}" ]]; then
+   return 0
+fi
+
+__NEXTSTRAIN_BASHRC=1
+
+# Override PS1, this file's reason for being.
+OLDPS1="${PS1:-}"
+
+if [[ -n "${NEXTSTRAIN_PS1:-}" ]]; then
+    PS1="$NEXTSTRAIN_PS1"
+fi
+
+# Remember things…
+if [[ -n "${NEXTSTRAIN_HISTFILE:-}" ]]; then
+    HISTFILE="$NEXTSTRAIN_HISTFILE"
+    HISTCONTROL=ignoredups
+    HISTSIZE=-1
+    HISTTIMEFORMAT="%F %H:%M:%S %z"
+fi

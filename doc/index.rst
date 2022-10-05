@@ -47,6 +47,7 @@ Table of Contents
     commands/remote/delete
     commands/shell
     commands/update
+    commands/setup
     commands/check-setup
     commands/login
     commands/logout

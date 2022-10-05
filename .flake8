@@ -6,6 +6,9 @@ select =
     E9,     # syntax errors
     F       # all pyflakes correctness issues
 
+extend-ignore =
+    F541    # allow f-strings without any placeholders
+
 exclude =
     .git,
     .venv,

@@ -20,6 +20,7 @@ See `nextstrain remote --help` for more information on remote sources.
 """
 
 from pathlib import Path
+from ... import console
 from ...remote import parse_remote_path
 
 
@@ -59,6 +60,7 @@ def register_arguments(parser):
         action = "store_true")
 
 
+@console.auto_dry_run_indicator()
 def run(opts):
     remote, url = parse_remote_path(opts.destination)
 
@@ -67,8 +69,6 @@ def run(opts):
     uploads = remote.upload(url, files, dry_run = opts.dry_run)
 
     for local_file, remote_file in uploads:
-        if opts.dry_run:
-            print("DRY RUN: ", end = "")
         print("Uploading", local_file, "as", remote_file)
 
     return 0

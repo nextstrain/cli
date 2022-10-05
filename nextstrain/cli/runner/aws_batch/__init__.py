@@ -12,7 +12,7 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
-from ...types import RunnerTestResults
+from ...types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
 from ... import config
 from . import jobs, s3
@@ -338,6 +338,13 @@ def generate_run_id() -> str:
     return str(uuid4())
 
 
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    """
+    Not supported.
+    """
+    return None
+
+
 def test_setup() -> RunnerTestResults:
     """
     Check that necessary AWS resources exist.
@@ -361,11 +368,11 @@ def set_default_config() -> None:
     pass
 
 
-def update() -> bool:
+def update() -> RunnerUpdateStatus:
     """
-    No-op.  Updating the AWS Batch environment isn't meaningful.
+    Not supported.  Updating the AWS Batch environment isn't meaningful.
     """
-    return True
+    return None
 
 
 def versions() -> Iterable[str]:

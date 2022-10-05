@@ -2,33 +2,14 @@
 Configuration file handling.
 """
 
-import os
 import stat
 from configparser import ConfigParser
 from contextlib import contextmanager
 from fasteners import InterProcessReaderWriterLock
 from pathlib import Path
 from typing import Optional
+from .paths import CONFIG, SECRETS, LOCK
 
-
-# Not finding a homedir is unlikely, but possible.  Fallback to the current
-# directory.
-try:
-    HOME = Path.home()
-except:
-    HOME = Path(".")
-
-# Path to our config file
-CONFIG = Path(os.environ.get("NEXTSTRAIN_CONFIG") or
-              HOME / ".nextstrain/config")
-
-# Path to our secrets file
-SECRETS = Path(os.environ.get("NEXTSTRAIN_SECRETS") or
-               HOME / ".nextstrain/secrets")
-
-# Path to our global lock file
-LOCK = Path(os.environ.get("NEXTSTRAIN_LOCK") or
-            HOME / ".nextstrain/lock")
 
 # Permissions to use for the secrets file if we have to create it.
 SECRETS_PERMS = \

@@ -30,6 +30,11 @@ setup(
     name     = "nextstrain-cli",
     version  = __version__, # noqa: F821
     packages = find_namespaced_packages("nextstrain"),
+    package_data = {
+        "nextstrain.cli.resources": [
+            "bashrc",
+        ],
+    },
 
     description      = "Nextstrain command-line tool",
     long_description = long_description,
@@ -82,11 +87,13 @@ setup(
         "docutils",
         "fasteners",
         "importlib_metadata; python_version < '3.8'",
+        "importlib_resources >=5.3.0; python_version < '3.11'",
         "packaging",
         "pyjwt[crypto] >=2.0.0",
         "requests",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
+        "wrapt",
 
         # We use fsspec's S3 support, which has a runtime dep on s3fs.  s3fs
         # itself requires aiobotocore, which in turn requires very specific
@@ -117,7 +124,7 @@ setup(
     extras_require = {
         "dev": [
             "docutils<0.16",
-            "flake8",
+            "flake8 >=4.0.0",
             "mypy",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
@@ -125,7 +132,8 @@ setup(
             "recommonmark",
             "sphinx>=3",
             "sphinx-argparse ~=0.3",
-            "sphinx-markdown-tables",
+            "sphinx-autobuild",
+            "sphinx-markdown-tables !=0.0.16",
             "sphinx_rtd_theme",
             "types-docutils",
             "types-setuptools",

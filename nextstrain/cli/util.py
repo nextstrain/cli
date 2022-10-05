@@ -10,21 +10,21 @@ import requests
 import site
 import subprocess
 import sys
+from functools import partial
 from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
 from packaging.version import parse as parse_version
 from pathlib import Path
 from shlex import quote as shquote
 from shutil import which
-from sys import exit, stderr
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
-from .types import RunnerModule
+from .types import RunnerModule, RunnerTestResults
 
 
 def warn(*args):
-    print(*args, file = stderr)
+    print(*args, file = sys.stderr)
 
 
 def colored(color, text):
@@ -264,7 +264,7 @@ def fetch_latest_pypi_version(project):
     return requests.get("https://pypi.python.org/pypi/%s/json" % project).json().get("info", {}).get("version", "")
 
 
-def capture_output(argv):
+def capture_output(argv, extra_env: Mapping = {}):
     """
     Run the command specified by the argument list and return a list of output
     lines.
@@ -272,9 +272,18 @@ def capture_output(argv):
     This wrapper around subprocess.run() exists because its own capture_output
     parameter wasn't added until Python 3.7 and we aim for compat with 3.6.
     When we bump our minimum Python version, we can remove this wrapper.
+
+    If an *extra_env* mapping is passed, the provided keys and values are
+    overlayed onto the current environment.
     """
+    env = os.environ.copy()
+
+    if extra_env:
+        env.update(extra_env)
+
     result = subprocess.run(
         argv,
+        env    = env,
         stdout = subprocess.PIPE,
         check  = True)
 
@@ -320,7 +329,7 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
             warn("Error running %s: %s" % (argv, error))
             return 1
         else:
-            exit(process.returncode)
+            sys.exit(process.returncode)
 
 
 def runner_name(runner: RunnerModule) -> str:
@@ -494,3 +503,41 @@ def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]]) -> b
     Implemented with with :func:`wcmatch.glob.globmatch`.
     """
     return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE)
+
+
+def runner_tests_ok(tests: RunnerTestResults) -> bool:
+    """
+    Returns True iff none of a runner's ``test_setup()`` results failed.
+    """
+    return False not in [result for test, result in tests]
+
+
+def print_runner_tests(tests: RunnerTestResults):
+    """
+    Prints a formatted version of the return value of a runner's
+    ``test_setup()``.
+    """
+    success = partial(colored, "green")
+    failure = partial(colored, "red")
+    warning = partial(colored, "yellow")
+    unknown = partial(colored, "gray")
+
+    # XXX TODO: Now that there are special values other than True/False, these
+    # should probably become an enum or custom algebraic type or something
+    # similar.  That will cause a cascade into the test_setup() producers
+    # though, which I'm going to punt on for now.
+    #  -trs, 4 Oct 2018
+    status = {
+        True:  success("✔ yes"),
+        False: failure("✘ no"),
+        None:  warning("⚑ warning"),
+        ...:   unknown("? unknown"),
+    }
+
+    for description, result in tests:
+        # Indent subsequent lines of any multi-line descriptions so it
+        # lines up under the status marker.
+        formatted_description = \
+            remove_prefix("  ", indent(description, "  "))
+
+        print(status.get(result, str(result)) + ":", formatted_description)

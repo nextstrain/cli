@@ -33,6 +33,7 @@ See `nextstrain remote --help` for more information on remote sources.
 
 import shlex
 from pathlib import Path
+from ... import console
 from ...remote import parse_remote_path
 from ...errors import UserError
 
@@ -74,6 +75,7 @@ def register_parser(subparser):
     return parser
 
 
+@console.auto_dry_run_indicator()
 def run(opts):
     remote, url = parse_remote_path(opts.remote_path)
 
@@ -92,8 +94,6 @@ def run(opts):
     downloads = remote.download(url, opts.local_path, recursively = opts.recursively, dry_run = opts.dry_run)
 
     for remote_file, local_file in downloads:
-        if opts.dry_run:
-            print("DRY RUN: ", end = "")
         print("Downloading", remote_file, "as", local_file)
 
     return 0

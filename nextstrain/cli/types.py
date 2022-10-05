@@ -12,9 +12,13 @@ from .volume import NamedVolume
 
 Options = argparse.Namespace
 
+RunnerSetupStatus = Optional[bool]
+
 RunnerTestResults = List['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
 RunnerTestResultStatus = Union[bool, None, 'builtins.ellipsis']
+
+RunnerUpdateStatus = Optional[bool]
 
 # Cleaner-reading type annotations for boto3 S3 objects, which maybe can be
 # improved later.  The actual types are generated at runtime in
@@ -37,13 +41,16 @@ class RunnerModule(Protocol):
         ...
 
     @staticmethod
-    def test_setup() -> Any: ...
+    def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus: ...
+
+    @staticmethod
+    def test_setup() -> RunnerTestResults: ...
 
     @staticmethod
     def set_default_config() -> None: ...
 
     @staticmethod
-    def update() -> bool: ...
+    def update() -> RunnerUpdateStatus: ...
 
     @staticmethod
     def versions() -> Iterable[str]: ...

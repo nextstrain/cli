@@ -1,16 +1,17 @@
 """
-Start a new shell inside the Nextstrain containerized build environment to
-run ad-hoc commands and perform debugging.
-
-The shell runs inside a container, which requires Docker.  Run `nextstrain
-check-setup` to check if Docker is installed and works.
+Start a new shell inside the Nextstrain build environment to run ad-hoc
+commands and perform debugging.
 """
 
+from typing import Tuple
+from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
-from ..runner import docker
-from ..util import colored, warn
-from ..volume import store_volume
+from ..errors import UserError
+from ..paths import SHELL_HISTORY
+from ..runner import docker, conda
+from ..util import colored, remove_prefix, runner_name, warn
+from ..volume import store_volume, NamedVolume
 
 
 def register_parser(subparser):
@@ -31,12 +32,12 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("build"))
 
-    # Register runner flags and arguments; only Docker is supported for now
-    # since a "native" shell doesn't make any sense.
+    # Register runner flags and arguments; excludes native and AWS Batch
+    # runners since those don't make any sense here.
     runner.register_runners(
         parser,
-        exec    = ["bash", "--login", ...],
-        runners = [docker])
+        exec    = ["bash", ...],
+        runners = [docker, conda])
 
     return parser
 
@@ -52,10 +53,18 @@ def run(opts):
 
         return 1
 
+    overlay_volumes = [v for v in opts.volumes if v is not opts.build]
+
+    if overlay_volumes and opts.__runner__ is not docker:
+        raise UserError(f"""
+            The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
+            Use the Docker runtime (--docker) if overlays are necessary.
+            """)
+
     print(colored("bold", "Entering the Nextstrain build environment"))
     print()
 
-    if opts.volumes:
+    if opts.volumes and opts.__runner__ is docker:
         print(colored("bold", "Mapped volumes:"))
 
         # This is more tightly coupled to the Docker runner than I'd like (i.e.
@@ -70,4 +79,66 @@ def run(opts):
     print(colored("bold", 'Run the command "exit" to leave the build environment.'))
     print()
 
-    return runner.run(opts, working_volume = opts.build)
+    with resources.as_file("bashrc") as bashrc:
+        history_file = SHELL_HISTORY
+
+        if opts.__runner__ is conda:
+            opts.default_exec_args = [
+                *opts.default_exec_args,
+                "--rcfile", str(bashrc),
+            ]
+
+        elif opts.__runner__ is docker:
+            opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
+
+            history_volume = NamedVolume("bash_history", history_file, dir = False)
+            history_file = docker.mount_point(history_volume) # type: ignore[attr-defined] # for mypy
+            opts.volumes.append(history_volume)
+
+        extra_env = {
+            "NEXTSTRAIN_PS1": ps1(),
+            "NEXTSTRAIN_HISTFILE": str(history_file),
+        }
+
+        return runner.run(opts, working_volume = opts.build, extra_env = extra_env)
+
+
+def ps1() -> str:
+    # ESC[ 38;2;⟨r⟩;⟨g⟩;⟨b⟩ m — Select RGB foreground color
+    # ESC[ 48;2;⟨r⟩;⟨g⟩;⟨b⟩ m — Select RGB background color
+    def fg(color: str) -> str: return r'\[\e[38;2;{};{};{}m\]'.format(*rgb(color))
+    def bg(color: str) -> str: return r'\[\e[48;2;{};{};{}m\]'.format(*rgb(color))
+
+    def rgb(color: str) -> Tuple[int, int, int]:
+        color = remove_prefix("#", color)
+        r,g,b = (int(c, 16) for c in (color[0:2], color[2:4], color[4:6]))
+        return r,g,b
+
+    wordmark = (
+        (' ', '#4377cd'),
+        ('N', '#4377cd'),
+        ('e', '#5097ba'),
+        ('x', '#63ac9a'),
+        ('t', '#7cb879'),
+        ('s', '#9abe5c'),
+        ('t', '#b9bc4a'),
+        ('r', '#d4b13f'),
+        ('a', '#e49938'),
+        ('i', '#e67030'),
+        ('n', '#de3c26'),
+        (' ', '#de3c26'))
+
+    # Bold, bright white text (fg)…
+    PS1 = r'\[\e[1;97m\]'
+
+    # …on a colored background
+    for letter, color in wordmark:
+        PS1 += bg(color) + letter
+
+    # Add working dir and traditional prompt char (in magenta)
+    PS1 += r'\[\e[0m\] \w' + fg('#ff00ff') + r' \$ '
+
+    # Reset
+    PS1 += r'\[\e[0m\]'
+
+    return PS1

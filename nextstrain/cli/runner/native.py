@@ -6,7 +6,7 @@ import os
 import shutil
 from subprocess import CalledProcessError
 from typing import Iterable
-from ..types import RunnerTestResults
+from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, exec_or_return
 
 
@@ -28,16 +28,31 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     return exec_or_return(argv, extra_env)
 
 
+def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    """
+    Not supported.
+    """
+    return None
+
+
 def test_setup() -> RunnerTestResults:
+    def runnable(*argv) -> bool:
+        try:
+            capture_output(argv)
+            return True
+        except (OSError, CalledProcessError):
+            return False
+
+
     return [
-        ('snakemake is installed',
-            shutil.which("snakemake") is not None),
+        ('snakemake is installed and runnable',
+            shutil.which("snakemake") is not None and runnable("snakemake", "--version")),
 
-        ('augur is installed',
-            shutil.which("augur") is not None),
+        ('augur is installed and runnable',
+            shutil.which("augur") is not None and runnable("augur", "--version")),
 
-        ('auspice is installed',
-            shutil.which("auspice") is not None),
+        ('auspice is installed and runnable',
+            shutil.which("auspice") is not None and runnable("auspice", "--version")),
     ]
 
 
@@ -48,11 +63,11 @@ def set_default_config() -> None:
     pass
 
 
-def update() -> bool:
+def update() -> RunnerUpdateStatus:
     """
-    No-op.  Updating the native environment isn't reasonably possible.
+    Not supported.  Updating the native environment isn't reasonably possible.
     """
-    return True
+    return None
 
 
 def versions() -> Iterable[str]:
