@@ -62,6 +62,7 @@ This release contains **a potentially-breaking change** for existing usages of
   ncov_cross-species_cat_root-sequence.json
   ncov_cross-species_cat_tip-frequencies.json
   ```
+  ([#213](https://github.com/nextstrain/cli/pull/213))
 
 * Advanced globbing features are now supported in patterns for the `--download`
   option of `nextstrain build`, including multi-part wildcards (`**`), extended
@@ -70,6 +71,7 @@ This release contains **a potentially-breaking change** for existing usages of
   brace expansion (`{…, …}`) are still supported.  Note that the `--download`
   option continues to be applicable only to the AWS Batch runtime (e.g. the
   `--aws-batch` option).
+  ([#215](https://github.com/nextstrain/cli/pull/215))
 
 ## Development
 
