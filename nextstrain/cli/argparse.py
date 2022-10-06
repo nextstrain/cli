@@ -172,15 +172,18 @@ def runner_module_argument(name: str) -> RunnerModule:
     >>> runner_module_argument("AWS Batch") # doctest: +ELLIPSIS
     <module 'cli.runner.aws_batch' from '...'>
 
+    >>> runner_module_argument("native") # doctest: +ELLIPSIS
+    <module 'cli.runner.ambient' from '...'>
+
     >>> runner_module_argument("invalid")
     Traceback (most recent call last):
         ...
-    argparse.ArgumentTypeError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'native', 'aws-batch'
+    argparse.ArgumentTypeError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'ambient', 'aws-batch'
 
     >>> runner_module_argument("Invalid Name")
     Traceback (most recent call last):
         ...
-    argparse.ArgumentTypeError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'native', 'aws-batch'
+    argparse.ArgumentTypeError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'ambient', 'aws-batch'
     """
     try:
         return runner_module(name)

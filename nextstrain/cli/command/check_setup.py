@@ -9,12 +9,12 @@ Four runtimes are tested by default:
 
   • Our Conda environment will be tested for existence and appearance of
     completeness. This runtime is more isolated and reproducible than your
-    native ambient environment, but is less isolated and robust than the Docker
+    ambient environment, but is less isolated and robust than the Docker
     runtime.
 
-  • Your native ambient environment will be tested for snakemake, augur, and
-    auspice. Their presence implies a working build environment, but does not
-    guarantee it.
+  • Your ambient environment will be tested for snakemake, augur, and auspice.
+    Their presence implies a working build environment, but does not guarantee
+    it.
 
   • Remote jobs on AWS Batch.  Your AWS account, if credentials are available
     in your environment or via aws-cli configuration, will be tested for the

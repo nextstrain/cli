@@ -1,5 +1,5 @@
 """
-Run commands on the native host, outside of any container image.
+Run commands in the ambient environment, outside of any container image.
 """
 
 import os
@@ -65,7 +65,7 @@ def set_default_config() -> None:
 
 def update() -> RunnerUpdateStatus:
     """
-    Not supported.  Updating the native environment isn't reasonably possible.
+    Not supported.  Updating the ambient environment isn't reasonably possible.
     """
     return None
 

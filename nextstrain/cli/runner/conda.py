@@ -168,7 +168,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    # Conda packages to install, based on our unmanaged "native" install docs.
+    # Conda packages to install, based on our unmanaged "ambient" install docs.
     #
     # Includes nextstrain-cli even though that's us and we're already installed
     # and running because our own executable may not be on PATH in the runtime

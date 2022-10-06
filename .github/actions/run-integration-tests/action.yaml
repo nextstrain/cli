@@ -32,8 +32,8 @@ runs:
         nextstrain build --docker --cpus 2 zika-tutorial
 
     - if: runner.os != 'Windows'
-      name: Build zika-tutorial with --native
+      name: Build zika-tutorial with --ambient
       shell: bash -l -eo pipefail {0}
       run: |
         git -C zika-tutorial clean -dfqx
-        nextstrain build --native --cpus 2 zika-tutorial
+        nextstrain build --ambient --cpus 2 zika-tutorial

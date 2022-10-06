@@ -19,7 +19,7 @@ from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IP
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS
-from ..runner import docker, native, conda
+from ..runner import docker, ambient, conda
 from ..util import colored, remove_suffix, warn
 from ..volume import store_volume
 
@@ -66,7 +66,7 @@ def register_parser(subparser):
     runner.register_runners(
         parser,
         exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
-        runners = [docker, native, conda])
+        runners = [docker, ambient, conda])
 
     return parser
 

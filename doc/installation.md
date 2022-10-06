@@ -70,7 +70,7 @@ build` and `nextstrain view`.
 The default runner is Docker, using the [nextstrain/base][] container image.
 Containers provide a tremendous amount of benefit for scientific workflows by
 isolating dependencies and increasing reproducibility.  However, they're not
-always appropriate, so a Conda runner and "native" runner are also supported.
+always appropriate, so a Conda runner and "ambient" runner are also supported.
 The installation and setup of supported runners is described below.
 
 [nextstrain/base]: https://github.com/nextstrain/docker-base
@@ -110,14 +110,14 @@ On macOS and Linux, run `nextstrain setup conda` to get started.
 This runner is not directly supported on Windows, but you can use [WSL2][] to
 "switch" to Linux and run the above setup command.
 
-### Native
+### Ambient
 
-The "native" runner allows you to use the Nextstrain CLI with your own ambient
+The "ambient" runner allows you to use the Nextstrain CLI with your own ambient
 setup, for when you cannot or do not want to have Nextstrain CLI manage its own
 environment.
 
 However, you will need to make sure all of the Nextstrain software dependencies
-are available locally or "natively" on your computer.  A common way to do this
+are available locally or "ambiently" on your computer.  A common way to do this
 is by manually using [Conda][] to manage your own environment that includes the
 required software, however you're responsible for making sure the correct
 software is installed and kept up-to-date.  It is also possible to install the
@@ -165,7 +165,7 @@ based on what's available.  You should see output similar to the following:
     ✔ yes: augur is installed and runnable
     ✔ yes: auspice is installed and runnable
 
-    # native is not supported
+    # ambient is not supported
     ✔ yes: snakemake is installed and runnable
     ✘ no: augur is installed and runnable
     ✘ no: auspice is installed and runnable
@@ -180,13 +180,13 @@ based on what's available.  You should see output similar to the following:
     Setting default environment to docker.
 
 If the output doesn't say "All good!" and list at least one supported
-Nextstrain computing environment (typically Docker, Conda, or native), then
+Nextstrain computing environment (typically Docker, Conda, or ambient), then
 something may be wrong with your installation.
 
 The default is written to the _~/.nextstrain/config_ file.  If multiple
 environments are supported, you can override the default for specific runs
-using command-line options such as `--docker`, `--conda`, `--native`, and
-`--aws-batch`, e.g. `nextstrain build --native …`.
+using command-line options such as `--docker`, `--conda`, `--ambient`, and
+`--aws-batch`, e.g. `nextstrain build --ambient …`.
 
 
 [Augur]: https://github.com/nextstrain/augur
