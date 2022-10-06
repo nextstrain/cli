@@ -13,7 +13,7 @@ This command also checks for newer versions of the Nextstrain CLI (the
 upgrade is available.
 """
 from functools import partial
-from ..argparse import runner_module, SKIP_AUTO_DEFAULT_IN_HELP
+from ..argparse import runner_module_argument, SKIP_AUTO_DEFAULT_IN_HELP
 from ..util import colored, check_for_new_version, runner_name
 from ..runner import all_runners_by_name, default_runner
 
@@ -32,7 +32,7 @@ def register_parser(subparser):
                    f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar  = "<runtime>",
         nargs    = "?",
-        type     = runner_module,
+        type     = runner_module_argument,
         default  = default_runner)
 
     return parser

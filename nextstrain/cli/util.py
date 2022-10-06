@@ -339,6 +339,49 @@ def runner_name(runner: RunnerModule) -> str:
     return module_basename(runner).replace("_", "-")
 
 
+def runner_module(name: str) -> RunnerModule:
+    """
+    Converts a string *name* into a :py:cls:`RunnerModule`.
+
+    *name* is case-insensitive and underscores, hyphens, or spaces may be used
+    to separate words.  Internally, they're normalized to hyphens and the whole
+    string is lowercased.
+
+    Raises a :py:exc:`ValueError` if *name* is unknown.
+
+    >>> runner_module("docker") # doctest: +ELLIPSIS
+    <module 'cli.runner.docker' from '...'>
+
+    >>> runner_module("AWS-Batch") # doctest: +ELLIPSIS
+    <module 'cli.runner.aws_batch' from '...'>
+
+    >>> runner_module("AWS Batch") # doctest: +ELLIPSIS
+    <module 'cli.runner.aws_batch' from '...'>
+
+    >>> runner_module("invalid")
+    Traceback (most recent call last):
+        ...
+    ValueError: invalid runtime name: 'invalid'
+
+    >>> runner_module("Invalid Name")
+    Traceback (most recent call last):
+        ...
+    ValueError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name')
+    """
+    # Import here to avoid circular import
+    from .runner import all_runners_by_name
+
+    normalized_name = re.sub(r'(_|\s+)', '-', name).lower()
+
+    try:
+        return all_runners_by_name[normalized_name]
+    except KeyError as err:
+        if name != normalized_name:
+            raise ValueError(f"invalid runtime name: {name!r} (normalized to {normalized_name!r})") from err
+        else:
+            raise ValueError(f"invalid runtime name: {name!r}") from err
+
+
 def runner_help(runner: RunnerModule) -> str:
     """
     Return a brief description of a runner module, suitable for help strings.
