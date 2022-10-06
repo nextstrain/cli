@@ -175,12 +175,12 @@ def runner_module_argument(name: str) -> RunnerModule:
     >>> runner_module_argument("invalid")
     Traceback (most recent call last):
         ...
-    argparse.ArgumentTypeError: invalid runtime name: 'invalid'
+    argparse.ArgumentTypeError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'native', 'aws-batch'
 
     >>> runner_module_argument("Invalid Name")
     Traceback (most recent call last):
         ...
-    argparse.ArgumentTypeError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name')
+    argparse.ArgumentTypeError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'native', 'aws-batch'
     """
     try:
         return runner_module(name)

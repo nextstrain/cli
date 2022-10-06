@@ -361,12 +361,12 @@ def runner_module(name: str) -> RunnerModule:
     >>> runner_module("invalid")
     Traceback (most recent call last):
         ...
-    ValueError: invalid runtime name: 'invalid'
+    ValueError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'native', 'aws-batch'
 
     >>> runner_module("Invalid Name")
     Traceback (most recent call last):
         ...
-    ValueError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name')
+    ValueError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'native', 'aws-batch'
     """
     # Import here to avoid circular import
     from .runner import all_runners_by_name
@@ -376,10 +376,12 @@ def runner_module(name: str) -> RunnerModule:
     try:
         return all_runners_by_name[normalized_name]
     except KeyError as err:
+        valid_names = ", ".join(map(repr, all_runners_by_name))
+
         if name != normalized_name:
-            raise ValueError(f"invalid runtime name: {name!r} (normalized to {normalized_name!r})") from err
+            raise ValueError(f"invalid runtime name: {name!r} (normalized to {normalized_name!r}); valid names are: {valid_names}") from err
         else:
-            raise ValueError(f"invalid runtime name: {name!r}") from err
+            raise ValueError(f"invalid runtime name: {name!r}; valid names are: {valid_names}") from err
 
 
 def runner_help(runner: RunnerModule) -> str:
