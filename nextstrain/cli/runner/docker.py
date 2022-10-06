@@ -158,10 +158,32 @@ def mount_point(volume: NamedVolume) -> PurePosixPath:
 
 
 def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    if not setup_image(dry_run, force):
+        return False
+
+    return True
+
+
+def setup_image(dry_run: bool = False, force: bool = False) -> bool:
     """
-    Not supported.
+    Download the image if it's not already available locally.
+
+    Though not strictly required, by doing this during setup we avoid the
+    initial download on first use instead.
     """
-    return None
+    image = DEFAULT_IMAGE
+
+    if not force and image_exists(image):
+        print(f"Using existing local copy of Docker image {image}.")
+        print(f"  Hint: if you want to ignore this existing local copy, re-run `nextstrain setup` with --force.")
+        return True
+
+    update_ok = _update(dry_run)
+
+    if not update_ok:
+        return False
+
+    return True
 
 
 def test_setup() -> RunnerTestResults:
@@ -273,6 +295,10 @@ def update() -> RunnerUpdateStatus:
     """
     Pull down the latest Docker image build and prune old image versions.
     """
+    return _update()
+
+
+def _update(dry_run: bool = False) -> RunnerUpdateStatus:
     current_image = DEFAULT_IMAGE
     latest_image  = latest_build_image(current_image)
 
@@ -283,16 +309,17 @@ def update() -> RunnerUpdateStatus:
     print()
 
     # Pull the latest image down
-    try:
-        subprocess.run(
-            ["docker", "image", "pull", latest_image],
-            check = True)
-    except (OSError, subprocess.CalledProcessError):
-        return False
+    if not dry_run:
+        try:
+            subprocess.run(
+                ["docker", "image", "pull", latest_image],
+                check = True)
+        except (OSError, subprocess.CalledProcessError):
+            return False
 
-    # Update the config file to point to the new image so we use it by default
-    # going forward.
-    config.set("docker", "image", latest_image)
+        # Update the config file to point to the new image so we use it by default
+        # going forward.
+        config.set("docker", "image", latest_image)
 
     # Prune any old images which are now dangling to avoid leaving lots of
     # hidden disk use around.  We don't use `docker image prune` because we
@@ -302,24 +329,25 @@ def update() -> RunnerUpdateStatus:
     print(colored("bold", "Pruning old images…"))
     print()
 
-    try:
-        images = dangling_images(latest_image) \
-               + old_build_images(latest_image)
+    if not dry_run:
+        try:
+            images = dangling_images(latest_image) \
+                   + old_build_images(latest_image)
 
-        if images:
-            subprocess.run(
-                ["docker", "image", "rm", *images],
-                check = True)
-    except (OSError, subprocess.CalledProcessError) as error:
-        warn()
-        warn("Update succeeded, but an error occurred pruning old image versions:")
-        warn("  ", error)
-        warn()
-        warn("This can occur, for example, if you have a `nextstrain build`,")
-        warn("`nextstrain view`, or `nextstrain shell` command still running.")
-        warn()
-        warn("Not to worry, we'll try again the next time you run `nextstrain update`.")
-        warn()
+            if images:
+                subprocess.run(
+                    ["docker", "image", "rm", *images],
+                    check = True)
+        except (OSError, subprocess.CalledProcessError) as error:
+            warn()
+            warn("Update succeeded, but an error occurred pruning old image versions:")
+            warn("  ", error)
+            warn()
+            warn("This can occur, for example, if you have a `nextstrain build`,")
+            warn("`nextstrain view`, or `nextstrain shell` command still running.")
+            warn()
+            warn("Not to worry, we'll try again the next time you run `nextstrain update`.")
+            warn()
 
     return True
 
