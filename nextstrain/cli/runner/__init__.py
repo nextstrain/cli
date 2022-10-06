@@ -195,12 +195,12 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
     ]
 
     if (opts.image is not docker.DEFAULT_IMAGE # type: ignore
-    and opts.__runner__ is native):
-        why_native = "the configured default" if default_runner is native else "selected by --native"
+    and opts.__runner__ in {conda, native}):
+        why_runner = "the configured default" if default_runner in {conda, native} else f"selected by --{runner_name(opts.__runner__)}"
         raise UserError(f"""
-            The --image option is incompatible with the "native" runner ({why_native}).
+            The --image option is incompatible with the {runner_name(opts.__runner__)} runner ({why_runner}).
 
-            If you need to use the "native" runner, please omit the --image option.
+            If you need to use the {runner_name(opts.__runner__)} runner, please omit the --image option.
 
             If you need the --image option, please select another runner (e.g.
             with the --docker option) that supports it.  Currently --image is
