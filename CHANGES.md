@@ -36,6 +36,21 @@ development source code and as such may not be routinely kept up to date.
   runtimes now includes the Conda runtime.
   ([#224](https://github.com/nextstrain/cli/pull/224))
 
+## Bug fixes
+
+* The Conda runtime now runs Micromamba in greater isolation to avoid undesired
+  interactions when a) Nextstrain CLI itself is running inside an
+  externally-activated Conda environment and/or b) user-specific Mamba
+  configuration exists.  This applies to usages of `nextstrain setup` and
+  `nextstrain update` with the Conda runtime.
+  ([#223](https://github.com/nextstrain/cli/pull/223))
+
+## Development
+
+* The Conda runtime is now tested in CI, joining the Docker and ambient
+  runtimes.
+  ([#223](https://github.com/nextstrain/cli/pull/223))
+
 
 # 5.0.0.dev0 (6 October 2022)
 
