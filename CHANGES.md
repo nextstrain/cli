@@ -13,6 +13,13 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain setup docker` now downloads the Docker runtime image if it's not
+  already available locally.  This can be a useful initial step after
+  installation to avoid the automatic download on first use.
+  ([#222](https://github.com/nextstrain/cli/pull/222))
+
 
 # 5.0.0.dev0 (6 October 2022)
 
