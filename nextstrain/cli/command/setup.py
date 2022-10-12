@@ -9,10 +9,10 @@ set the runtime as the default on success.
 Exits with an error code if automated set up fails or if setup checks fail.
 """
 from functools import partial
-from shlex import quote as shquote
 from textwrap import dedent
 
 from .. import config, console
+from ..argparse import runner_module_argument
 from ..util import colored, runner_name, runner_tests_ok, print_runner_tests
 from ..types import Options
 from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
@@ -26,7 +26,7 @@ def register_parser(subparser):
         help     = "The Nextstrain build environment (aka Nextstrain runtime) to set up. "
                    f"One of {{{', '.join(all_runners_by_name)}}}.",
         metavar  = "<runtime>",
-        choices  = list(all_runners_by_name))
+        type     = runner_module_argument)
 
     parser.add_argument(
         "--dry-run",
@@ -51,17 +51,12 @@ def register_parser(subparser):
 def run(opts: Options) -> int:
     global default_runner
 
-    # opts.runner's "choices" above restricts it to valid keys; if it doesn't
-    # that's a programming error and the user-facing exception for that will be
-    # appropriate.
-    runner = all_runners_by_name[opts.runner]
-
     heading = partial(colored, "bold")
     failure = partial(colored, "red")
 
     # Setup
-    print(heading(f"Setting up {runner_name(runner)}…"))
-    setup_ok = runner.setup(dry_run = opts.dry_run, force = opts.force)
+    print(heading(f"Setting up {runner_name(opts.runner)}…"))
+    setup_ok = opts.runner.setup(dry_run = opts.dry_run, force = opts.force)
 
     if setup_ok is None:
         print("Automated set up is not supported, but we'll check for a manual setup.")
@@ -75,7 +70,7 @@ def run(opts: Options) -> int:
     print(heading(f"Checking setup…"))
 
     if not opts.dry_run:
-        tests = runner.test_setup()
+        tests = opts.runner.test_setup()
 
         print_runner_tests(tests)
 
@@ -88,7 +83,7 @@ def run(opts: Options) -> int:
 
     # Optionally set as default
     if opts.set_default:
-        default_runner = runner
+        default_runner = opts.runner
         print()
         print("Setting default environment to %s." % runner_name(default_runner))
 
@@ -97,7 +92,7 @@ def run(opts: Options) -> int:
             default_runner.set_default_config()
 
     # Warn if this isn't the default runner.
-    if default_runner is not runner:
+    if default_runner is not opts.runner:
         print()
         if not configured_runner:
             print(f"Warning: No default environment is configured so {runner_name(default_runner)} will be used.")
@@ -105,17 +100,17 @@ def run(opts: Options) -> int:
             print(f"Note that your default environment is still {runner_name(default_runner)}.")
         print()
         print(dedent(f"""\
-            You can use {runner_name(runner)} on an ad-hoc basis with commands like `nextstrain build`,
-            `nextstrain view`, etc. by passing them the --{runner_name(runner)} option, e.g.:
+            You can use {runner_name(opts.runner)} on an ad-hoc basis with commands like `nextstrain build`,
+            `nextstrain view`, etc. by passing them the --{runner_name(opts.runner)} option, e.g.:
 
-                nextstrain build --{runner_name(runner)} …
+                nextstrain build --{runner_name(opts.runner)} …
 
-            If you want to use {runner_name(runner)} by default instead, re-run this
+            If you want to use {runner_name(opts.runner)} by default instead, re-run this
             command with the --set-default option, e.g.:
 
-                nextstrain setup --set-default {shquote(opts.runner)}\
+                nextstrain setup --set-default {runner_name(opts.runner)}\
             """))
 
     print()
-    print("All good!  Set up of", runner_name(runner), "complete.")
+    print("All good!  Set up of", runner_name(opts.runner), "complete.")
     return 0

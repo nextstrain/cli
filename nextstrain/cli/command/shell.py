@@ -32,7 +32,7 @@ def register_parser(subparser):
         metavar = "<directory>",
         action  = store_volume("build"))
 
-    # Register runner flags and arguments; excludes native and AWS Batch
+    # Register runner flags and arguments; excludes ambient and AWS Batch
     # runners since those don't make any sense here.
     runner.register_runners(
         parser,

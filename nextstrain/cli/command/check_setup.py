@@ -9,12 +9,12 @@ Four runtimes are tested by default:
 
   • Our Conda environment will be tested for existence and appearance of
     completeness. This runtime is more isolated and reproducible than your
-    native ambient environment, but is less isolated and robust than the Docker
+    ambient environment, but is less isolated and robust than the Docker
     runtime.
 
-  • Your native ambient environment will be tested for snakemake, augur, and
-    auspice. Their presence implies a working build environment, but does not
-    guarantee it.
+  • Your ambient environment will be tested for snakemake, augur, and auspice.
+    Their presence implies a working build environment, but does not guarantee
+    it.
 
   • Remote jobs on AWS Batch.  Your AWS account, if credentials are available
     in your environment or via aws-cli configuration, will be tested for the
@@ -30,7 +30,7 @@ checked runtimes are supported.
 
 from functools import partial
 from .. import config
-from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module
+from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
 from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, print_runner_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
@@ -49,7 +49,7 @@ def register_parser(subparser):
                    f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar  = "<runtime>",
         nargs    = "*",
-        type     = runner_module,
+        type     = runner_module_argument,
         default  = all_runners)
 
     parser.add_argument(

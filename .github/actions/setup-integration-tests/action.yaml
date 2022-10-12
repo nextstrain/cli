@@ -1,7 +1,7 @@
 name: Setup integration tests
 description: >-
   Sets up prerequisites for run-integration-tests, namely installing software
-  needed by the "native" runner and cloning zika-tutorial for use as an test
+  needed by the "ambient" runner and cloning zika-tutorial for use as an test
   build.
 
   Jobs which use this action must also set
@@ -39,7 +39,7 @@ runs:
     - run: cat ~/.bashrc || true
       shell: bash -l -eo pipefail {0}
 
-    # Install software for the "native" runner; not supported on Windows.
+    # Install software for the "ambient" runner; not supported on Windows.
     - if: runner.os != 'Windows'
       run: mamba install augur auspice snakemake
       shell: bash -l -eo pipefail {0}

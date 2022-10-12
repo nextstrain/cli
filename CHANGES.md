@@ -15,10 +15,26 @@ development source code and as such may not be routinely kept up to date.
 
 ## Improvements
 
+* The "native" runtime (aka runner or build environment) is now the "ambient"
+  runtime.  This name better reflects what it is and further distinguishes it
+  from the new Conda runtime, which is also "native" in the binary executable
+  sense.
+
+  Existing usages of "native" should be unaffected.  The `--native` option
+  continues to work anywhere it used to previously, though it is hidden from
+  `--help` output to discourage new use.  The string "native" is also accepted
+  anywhere runner names are accepted, e.g. in config as the `core.runner`
+  setting or in command-line arguments to `check-setup` or `setup`.
+  ([#224](https://github.com/nextstrain/cli/pull/224))
+
 * `nextstrain setup docker` now downloads the Docker runtime image if it's not
   already available locally.  This can be a useful initial step after
   installation to avoid the automatic download on first use.
   ([#222](https://github.com/nextstrain/cli/pull/222))
+
+* `nextstrain build`'s check for use of the `--image` option with unsupported
+  runtimes now includes the Conda runtime.
+  ([#224](https://github.com/nextstrain/cli/pull/224))
 
 
 # 5.0.0.dev0 (6 October 2022)

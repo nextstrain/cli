@@ -5,13 +5,13 @@ from typing import cast, Mapping, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
     conda as __conda,
-    native as __native,
+    ambient as __ambient,
     aws_batch as __aws_batch,
 )
 from .. import config
 from ..errors import UserError
 from ..types import Options, RunnerModule
-from ..util import runner_name, runner_help, warn
+from ..util import runner_name, runner_module, runner_help, warn
 from ..volume import NamedVolume
 
 
@@ -36,19 +36,19 @@ MYPY = False
 if TYPE_CHECKING and MYPY:
     docker = cast(RunnerModule, __docker)
     conda = cast(RunnerModule, __conda)
-    native = cast(RunnerModule, __native)
+    ambient = cast(RunnerModule, __ambient)
     aws_batch = cast(RunnerModule, __aws_batch)
 else:
     docker = __docker
     conda = __conda
-    native = __native
+    ambient = __ambient
     aws_batch = __aws_batch
 
 
 all_runners: List[RunnerModule] = [
     docker,
     conda,
-    native,
+    ambient,
     aws_batch,
 ]
 
@@ -58,9 +58,9 @@ default_runner = docker
 configured_runner = config.get("core", "runner")
 
 if configured_runner:
-    if configured_runner in all_runners_by_name:
-        default_runner = all_runners_by_name[configured_runner]
-    else:
+    try:
+        default_runner = runner_module(configured_runner)
+    except ValueError:
         warn("WARNING: Default runner from config file (%s) is invalid.  Using %s.\n"
             % (configured_runner, runner_name(default_runner)))
 
@@ -119,6 +119,16 @@ def register_flags(parser: ArgumentParser, runners: List[RunnerModule], default:
             const   = runner,
             dest    = "__runner__",
             default = argparse.SUPPRESS)
+
+        if runner is ambient:
+            # Alias --ambient as --native for backwards compatibility but hide
+            # it from --help output.
+            flags.add_argument(
+                "--native",
+                help    = argparse.SUPPRESS,
+                action  = "store_const",
+                const   = ambient,
+                dest    = "__runner__")
 
 
 def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec: RunnerExec) -> None:
@@ -195,12 +205,12 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
     ]
 
     if (opts.image is not docker.DEFAULT_IMAGE # type: ignore
-    and opts.__runner__ is native):
-        why_native = "the configured default" if default_runner is native else "selected by --native"
+    and opts.__runner__ in {conda, ambient}):
+        why_runner = "the configured default" if default_runner in {conda, ambient} else f"selected by --{runner_name(opts.__runner__)}"
         raise UserError(f"""
-            The --image option is incompatible with the "native" runner ({why_native}).
+            The --image option is incompatible with the {runner_name(opts.__runner__)} runner ({why_runner}).
 
-            If you need to use the "native" runner, please omit the --image option.
+            If you need to use the {runner_name(opts.__runner__)} runner, please omit the --image option.
 
             If you need the --image option, please select another runner (e.g.
             with the --docker option) that supports it.  Currently --image is

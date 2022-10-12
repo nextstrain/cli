@@ -6,13 +6,13 @@ snakemake.
 
 The default build environment is inside an ephemeral Docker container which has
 all the necessary Nextstrain components available.  You may instead run the
-build in the native ambient environment by passing the --native flag, but all
+build in the ambient environment by passing the --ambient flag, but all
 dependencies must already be installed and configured.  For larger builds, you
 may want to use the --aws-batch flag to launch jobs on AWS Batch instead of
 running locally (if the required AWS resources are configured in your AWS
 account).
 
-You can test if Docker, native, or AWS Batch build environments are properly
+You can test if Docker, ambient, or AWS Batch build environments are properly
 supported on your computer by running:
 
     nextstrain check-setup
