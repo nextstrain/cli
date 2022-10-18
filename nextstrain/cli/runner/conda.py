@@ -273,6 +273,10 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             "--channel", NEXTSTRAIN_CHANNEL,
             "--channel", "conda-forge",
             "--channel", "bioconda",
+
+            # Don't automatically pin Python so nextstrain-base deps can change
+            # it on upgrade.
+            "--no-py-pin",
         )
 
     env = {
