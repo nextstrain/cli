@@ -1,5 +1,25 @@
 """
 Run commands with access to a fully-managed Conda environment.
+
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set this during normal operation.
+
+.. envvar:: NEXTSTRAIN_CONDA_CHANNEL
+
+    Conda channel name (or URL) to use for Nextstrain packages not otherwise
+    available via Bioconda (e.g. ``nextstrain-base``).
+
+    Defaults to ``nextstrain``.
+
+.. envvar:: NEXTSTRAIN_CONDA_BASE_PACKAGE
+
+    Conda meta-package name to use for the Nextstrain base runtime dependencies.
+
+    Defaults to ``nextstrain-base``.
 """
 
 import os
@@ -25,6 +45,12 @@ PREFIX_BIN = PREFIX / "bin"
 
 MICROMAMBA_ROOT = RUNTIME_ROOT / "micromamba/"
 MICROMAMBA      = MICROMAMBA_ROOT / "bin/micromamba"
+
+NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
+                  or "nextstrain"
+
+NEXTSTRAIN_BASE = os.environ.get("NEXTSTRAIN_CONDA_BASE_PACKAGE") \
+               or "nextstrain-base"
 
 
 def register_arguments(parser) -> None:
@@ -168,32 +194,13 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    # Conda packages to install, based on our unmanaged "ambient" install docs.
-    #
-    # Includes nextstrain-cli even though that's us and we're already installed
-    # and running because our own executable may not be on PATH in the runtime
-    # environment.
-    #
-    # Adds bash so that a newer version is guaranteed to be available on
-    # systems with an older bash.  This is similar to how our Docker runtime
-    # image includes its own bash too.
+    # Conda packages to install.
     #
     # HEY YOU: If you add/remove packages here, make sure to account for how
     # update() should make the same changes to existing envs.
     #   -trs, 1 Sept 2022
     packages = (
-        "augur",
-        "auspice",
-        "nextalign",
-        "nextclade",
-        "nextstrain-cli",
-
-        "bash",
-        "epiweeks",
-        "git",
-        "pangolearn",
-        "pangolin",
-        "snakemake",
+        NEXTSTRAIN_BASE,
     )
 
     # Create environment
@@ -259,12 +266,13 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             # Path-based env
             "--prefix", str(PREFIX),
 
-            # BioConda config per <https://bioconda.github.io/#usage>
+            # BioConda config per <https://bioconda.github.io/#usage>, plus our
+            # own channel.
             "--override-channels",
             "--strict-channel-priority",
+            "--channel", NEXTSTRAIN_CHANNEL,
             "--channel", "conda-forge",
             "--channel", "bioconda",
-            "--channel", "defaults",
         )
 
     env = {
@@ -388,7 +396,7 @@ def update() -> RunnerUpdateStatus:
     """
     print("Updating Conda packages…")
     try:
-        micromamba("update", "--all")
+        micromamba("update", NEXTSTRAIN_BASE)
     except InternalError as err:
         warn(err)
         traceback.print_exc()
