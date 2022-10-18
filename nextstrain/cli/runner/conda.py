@@ -203,21 +203,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         try:
-            micromamba(
-                "create",
-
-                # Path-based env
-                "--prefix", PREFIX,
-
-                # BioConda config per <https://bioconda.github.io/#usage>
-                "--override-channels",
-                "--strict-channel-priority",
-                "--channel", "conda-forge",
-                "--channel", "bioconda",
-                "--channel", "defaults",
-
-                *packages,
-            )
+            micromamba("create", *packages)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
@@ -228,7 +214,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         try:
-            micromamba("clean", "--all")
+            micromamba("clean", "--all", add_prefix = False)
         except InternalError as err:
             warn(err)
             warn(f"Continuing anyway.")
@@ -236,9 +222,10 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def micromamba(*args) -> None:
+def micromamba(*args, add_prefix: bool = True) -> None:
     """
-    Runs our installed Micromamba with appropriate global options.
+    Runs our installed Micromamba with appropriate global options and options
+    for prefix and channel selection.
 
     Invokes :py:func:`subprocess.run` and checks the exit status.  Raises a
     :py:exc:`InternalError` on failure, chained from the original
@@ -246,6 +233,10 @@ def micromamba(*args) -> None:
 
     For convenience, all arguments are converted to strings before being passed
     to :py:func:`subprocess.run`.
+
+    Set the keyword-only argument *add_prefix* to false to omit the
+    ``--prefix`` option and channel-related options which are otherwise
+    automatically added.
     """
     argv = tuple(map(str, (
         MICROMAMBA,
@@ -262,6 +253,19 @@ def micromamba(*args) -> None:
 
         *args,
     )))
+
+    if add_prefix:
+        argv += (
+            # Path-based env
+            "--prefix", str(PREFIX),
+
+            # BioConda config per <https://bioconda.github.io/#usage>
+            "--override-channels",
+            "--strict-channel-priority",
+            "--channel", "conda-forge",
+            "--channel", "bioconda",
+            "--channel", "defaults",
+        )
 
     env = {
         # Filter out all CONDA_* and MAMBA_* host env vars so micromamba's
@@ -384,7 +388,7 @@ def update() -> RunnerUpdateStatus:
     """
     print("Updating Conda packages…")
     try:
-        micromamba("update", "--all", "--prefix", PREFIX)
+        micromamba("update", "--all")
     except InternalError as err:
         warn(err)
         traceback.print_exc()
