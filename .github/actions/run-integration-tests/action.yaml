@@ -12,17 +12,22 @@ description: >-
 runs:
   using: composite
   steps:
-    - name: Run Nextstrain CLI commands
+    - shell: bash -l -eo pipefail {0}
+      run: nextstrain version --verbose
+
+    - if: runner.os != 'macOS' && runner.os != 'Windows'
       shell: bash -l -eo pipefail {0}
-      run: |
-        nextstrain version --verbose
-        nextstrain check-setup --set-default
+      run: nextstrain setup docker
 
-        # XXX TODO: Stop ignoring errors once `update` is improved.  See
-        # <https://github.com/nextstrain/cli/issues/87>.
-        nextstrain update || true
+    - if: runner.os != 'Windows'
+      shell: bash -l -eo pipefail {0}
+      run: nextstrain setup conda
 
-        nextstrain version --verbose
+    - shell: bash -l -eo pipefail {0}
+      run: nextstrain check-setup --set-default
+
+    - shell: bash -l -eo pipefail {0}
+      run: nextstrain version --verbose
 
     - if: runner.os != 'macOS' && runner.os != 'Windows'
       name: Build zika-tutorial with --docker
@@ -30,6 +35,13 @@ runs:
       run: |
         git -C zika-tutorial clean -dfqx
         nextstrain build --docker --cpus 2 zika-tutorial
+
+    - if: runner.os != 'Windows'
+      name: Build zika-tutorial with --conda
+      shell: bash -l -eo pipefail {0}
+      run: |
+        git -C zika-tutorial clean -dfqx
+        nextstrain build --conda --cpus 2 zika-tutorial
 
     - if: runner.os != 'Windows'
       name: Build zika-tutorial with --ambient

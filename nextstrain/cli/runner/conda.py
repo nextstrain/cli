@@ -263,11 +263,40 @@ def micromamba(*args) -> None:
         *args,
     )))
 
-    # Override HOME so that micromamba's hardcoded paths under ~/.mamba/ don't
-    # get used.  This could lead to issues with a shared package cache at
-    # ~/.mamba/pkgs/ for example.
     env = {
-        **os.environ.copy(),
+        # Filter out all CONDA_* and MAMBA_* host env vars so micromamba's
+        # behaviour isn't affected by running inside an externally-activated
+        # Conda environment (CONDA_*) or user-set configuration vars (MAMBA_*).
+        #
+        # When first drafting this runner, I'd thought we might have to do this
+        # env filtering, but everything seemed to work fine in practice without
+        # it, so I didn't on the premise of not including code you don't need.
+        # Joke's on me!  Now that I've been burned by CONDA_PROMPT_MODIFIER
+        # triggering an infinite loop in the right conditions¹, let's be
+        # proactively defensive and filter them all out.
+        #
+        # We bother with MAMBA_* vars even though we're using --no-env above
+        # because it turns out that Micromamba may sometimes indirectly invoke
+        # itself (e.g. the generated wrapper script for package post-link
+        # scripts calls `micromamba activate`).  We can't apply command-line
+        # options to those instances, so use env vars.
+        #   -trs, 7 Oct 2022
+        #
+        # ¹ <https://github.com/nextstrain/cli/pull/223#issuecomment-1270806302>
+        **{ k: v
+            for k, v in os.environ.copy().items()
+             if not any(k.startswith(p) for p in {"CONDA_", "MAMBA_"}) },
+
+        # Set env vars to match options above for subprocesses that micromamba
+        # itself launches.  We can't include MAMBA_NO_ENV because that would
+        # make these two vars moot, but we do filter out all other CONDA_* and
+        # MAMBA_* vars above.
+        "MAMBA_ROOT_PREFIX": str(MICROMAMBA_ROOT),
+        "MAMBA_NO_RC": "true",
+
+        # Override HOME so that micromamba's hardcoded paths under ~/.mamba/
+        # don't get used.  This could lead to issues with a shared package
+        # cache at ~/.mamba/pkgs/ for example.
         "HOME": str(RUNTIME_ROOT),
     }
 
