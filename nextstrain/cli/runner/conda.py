@@ -22,8 +22,10 @@ Environment variables
     Defaults to ``nextstrain-base``.
 """
 
+import json
 import os
 import platform
+import re
 import requests
 import shutil
 import subprocess
@@ -411,6 +413,11 @@ def update() -> RunnerUpdateStatus:
 
 def versions() -> Iterable[str]:
     try:
+        yield package_version("nextstrain-base")
+    except OSError:
+        pass
+
+    try:
         yield capture_output([str(PREFIX_BIN / "augur"), "--version"])[0]
     except (OSError, subprocess.CalledProcessError):
         pass
@@ -419,3 +426,23 @@ def versions() -> Iterable[str]:
         yield "auspice " + capture_output([str(PREFIX_BIN / "auspice"), "--version"])[0]
     except (OSError, subprocess.CalledProcessError):
         pass
+
+
+def package_version(name: str) -> str:
+    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+
+    if not metafile:
+        return f"{name} unknown"
+
+    meta = json.loads(metafile.read_bytes())
+
+    version = meta.get("version", "unknown")
+    build   = meta.get("build",   "unknown")
+    channel = meta.get("channel", "unknown")
+
+    anaconda_channel = re.search(r'^https://conda[.]anaconda[.]org/(?P<repo>.+?)/(?:linux|osx)-64$', channel)
+
+    if anaconda_channel:
+        channel = anaconda_channel["repo"]
+
+    return f"{name} {version} ({build}, {channel})"
