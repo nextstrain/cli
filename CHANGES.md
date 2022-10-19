@@ -36,6 +36,26 @@ development source code and as such may not be routinely kept up to date.
   runtimes now includes the Conda runtime.
   ([#224](https://github.com/nextstrain/cli/pull/224))
 
+* The Conda runtime now uses the new `nextstrain-base` Conda meta-package
+  instead of using a hardcoded list of packages.
+
+  This decouples Conda runtime updates from Nextstrain CLI updates, as we can
+  make new releases of `nextstrain-base` and users can update to those without
+  upgrading Nextstrain CLI itself.  This brings the update story for the Conda
+  runtime into much better parity with the Docker runtime.
+
+  Using the meta-package also brings increased reproducibility to the runtime,
+  as the package completely locks its full transitive dependency tree.  This
+  means that if version _X_ of `nextstrain-base` worked in the past, it'll
+  still work the same way in the future.
+
+  The `NEXTSTRAIN_CONDA_BASE_PACKAGE` environment variable may be used with
+  `nextstrain setup conda` to install a specific version.  The value is a
+  [Conda package specification][], e.g. `nextstrain-base ==X`.
+  ([#228](https://github.com/nextstrain/cli/pull/228))
+
+[Conda package specification]: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
+
 ## Bug fixes
 
 * The Conda runtime now runs Micromamba in greater isolation to avoid undesired
@@ -44,6 +64,14 @@ development source code and as such may not be routinely kept up to date.
   configuration exists.  This applies to usages of `nextstrain setup` and
   `nextstrain update` with the Conda runtime.
   ([#223](https://github.com/nextstrain/cli/pull/223))
+
+* The Conda runtime now configures the appropriate channels during `update` too,
+  not just during `setup`, ensuring package updates are found.
+  ([#228](https://github.com/nextstrain/cli/pull/228))
+
+* The Conda runtime now avoids pinning Python in the isolated environment to
+  allow it to be upgraded by `update`.
+  ([#228](https://github.com/nextstrain/cli/pull/228))
 
 ## Development
 
