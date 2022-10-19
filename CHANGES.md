@@ -36,8 +36,9 @@ development source code and as such may not be routinely kept up to date.
   runtimes now includes the Conda runtime.
   ([#224](https://github.com/nextstrain/cli/pull/224))
 
-* The Conda runtime now uses the new `nextstrain-base` Conda meta-package
-  instead of using a hardcoded list of packages.
+* The Conda runtime now uses the new [`nextstrain-base` Conda
+  meta-package](https://anaconda.org/Nextstrain/nextstrain-base) instead of
+  using a hardcoded list of packages.
 
   This decouples Conda runtime updates from Nextstrain CLI updates, as we can
   make new releases of `nextstrain-base` and users can update to those without
