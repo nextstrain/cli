@@ -126,10 +126,10 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
     # Query for latest Micromamba release
-    dists = (
-        requests.get("https://api.anaconda.org/release/conda-forge/micromamba/latest")
-            .json()
-            .get("distributions", []))
+    response = requests.get("https://api.anaconda.org/release/conda-forge/micromamba/latest")
+    response.raise_for_status()
+
+    dists = response.json().get("distributions", [])
 
     system = platform.system()
     machine = platform.machine()
@@ -159,6 +159,7 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         response = requests.get(dist_url, stream = True)
+        response.raise_for_status()
         content_type = response.headers["Content-Type"]
 
         assert content_type == "application/x-tar", \
