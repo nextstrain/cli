@@ -20,6 +20,15 @@ Environment variables
     Conda meta-package name to use for the Nextstrain base runtime dependencies.
 
     Defaults to ``nextstrain-base``.
+
+.. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
+
+    Version of Micromamba to use for setup and upgrade of the Conda runtime
+    env.  Must be a version available from the `conda-forge channel
+    <https://anaconda.org/conda-forge/micromamba/>`__, or the special string
+    ``latest``.
+
+    Defaults to ``0.27.0``.
 """
 
 import json
@@ -33,7 +42,7 @@ import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
 from typing import Iterable
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
@@ -47,6 +56,10 @@ PREFIX_BIN = PREFIX / "bin"
 
 MICROMAMBA_ROOT = RUNTIME_ROOT / "micromamba/"
 MICROMAMBA      = MICROMAMBA_ROOT / "bin/micromamba"
+
+# If you update the version pin below, please update the docstring above too.
+MICROMAMBA_VERSION = os.environ.get("NEXTSTRAIN_CONDA_MICROMAMBA_VERSION") \
+                  or "0.27.0"
 
 NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
                   or "nextstrain"
@@ -125,8 +138,8 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
-    # Query for latest Micromamba release
-    response = requests.get("https://api.anaconda.org/release/conda-forge/micromamba/latest")
+    # Query for Micromamba release
+    response = requests.get(f"https://api.anaconda.org/release/conda-forge/micromamba/{urlquote(MICROMAMBA_VERSION)}")
     response.raise_for_status()
 
     dists = response.json().get("distributions", [])
