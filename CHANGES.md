@@ -55,6 +55,16 @@ development source code and as such may not be routinely kept up to date.
   [Conda package specification][], e.g. `nextstrain-base ==X`.
   ([#228](https://github.com/nextstrain/cli/pull/228))
 
+* The Conda runtime now uses a pinned version of Micromamba (currently 0.27.0)
+  so that new releases of the latter can't break `nextstrain setup conda` or
+  `nextstrain update conda` between one day and the next.  The pinned version
+  will be bumped up over time as needed with subsequent releases of Nextstrain
+  CLI.
+
+  The `NEXTSTRAIN_CONDA_MICROMAMBA_VERSION` environment variable may be used
+  with `nextstrain setup conda` to override the built-in pin, either with
+  another specific version or `latest`.
+
 [Conda package specification]: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
 
 ## Bug fixes
