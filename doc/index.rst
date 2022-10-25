@@ -52,6 +52,7 @@ Table of Contents
     commands/login
     commands/logout
     commands/whoami
+    commands/authorization
     commands/version
 
 .. toctree::
