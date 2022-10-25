@@ -1,9 +1,40 @@
 """
 Run commands with access to a fully-managed Conda environment.
+
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set this during normal operation.
+
+.. envvar:: NEXTSTRAIN_CONDA_CHANNEL
+
+    Conda channel name (or URL) to use for Nextstrain packages not otherwise
+    available via Bioconda (e.g. ``nextstrain-base``).
+
+    Defaults to ``nextstrain``.
+
+.. envvar:: NEXTSTRAIN_CONDA_BASE_PACKAGE
+
+    Conda meta-package name to use for the Nextstrain base runtime dependencies.
+
+    Defaults to ``nextstrain-base``.
+
+.. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
+
+    Version of Micromamba to use for setup and upgrade of the Conda runtime
+    env.  Must be a version available from the `conda-forge channel
+    <https://anaconda.org/conda-forge/micromamba/>`__, or the special string
+    ``latest``.
+
+    Defaults to ``0.27.0``.
 """
 
+import json
 import os
 import platform
+import re
 import requests
 import shutil
 import subprocess
@@ -11,7 +42,7 @@ import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
 from typing import Iterable
-from urllib.parse import urljoin
+from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
@@ -25,6 +56,16 @@ PREFIX_BIN = PREFIX / "bin"
 
 MICROMAMBA_ROOT = RUNTIME_ROOT / "micromamba/"
 MICROMAMBA      = MICROMAMBA_ROOT / "bin/micromamba"
+
+# If you update the version pin below, please update the docstring above too.
+MICROMAMBA_VERSION = os.environ.get("NEXTSTRAIN_CONDA_MICROMAMBA_VERSION") \
+                  or "0.27.0"
+
+NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
+                  or "nextstrain"
+
+NEXTSTRAIN_BASE = os.environ.get("NEXTSTRAIN_CONDA_BASE_PACKAGE") \
+               or "nextstrain-base"
 
 
 def register_arguments(parser) -> None:
@@ -97,11 +138,11 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
-    # Query for latest Micromamba release
-    dists = (
-        requests.get("https://api.anaconda.org/release/conda-forge/micromamba/latest")
-            .json()
-            .get("distributions", []))
+    # Query for Micromamba release
+    response = requests.get(f"https://api.anaconda.org/release/conda-forge/micromamba/{urlquote(MICROMAMBA_VERSION)}")
+    response.raise_for_status()
+
+    dists = response.json().get("distributions", [])
 
     system = platform.system()
     machine = platform.machine()
@@ -131,6 +172,7 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         response = requests.get(dist_url, stream = True)
+        response.raise_for_status()
         content_type = response.headers["Content-Type"]
 
         assert content_type == "application/x-tar", \
@@ -168,32 +210,13 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    # Conda packages to install, based on our unmanaged "ambient" install docs.
-    #
-    # Includes nextstrain-cli even though that's us and we're already installed
-    # and running because our own executable may not be on PATH in the runtime
-    # environment.
-    #
-    # Adds bash so that a newer version is guaranteed to be available on
-    # systems with an older bash.  This is similar to how our Docker runtime
-    # image includes its own bash too.
+    # Conda packages to install.
     #
     # HEY YOU: If you add/remove packages here, make sure to account for how
     # update() should make the same changes to existing envs.
     #   -trs, 1 Sept 2022
     packages = (
-        "augur",
-        "auspice",
-        "nextalign",
-        "nextclade",
-        "nextstrain-cli",
-
-        "bash",
-        "epiweeks",
-        "git",
-        "pangolearn",
-        "pangolin",
-        "snakemake",
+        NEXTSTRAIN_BASE,
     )
 
     # Create environment
@@ -203,21 +226,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         try:
-            micromamba(
-                "create",
-
-                # Path-based env
-                "--prefix", PREFIX,
-
-                # BioConda config per <https://bioconda.github.io/#usage>
-                "--override-channels",
-                "--strict-channel-priority",
-                "--channel", "conda-forge",
-                "--channel", "bioconda",
-                "--channel", "defaults",
-
-                *packages,
-            )
+            micromamba("create", *packages)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
@@ -228,7 +237,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
 
     if not dry_run:
         try:
-            micromamba("clean", "--all")
+            micromamba("clean", "--all", add_prefix = False)
         except InternalError as err:
             warn(err)
             warn(f"Continuing anyway.")
@@ -236,9 +245,10 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def micromamba(*args) -> None:
+def micromamba(*args, add_prefix: bool = True) -> None:
     """
-    Runs our installed Micromamba with appropriate global options.
+    Runs our installed Micromamba with appropriate global options and options
+    for prefix and channel selection.
 
     Invokes :py:func:`subprocess.run` and checks the exit status.  Raises a
     :py:exc:`InternalError` on failure, chained from the original
@@ -246,6 +256,10 @@ def micromamba(*args) -> None:
 
     For convenience, all arguments are converted to strings before being passed
     to :py:func:`subprocess.run`.
+
+    Set the keyword-only argument *add_prefix* to false to omit the
+    ``--prefix`` option and channel-related options which are otherwise
+    automatically added.
     """
     argv = tuple(map(str, (
         MICROMAMBA,
@@ -262,6 +276,24 @@ def micromamba(*args) -> None:
 
         *args,
     )))
+
+    if add_prefix:
+        argv += (
+            # Path-based env
+            "--prefix", str(PREFIX),
+
+            # BioConda config per <https://bioconda.github.io/#usage>, plus our
+            # own channel.
+            "--override-channels",
+            "--strict-channel-priority",
+            "--channel", NEXTSTRAIN_CHANNEL,
+            "--channel", "conda-forge",
+            "--channel", "bioconda",
+
+            # Don't automatically pin Python so nextstrain-base deps can change
+            # it on upgrade.
+            "--no-py-pin",
+        )
 
     env = {
         # Filter out all CONDA_* and MAMBA_* host env vars so micromamba's
@@ -384,7 +416,7 @@ def update() -> RunnerUpdateStatus:
     """
     print("Updating Conda packages…")
     try:
-        micromamba("update", "--all", "--prefix", PREFIX)
+        micromamba("update", NEXTSTRAIN_BASE)
     except InternalError as err:
         warn(err)
         traceback.print_exc()
@@ -395,6 +427,11 @@ def update() -> RunnerUpdateStatus:
 
 def versions() -> Iterable[str]:
     try:
+        yield package_version("nextstrain-base")
+    except OSError:
+        pass
+
+    try:
         yield capture_output([str(PREFIX_BIN / "augur"), "--version"])[0]
     except (OSError, subprocess.CalledProcessError):
         pass
@@ -403,3 +440,23 @@ def versions() -> Iterable[str]:
         yield "auspice " + capture_output([str(PREFIX_BIN / "auspice"), "--version"])[0]
     except (OSError, subprocess.CalledProcessError):
         pass
+
+
+def package_version(name: str) -> str:
+    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+
+    if not metafile:
+        return f"{name} unknown"
+
+    meta = json.loads(metafile.read_bytes())
+
+    version = meta.get("version", "unknown")
+    build   = meta.get("build",   "unknown")
+    channel = meta.get("channel", "unknown")
+
+    anaconda_channel = re.search(r'^https://conda[.]anaconda[.]org/(?P<repo>.+?)/(?:linux|osx)-64$', channel)
+
+    if anaconda_channel:
+        channel = anaconda_channel["repo"]
+
+    return f"{name} {version} ({build}, {channel})"
