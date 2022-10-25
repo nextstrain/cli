@@ -7,11 +7,12 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 5.0.0.dev1 (25 October 2022)
+
+_This is the second development pre-release made prior to the final release of 5.0.0._
 
 ## Improvements
 
