@@ -7,17 +7,199 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 5.0.0 (25 October 2022)
+
+_Version 5.0.0 had two development pre-releases (5.0.0.dev0 and 5.0.0.dev1)
+prior to final release.  For convenience, the changes from those pre-releases
+are also re-described here._
+
+The major improvement in this release is the introduction of a new Conda
+runtime, filling a gap between the Docker runtime and the ambient runtime
+(formerly "native" runtime).  See more details below.
+
+This release also contains **potentially-breaking changes** for existing
+usages of `nextstrain remote download` and `nextstrain update`.  The changes
+are described below.
+
+## Improvements
+
+* A new Conda runtime (aka runner or build environment) now complements the
+  existing Docker and ambient runtimes and fills a gap between them.  This
+  runtime is more isolated and reproducible than your ambient environment, but
+  is less isolated and robust than the Docker runtime.  Like the Docker
+  runtime, the Conda runtime is fully-managed by Nextstrain CLI and receives
+  updates via `nextstrain update`.
+
+  The new runtime uses the [Conda](https://docs.conda.io) ecosystem with
+  packages from [our own channel](https://anaconda.org/Nextstrain/nextstrain-base),
+  [Bioconda](https://bioconda.github.io/) and
+  [Conda-Forge](https://conda-forge.org/), installed by
+  [Micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html)
+  into an isolated location, typically `~/.nextstrain/runtimes/conda/env`.  It
+  does not interact with or impact other usage of Conda/Mamba environments and
+  will not, for example, appear in the output of `conda env list`.
+
+  Set up of the runtime is automated and can be performed by running:
+
+      nextstrain setup conda
+
+  When complete, you'll be able to use the `--conda` runtime option supported
+  by Nextstrain CLI commands such as `nextstrain build`, `nextstrain view`,
+  `nextstrain shell`, etc.
+  ([#218][])
+
+* The "native" runtime (aka runner or build environment) is now the "ambient"
+  runtime.  This name better reflects what it is and further distinguishes it
+  from the new Conda runtime, which is also "native" in the binary executable
+  sense.
+
+  Existing usages of "native" should be unaffected.  The `--native` option
+  continues to work anywhere it used to previously, though it is hidden from
+  `--help` output to discourage new use.  The string "native" is also accepted
+  anywhere runner names are accepted, e.g. in config as the `core.runner`
+  setting or in command-line arguments to `check-setup` or `setup`.
+  ([#224](https://github.com/nextstrain/cli/pull/224))
+
+* `nextstrain setup docker` now downloads the Docker runtime image if it's not
+  already available locally.  This can be a useful initial step after
+  installation to avoid the automatic download on first use.
+  ([#222](https://github.com/nextstrain/cli/pull/222))
+
+* The local filenames produced by `nextstrain remote download` now include
+  more of the remote dataset/narrative path.  This reduces the potential for
+  ambiguous filenames and makes it easier to copy datasets/narratives between
+  destinations (e.g. from one group to another) while retaining the same path.
+  It is, however, a **potentially-breaking change** if you're relying on the
+  filenames of the downloaded datasets/narratives (e.g. for automation).
+
+  For example, downloading `nextstrain.org/flu/seasonal/h3n2/ha/2y` previously
+  produced the local files:
+
+  ```
+  2y.json
+  2y_root-sequence.json
+  2y_tip-frequencies.json
+  ```
+
+  which could easily conflict with the similarly-named
+  `nextstrain.org/flu/seasonal/h3n2/na/2y`,
+  `nextstrain.org/flu/seasonal/h1n1pdm/ha/2y`, etc.  The downloaded files are
+  now named:
+
+  ```
+  flu_seasonal_h3n2_ha_2y.json
+  flu_seasonal_h3n2_ha_2y_root-sequence.json
+  flu_seasonal_h3n2_ha_2y_tip-frequencies.json
+  ```
+
+  Within groups, filenames are similarly longer but the group name is not
+  included.  For example, downloading `groups/blab/ncov/cross-species/cat`
+  previously produced:
+
+  ```
+  cat.json
+  cat_root-sequence.json
+  cat_tip-frequencies.json
+  ```
+
+  and now produces:
+
+  ```
+  ncov_cross-species_cat.json
+  ncov_cross-species_cat_root-sequence.json
+  ncov_cross-species_cat_tip-frequencies.json
+  ```
+  ([#213](https://github.com/nextstrain/cli/pull/213))
+
+* Advanced globbing features are now supported in patterns for the `--download`
+  option of `nextstrain build`, including multi-part wildcards (`**`), extended
+  globbing (`@(…)`, `+(…)`, etc.), and negation (`!…`).  Basic globbing
+  features like single-part wildcards (`*`), character classes (`[…]`), and
+  brace expansion (`{…, …}`) are still supported.  Note that the `--download`
+  option continues to be applicable only to the AWS Batch runtime (e.g. the
+  `--aws-batch` option).
+  ([#215](https://github.com/nextstrain/cli/pull/215))
+
+* `check-setup` now accepts one or more runtime names as arguments.
+
+  The default behaviour doesn't change, but specifying runtimes now lets you
+  restrict checks to a single runtime or, with multiple runtimes, re-order them
+  by your preference for use with --set-default.
+  ([#218][])
+
+* `update` now only updates a specific runtime instead of all of them at once.
+
+  With no arguments, the default runtime is updated.  The name of another
+  runtime to update instead may be provided as an argument.
+
+  In practice this isn't much of a behaviour change because only one runtime
+  currently supports updating (Docker); the others (ambient, AWS Batch) just
+  pass.  Existing users are unlikely to notice the change unless they use
+  multiple runtimes and Docker is not their default.  In that case, `update`
+  may stop updating Docker for them when it would have done so previously,
+  which is a **potentially-breaking change**.
+  ([#218][])
+
+* A new command, `setup`, now exists to perform automatic set up of runtimes
+  that support it (currently only Conda).  For all runtimes, even those that
+  don't support automatic set up, the `setup` command will also run the same
+  checks as `check-setup` and optionally set the default runtime.
+  ([#218][])
+
+* The shell launched by the `shell` command now remembers its own command
+  history and differentiates its command prompt from other shells with a
+  stylized variant of the Nextstrain wordmark.
+  ([#218][])
+
+* The output of commands in dry run mode (e.g. with the `--dry-run` option) is
+  now uniformly indicated to be a dry run by the prefix `DRY RUN │ `.  This
+  includes the `remote` family of commands and the new `setup` command.
+  ([#218][])
+
+* Runtime checks in `check-setup` and `setup` now test for not just the
+  presence of Snakemake, Augur, and Auspice, but also that they can be
+  executed.
+  ([#218][])
 
 ## Development
+
+* We now provide standalone installers (i.e. shell programs) to download and
+  unpack the standalone installation archives into standard locations,
+  potentially upgrading/overwriting a prior standalone install.  These
+  installers will be served from GitHub directly out of this project's
+  repository via convenience redirects on nextstrain.org.
+
+  These will eventually form the basis for Nextstrain install instructions that
+  don't suffer from Python bootstrapping issues.  As a preview for now, you can
+  play around with the following platform-specific commands:
+
+      curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash
+      curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash
+      Invoke-RestMethod https://nextstrain.org/cli/installer/windows | Invoke-Expression
+
+  A new companion command, `init-shell`, exists to simplify shell configuration
+  (i.e. `PATH` modification) for such installations.
+
+* The `NEXTSTRAIN_HOME` environment variable can now be used to specify the
+  desired location for per-user settings, files, etc., overriding the default
+  of _~/.nextstrain/_.
+  ([#218][])
 
 * A new `nextstrain authorization` command makes it easier to generate direct
   requests to nextstrain.org's web API using the same credentials as the CLI.
   ([#229](https://github.com/nextstrain/cli/pull/229))
+
+* The development documentation now documents how to build the documentation
+  locally, and sphinx-autobuild is used to make a very nice edit-preview cycle
+  with quick turnaround.
+  ([#218][])
+
+* Development dependency issues with `flake8` and `sphinx-markdown-tables`,
+  caused by upstream changes, are now resolved.
+  ([#218][])
 
 
 # 5.0.0.dev1 (25 October 2022)
