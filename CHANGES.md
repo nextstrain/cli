@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* A new `nextstrain authorization` command makes it easier to generate direct
+  requests to nextstrain.org's web API using the same credentials as the CLI.
+  ([#229](https://github.com/nextstrain/cli/pull/229))
+
 
 # 5.0.0.dev1 (25 October 2022)
 
