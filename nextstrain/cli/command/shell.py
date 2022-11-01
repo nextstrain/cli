@@ -80,7 +80,20 @@ def run(opts):
     print()
 
     with resources.as_file("bashrc") as bashrc:
-        history_file = SHELL_HISTORY
+        # Ensure the history file exists to pass checks the Docker runner
+        # performs for mounted volumes.  This also makes sure that the file is
+        # writable by the Conda runtime too by ensuring the parent directory
+        # exists.
+        #
+        # Don't use strict=True because it's ok if it doesn't exist yet!
+        history_file = SHELL_HISTORY.resolve()
+        history_file.parent.mkdir(parents = True, exist_ok = True)
+
+        try:
+            # Don't use exist_ok=True so we don't touch the mtime unnecessarily
+            history_file.touch()
+        except FileExistsError:
+            pass
 
         if opts.__runner__ is conda:
             opts.default_exec_args = [
