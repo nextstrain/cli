@@ -13,6 +13,13 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* `nextstrain shell` no longer errors when its history file, e.g.
+  _~/.nextstrain/shell-history_, doesn't exist.  This primarily affected the
+  Docker runtime and was a regression from 4.2.0 introduced in 5.0.0.
+  ([#232](https://github.com/nextstrain/cli/pull/232))
+
 
 # 5.0.0 (25 October 2022)
 
