@@ -63,9 +63,11 @@ from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
 from requests.utils import parse_dict_header
+from tempfile import NamedTemporaryFile
 from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 from urllib.parse import urljoin, urlsplit, quote as urlquote
+from .. import markdown
 from ..authn import current_user
 from ..errors import UserError
 from ..gzip import GzipCompressingReader
@@ -281,7 +283,24 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
             if dry_run:
                 continue
 
-            put(endpoint, file, markdown_type)
+            # Embed images into the narrative.
+            #
+            # Don't delete the temp file on close.  Allows us to manually close
+            # the temp file so put() can reliably re-open it, per the docs¹:
+            #
+            #    Whether the name can be used to open the file a second time,
+            #    while the named temporary file is still open, varies across
+            #    platforms (it can be so used on Unix; it cannot on Windows).
+            #
+            # ¹ https://docs.python.org/3/library/tempfile.html#tempfile.NamedTemporaryFile
+            with NamedTemporaryFile("w", delete = False) as dst:
+                dst.write(
+                    markdown.generate(
+                        markdown.embed_images(
+                            markdown.parse(file.read_text()),
+                            file.resolve(strict = True).parent)))
+                dst.close()
+                put(endpoint, Path(dst.name), markdown_type)
 
 
 def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:

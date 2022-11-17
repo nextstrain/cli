@@ -2,6 +2,7 @@
   "pythonVersion": "3.6",
   "include": ["nextstrain"],
   "ignore": [
+    "nextstrain/cli/markdown.py",
     "nextstrain/cli/rst/sphinx.py"
   ],
   "reportMissingImports": false,
