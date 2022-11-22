@@ -1,16 +1,40 @@
 """
-Visualizes a completed pathogen build in Auspice, the Nextstrain visualization app.
+Visualizes a completed pathogen builds or narratives in Auspice, the Nextstrain
+visualization app.
 
-The data directory should contain sets of dataset_ files like::
+Dataset_ (.json) and narrative_ (.md) files will be served, respectively, from
+**auspice** and/or **narratives** subdirectories under the given <directory>
+if the subdirectories exist.  Otherwise, files will be served from <directory>
+itself.
 
-    <name>.json
+If your pathogen build directory follows our conventional layout by containing
+an **auspice** directory (and optionally a **narratives** directory), then you
+can give ``nextstrain view`` the same path as you do ``nextstrain build``.
 
-or::
+The given <directory> should look like one of the following examples::
 
-    <name>_tree.json
-    <name>_meta.json
+    <directory>/
+    ├── auspice/
+    │   └── *.json
+    └── narratives/
+        └── *.md
+
+    <directory>/
+    ├── auspice/
+    │   └── *.json
+    └── *.md
+
+    <directory>/
+    ├── *.json
+    └── narratives/
+        └── *.md
+
+    <directory>/
+    ├── *.json
+    └── *.md
 
 .. _dataset: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
+.. _narrative: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
 
 import re
@@ -30,7 +54,7 @@ def register_parser(subparser):
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("view", help = "View pathogen build", add_help = False)
+    parser = subparser.add_parser("view", help = "View pathogen builds and narratives", add_help = False)
 
     # Support --help and --help-all
     add_extended_help_flags(parser)
@@ -58,14 +82,18 @@ def register_parser(subparser):
     # Positional parameters
     parser.add_argument(
         "directory",
-        help    = "Path to directory containing JSONs for Auspice",
+        help    = "Path to directory containing dataset JSON and/or narrative Markdown files for Auspice, "
+                  "or a directory containing an auspice/ and/or narratives/ directory.",
         metavar = "<directory>",
         action  = store_volume("auspice/data"))
 
     # Register runners; excludes AWS Batch since that makes no sense.
+    #
+    # Note that the --datasetDir and --narrativeDir here might be overriden in
+    # run() below.
     runner.register_runners(
         parser,
-        exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
+        exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
         runners = [docker, ambient, conda])
 
     return parser
@@ -84,8 +112,34 @@ def run(opts):
 
         return 1
 
-    # Find the available dataset paths
-    datasets = dataset_paths(data_dir)
+    # If auspice/ exists, then use it for datasets.  Otherwise, look for
+    # datasets in the given dir.
+    if (data_dir / "auspice/").is_dir():
+        datasets_dir = data_dir / "auspice/"
+
+        # Override our default --datasetDir=. above
+        opts.default_exec_args += ["--datasetDir=auspice/"]
+    else:
+        datasets_dir = data_dir
+
+    # If narratives/ exist, then use it for narratives.  Otherwise, look for
+    # narratives in the given dir.
+    if (data_dir / "narratives/").is_dir():
+        narratives_dir = data_dir / "narratives/"
+
+        # Override our default --narrativeDir=. above
+        opts.default_exec_args += ["--narrativeDir=narratives/"]
+    else:
+        narratives_dir = data_dir
+
+    # Find the available dataset and narrative paths
+    datasets = dataset_paths(datasets_dir)
+    narratives = narrative_paths(narratives_dir)
+
+    available_paths = [
+        *sorted(datasets, key = str.casefold),
+        *sorted(narratives, key = str.casefold),
+    ]
 
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
@@ -146,7 +200,7 @@ def run(opts):
     #   -trs, 17 Dec 2021
 
     # Show a helpful message about where to connect
-    print_url(host, port, datasets)
+    print_url(host, port, available_paths)
 
     return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
 
@@ -191,10 +245,22 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
     return datasets_v2 | datasets_v1
 
 
-def print_url(host, port, datasets):
+def narrative_paths(data_dir: Path) -> Iterable[str]:
     """
-    Prints a list of available dataset URLs, if any.  Otherwise, prints a
-    generic URL.
+    Returns a :py:class:`set` of Auspice (not filesystem) paths for narratives
+    in *data_dir*.
+    """
+    # Narratives: all *.md files except README.md and group-overview.md
+    return {
+        "narratives/" + path.stem.replace("_", "/")
+            for path in data_dir.glob("*.md")
+             if path.name not in {"README.md", "group-overview.md"}}
+
+
+def print_url(host, port, available_paths):
+    """
+    Prints a list of available dataset and narrative URLs, if any.  Otherwise,
+    prints a generic URL.
     """
     # Surround IPv6 addresses with square brackets for the URL.
     if ":" in host:
@@ -213,14 +279,14 @@ def print_url(host, port, datasets):
     print()
     print(horizontal_rule)
 
-    if len(datasets):
-        print("    The following datasets should be available in a moment:")
-        for path in sorted(datasets, key = str.casefold):
+    if available_paths:
+        print("    The following datasets and/or narratives should be available in a moment:")
+        for path in available_paths:
             print("       • %s" % url(path))
     else:
         print("    Open <%s> in your browser." % url())
         print()
-        print("   ", colored("yellow", "Warning: No datasets detected."))
+        print("   ", colored("yellow", "Warning: No datasets or narratives detected."))
 
     print(horizontal_rule)
     print()
