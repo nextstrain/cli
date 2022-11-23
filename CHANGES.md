@@ -13,6 +13,11 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* The Conda runtime now uses Micromamba 1.0.0 (an upgrade from 0.27.0).
+  ([#233](https://github.com/nextstrain/cli/pull/233))
+
 
 # 5.0.1 (1 November 2022)
 
