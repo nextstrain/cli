@@ -4,7 +4,7 @@ Log handling for AWS Batch jobs.
 
 import threading
 from botocore.exceptions import ClientError, ConnectionError as BotocoreConnectionError
-from typing import Any, Callable, Dict, Generator, MutableSet
+from typing import Any, Callable, Dict, Generator, MutableSet # noqa: F401 (it's wrong; we use it in a type comment)
 from ... import aws
 
 

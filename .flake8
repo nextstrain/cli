@@ -3,11 +3,15 @@
 
 [flake8]
 select =
-    E9,     # syntax errors
-    F       # all pyflakes correctness issues
+    # syntax errors
+    E9,
+
+    # all pyflakes correctness issues
+    F,
 
 extend-ignore =
-    F541    # allow f-strings without any placeholders
+    # allow f-strings without any placeholders
+    F541,
 
 exclude =
     .git,
