@@ -54,6 +54,7 @@ Environment variables
     will interact with ``http://localhost:5000`` instead of nextstrain.org_.
 """
 
+import json
 import os
 import requests
 import requests.auth
@@ -62,7 +63,7 @@ from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
 from requests.utils import parse_dict_header
-from textwrap import indent
+from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 from urllib.parse import urljoin, urlsplit, quote as urlquote
 from ..authn import current_user
@@ -637,6 +638,7 @@ def raise_for_status(response: requests.Response) -> None:
 
     Calls :meth:`requests.Response.raise_for_status` and handles statuses:
 
+    - 400
     - 401
     - 403
     - 404
@@ -650,7 +652,28 @@ def raise_for_status(response: requests.Response) -> None:
     except requests.exceptions.HTTPError as err:
         status = err.response.status_code
 
-        if status in {401, 403}:
+        if status == 400:
+            try:
+                msg = json.loads(response.content)["error"]
+            except (json.JSONDecodeError, KeyError):
+                raise err from None
+            else:
+                raise UserError("""
+                    The remote server rejected our request:
+
+                    {msg}
+
+                    This may indicate a problem that's fixable by you, or it
+                    may be a bug somewhere that needs to be fixed by the
+                    Nextstrain developers.
+
+                    If you're unable to address the problem, please open a new
+                    issue at <https://github.com/nextstrain/cli/issues/new/choose>
+                    and include the complete output above and the command you
+                    were running.
+                    """, msg = indent("\n".join(wrap(msg)), "  ")) from err
+
+        elif status in {401, 403}:
             user = current_user()
 
             if user:
