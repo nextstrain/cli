@@ -37,15 +37,43 @@ The given <directory> should look like one of the following examples::
 .. _narrative: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
 
+import multiprocessing
 import re
+import webbrowser
+from os import environ
 from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
+from time import sleep
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
-from ..argparse import add_extended_help_flags, SUPPRESS
+from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
 from ..runner import docker, ambient, conda
 from ..util import colored, remove_suffix, warn
 from ..volume import store_volume
+
+
+# Always use the "spawn" start method which is available on all platforms,
+# instead of using the platform-dependent default (e.g. "spawn" on Windows and
+# macOS but "fork" on other Unixes).  The semantics and behaviour of forking is
+# so different from spawning re: shared variables and program state that it's
+# easier to use the same method everywhere (even if forking is nicer than
+# spawning).
+mp_spawn = multiprocessing.get_context("spawn")
+Process = mp_spawn.Process
+ProcessError = mp_spawn.ProcessError
+
+
+# Avoid text-mode browsers
+TERM = environ.pop("TERM", None)
+try:
+    BROWSER = webbrowser.get()
+except:
+    BROWSER = None
+finally:
+    if TERM is not None:
+        environ["TERM"] = TERM
+
+OPEN_DEFAULT = bool(BROWSER)
 
 
 def register_parser(subparser):
@@ -58,6 +86,22 @@ def register_parser(subparser):
 
     # Support --help and --help-all
     add_extended_help_flags(parser)
+
+    parser.add_argument(
+        "--open",
+        help    = "Open a web browser automatically " +
+                  ('(the default)' if OPEN_DEFAULT else '') +
+                  SKIP_AUTO_DEFAULT_IN_HELP,
+        action  = "store_true",
+        default = OPEN_DEFAULT)
+
+    parser.add_argument(
+        "--no-open",
+        dest    = "open",
+        help    = "Do not open a web browser automatically " +
+                  ('' if OPEN_DEFAULT else '(the default)') +
+                  SKIP_AUTO_DEFAULT_IN_HELP,
+        action  = "store_false")
 
     parser.add_argument(
         "--allow-remote-access",
@@ -141,6 +185,11 @@ def run(opts):
         *sorted(narratives, key = str.casefold),
     ]
 
+    if len(available_paths) == 1:
+        default_path = available_paths[0]
+    else:
+        default_path = None
+
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
     #
@@ -201,6 +250,9 @@ def run(opts):
 
     # Show a helpful message about where to connect
     print_url(host, port, available_paths)
+
+    if opts.open:
+        open_browser(f"http://{host}:{port}/{default_path or ''}")
 
     return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
 
@@ -318,3 +370,27 @@ class AddressInfo(NamedTuple):
     proto: int
     canonname: str
     sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int]] # (ip, addr, ...)
+
+
+def open_browser(url: str) -> None:
+    try:
+        Process(target = _open_browser, args = (url,), daemon = True).start()
+    except ProcessError as err:
+        warn(f"Couldn't open <{url}> in browser: {err!r}")
+
+
+def _open_browser(url: str):
+    if not BROWSER:
+        warn(f"Couldn't open <{url}> in browser: no browser found")
+        return
+
+    # XXX TODO: Many better ways to wait for Auspice to be running… but this is
+    # the simplest (if not the most reliable or most responsive).
+    #   -trs, 6 Dec 2022
+    sleep(2)
+
+    try:
+        # new = 2 means new tab, if possible
+        BROWSER.open(url, new = 2, autoraise = True)
+    except webbrowser.Error as err:
+        warn(f"Couldn't open <{url}> in browser: {err!r}")
