@@ -2,39 +2,44 @@
 Visualizes a completed pathogen builds or narratives in Auspice, the Nextstrain
 visualization app.
 
-Dataset_ (.json) and narrative_ (.md) files will be served, respectively, from
-**auspice** and/or **narratives** subdirectories under the given <directory>
-if the subdirectories exist.  Otherwise, files will be served from <directory>
-itself.
+<path> may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
+Auspice and directly open the specified dataset or narrative in a browser.
+Adjacent datasets and/or narratives may also be viewable as an appropriate data
+directory for Auspice is automatically inferred from the file path.
+
+<path> may also be a directory with one of the following layouts::
+
+    <path>/
+    ├── auspice/
+    │   └── *.json
+    └── narratives/
+        └── *.md
+
+    <path>/
+    ├── auspice/
+    │   └── *.json
+    └── *.md
+
+    <path>/
+    ├── *.json
+    └── narratives/
+        └── *.md
+
+    <path>/
+    ├── *.json
+    └── *.md
+
+Dataset and narrative files will be served, respectively, from **auspice**
+and/or **narratives** subdirectories under the given <path> if the
+subdirectories exist.  Otherwise, files will be served from the given directory
+<path> itself.
 
 If your pathogen build directory follows our conventional layout by containing
 an **auspice** directory (and optionally a **narratives** directory), then you
 can give ``nextstrain view`` the same path as you do ``nextstrain build``.
 
-The given <directory> should look like one of the following examples::
-
-    <directory>/
-    ├── auspice/
-    │   └── *.json
-    └── narratives/
-        └── *.md
-
-    <directory>/
-    ├── auspice/
-    │   └── *.json
-    └── *.md
-
-    <directory>/
-    ├── *.json
-    └── narratives/
-        └── *.md
-
-    <directory>/
-    ├── *.json
-    └── *.md
-
-.. _dataset: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
-.. _narrative: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
+.. _dataset (.json) file: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
+.. _narrative (.md) file: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
 
 import multiprocessing
@@ -49,7 +54,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
 from ..runner import docker, ambient, conda
 from ..util import colored, remove_suffix, warn
-from ..volume import store_volume
+from ..volume import NamedVolume
 
 
 # Always use the "spawn" start method which is available on all platforms,
@@ -78,7 +83,7 @@ OPEN_DEFAULT = bool(BROWSER)
 
 def register_parser(subparser):
     """
-    %(prog)s [options] <directory>
+    %(prog)s [options] <path>
     %(prog)s --help
     """
 
@@ -125,11 +130,12 @@ def register_parser(subparser):
 
     # Positional parameters
     parser.add_argument(
-        "directory",
-        help    = "Path to directory containing dataset JSON and/or narrative Markdown files for Auspice, "
-                  "or a directory containing an auspice/ and/or narratives/ directory.",
-        metavar = "<directory>",
-        action  = store_volume("auspice/data"))
+        "path",
+        help    = "Path to a directory containing dataset JSON and/or narrative Markdown files for Auspice, "
+                  "or a directory containing an auspice/ and/or narratives/ directory, "
+                  "or a specific dataset JSON or narrative Markdown file.",
+        metavar = "<path>",
+        type = Path)
 
     # Register runners; excludes AWS Batch since that makes no sense.
     #
@@ -144,17 +150,41 @@ def register_parser(subparser):
 
 
 def run(opts):
-    # Ensure our data path is a directory that exists
-    data_dir = opts.auspice_data.src
+    data_dir = None
+    default_path = None
 
-    if not data_dir.is_dir():
-        warn("Error: Data path \"%s\" does not exist or is not a directory." % data_dir)
+    if opts.path.is_dir():
+        data_dir = opts.path
 
-        if not data_dir.is_absolute():
+    elif opts.path.is_file():
+        resource_paths = dataset_paths([opts.path]) \
+                      or narrative_paths([opts.path])
+
+        if resource_paths:
+            default_path = next(iter(resource_paths), None)
+            data_dir = opts.path.resolve(strict = False).parent
+
+            # Go up one more level (to X) when we're given a path to
+            # …/X/narratives/*.md, in the hopes that the datasets needed by the
+            # narrative will be in …/X/ or …/X/auspice/.
+            #
+            # We don't check if data_dir.name == "auspice" because while
+            # narratives rely on datasets, datasets do not rely on narratives.
+            if data_dir.name == "narratives":
+                data_dir = data_dir.parent
+
+    if not data_dir:
+        warn("Error: Path \"%s\" does not exist, or is not a directory, or is not a dataset or narrative file." % opts.path)
+
+        if not opts.path.is_absolute():
             warn()
             warn("Perhaps your current working directory is different than you expect?")
 
         return 1
+
+    # A volume which will be our working dir.
+    working_volume = NamedVolume("auspice/data", data_dir)
+    opts.volumes.append(working_volume) # for Docker
 
     # If auspice/ exists, then use it for datasets.  Otherwise, look for
     # datasets in the given dir.
@@ -185,10 +215,8 @@ def run(opts):
         *sorted(narratives, key = str.casefold),
     ]
 
-    if len(available_paths) == 1:
+    if not default_path and len(available_paths) == 1:
         default_path = available_paths[0]
-    else:
-        default_path = None
 
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
@@ -254,7 +282,7 @@ def run(opts):
     if opts.open:
         open_browser(f"http://{host}:{port}/{default_path or ''}")
 
-    return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
+    return runner.run(opts, working_volume = working_volume, extra_env = env)
 
 
 def dataset_paths(paths: Iterable[Path]) -> Iterable[str]:
