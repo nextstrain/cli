@@ -177,8 +177,8 @@ def run(opts):
         narratives_dir = data_dir
 
     # Find the available dataset and narrative paths
-    datasets = dataset_paths(datasets_dir)
-    narratives = narrative_paths(narratives_dir)
+    datasets = dataset_paths(datasets_dir.glob("*.json"))
+    narratives = narrative_paths(narratives_dir.glob("*.md"))
 
     available_paths = [
         *sorted(datasets, key = str.casefold),
@@ -257,10 +257,10 @@ def run(opts):
     return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
 
 
-def dataset_paths(data_dir: Path) -> Iterable[str]:
+def dataset_paths(paths: Iterable[Path]) -> Iterable[str]:
     """
     Returns a :py:class:`set` of Auspice (not filesystem) paths for datasets in
-    *data_dir*.
+    *paths*.
     """
     # This file matching/organization logic is similar to organize_files() in
     # nextstrain/cli/remote/nextstrain_dot_org.py, but with a slightly
@@ -282,8 +282,8 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
 
     datasets_v2 = set(
         path.stem.replace("_", "/")
-            for path in data_dir.glob("*.json")
-            if not sidecar_file(path))
+            for path in paths
+            if path.match("*.json") and not sidecar_file(path))
 
     # v1: All *_tree.json files with corresponding *_meta.json files.
     def meta_exists(path):
@@ -291,22 +291,23 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
 
     datasets_v1 = set(
         re.sub(r"_tree$", "", path.stem).replace("_", "/")
-            for path in data_dir.glob("*_tree.json")
-            if meta_exists(path))
+            for path in paths
+            if path.match("*_tree.json") and meta_exists(path))
 
     return datasets_v2 | datasets_v1
 
 
-def narrative_paths(data_dir: Path) -> Iterable[str]:
+def narrative_paths(paths: Iterable[Path]) -> Iterable[str]:
     """
     Returns a :py:class:`set` of Auspice (not filesystem) paths for narratives
-    in *data_dir*.
+    in *paths*.
     """
     # Narratives: all *.md files except README.md and group-overview.md
     return {
         "narratives/" + path.stem.replace("_", "/")
-            for path in data_dir.glob("*.md")
-             if path.name not in {"README.md", "group-overview.md"}}
+            for path in paths
+             if path.match("*.md")
+            and path.name not in {"README.md", "group-overview.md"}}
 
 
 def print_url(host, port, available_paths):
