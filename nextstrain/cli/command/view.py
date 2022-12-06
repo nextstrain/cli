@@ -38,6 +38,9 @@ If your pathogen build directory follows our conventional layout by containing
 an **auspice** directory (and optionally a **narratives** directory), then you
 can give ``nextstrain view`` the same path as you do ``nextstrain build``.
 
+Note that by convention files named **README.md** or **group-overview.md** will
+be ignored for the purposes of finding available narratives.
+
 .. _dataset (.json) file: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
 .. _narrative (.md) file: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
