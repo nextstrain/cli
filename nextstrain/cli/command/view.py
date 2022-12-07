@@ -1,39 +1,115 @@
 """
-Visualizes a completed pathogen build in Auspice, the Nextstrain visualization app.
+Visualizes a completed pathogen builds or narratives in Auspice, the Nextstrain
+visualization app.
 
-The data directory should contain sets of dataset_ files like::
+<path> may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
+Auspice and directly open the specified dataset or narrative in a browser.
+Adjacent datasets and/or narratives may also be viewable as an appropriate data
+directory for Auspice is automatically inferred from the file path.
 
-    <name>.json
+<path> may also be a directory with one of the following layouts::
 
-or::
+    <path>/
+    ├── auspice/
+    │   └── *.json
+    └── narratives/
+        └── *.md
 
-    <name>_tree.json
-    <name>_meta.json
+    <path>/
+    ├── auspice/
+    │   └── *.json
+    └── *.md
 
-.. _dataset: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
+    <path>/
+    ├── *.json
+    └── narratives/
+        └── *.md
+
+    <path>/
+    ├── *.json
+    └── *.md
+
+Dataset and narrative files will be served, respectively, from **auspice**
+and/or **narratives** subdirectories under the given <path> if the
+subdirectories exist.  Otherwise, files will be served from the given directory
+<path> itself.
+
+If your pathogen build directory follows our conventional layout by containing
+an **auspice** directory (and optionally a **narratives** directory), then you
+can give ``nextstrain view`` the same path as you do ``nextstrain build``.
+
+Note that by convention files named **README.md** or **group-overview.md** will
+be ignored for the purposes of finding available narratives.
+
+.. _dataset (.json) file: https://docs.nextstrain.org/page/reference/glossary.html#term-dataset
+.. _narrative (.md) file: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
 
+import multiprocessing
 import re
+import webbrowser
+from os import environ
 from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
+from time import sleep
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
-from ..argparse import add_extended_help_flags, SUPPRESS
+from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
 from ..runner import docker, ambient, conda
 from ..util import colored, remove_suffix, warn
-from ..volume import store_volume
+from ..volume import NamedVolume
+
+
+# Always use the "spawn" start method which is available on all platforms,
+# instead of using the platform-dependent default (e.g. "spawn" on Windows and
+# macOS but "fork" on other Unixes).  The semantics and behaviour of forking is
+# so different from spawning re: shared variables and program state that it's
+# easier to use the same method everywhere (even if forking is nicer than
+# spawning).
+mp_spawn = multiprocessing.get_context("spawn")
+Process = mp_spawn.Process
+ProcessError = mp_spawn.ProcessError
+
+
+# Avoid text-mode browsers
+TERM = environ.pop("TERM", None)
+try:
+    BROWSER = webbrowser.get()
+except:
+    BROWSER = None
+finally:
+    if TERM is not None:
+        environ["TERM"] = TERM
+
+OPEN_DEFAULT = bool(BROWSER)
 
 
 def register_parser(subparser):
     """
-    %(prog)s [options] <directory>
+    %(prog)s [options] <path>
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("view", help = "View pathogen build", add_help = False)
+    parser = subparser.add_parser("view", help = "View pathogen builds and narratives", add_help = False)
 
     # Support --help and --help-all
     add_extended_help_flags(parser)
+
+    parser.add_argument(
+        "--open",
+        help    = "Open a web browser automatically " +
+                  ('(the default)' if OPEN_DEFAULT else '') +
+                  SKIP_AUTO_DEFAULT_IN_HELP,
+        action  = "store_true",
+        default = OPEN_DEFAULT)
+
+    parser.add_argument(
+        "--no-open",
+        dest    = "open",
+        help    = "Do not open a web browser automatically " +
+                  ('' if OPEN_DEFAULT else '(the default)') +
+                  SKIP_AUTO_DEFAULT_IN_HELP,
+        action  = "store_false")
 
     parser.add_argument(
         "--allow-remote-access",
@@ -57,35 +133,93 @@ def register_parser(subparser):
 
     # Positional parameters
     parser.add_argument(
-        "directory",
-        help    = "Path to directory containing JSONs for Auspice",
-        metavar = "<directory>",
-        action  = store_volume("auspice/data"))
+        "path",
+        help    = "Path to a directory containing dataset JSON and/or narrative Markdown files for Auspice, "
+                  "or a directory containing an auspice/ and/or narratives/ directory, "
+                  "or a specific dataset JSON or narrative Markdown file.",
+        metavar = "<path>",
+        type = Path)
 
     # Register runners; excludes AWS Batch since that makes no sense.
+    #
+    # Note that the --datasetDir and --narrativeDir here might be overriden in
+    # run() below.
     runner.register_runners(
         parser,
-        exec    = ["auspice", "view", "--verbose", "--datasetDir=."],
+        exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
         runners = [docker, ambient, conda])
 
     return parser
 
 
 def run(opts):
-    # Ensure our data path is a directory that exists
-    data_dir = opts.auspice_data.src
+    data_dir = None
+    default_path = None
 
-    if not data_dir.is_dir():
-        warn("Error: Data path \"%s\" does not exist or is not a directory." % data_dir)
+    if opts.path.is_dir():
+        data_dir = opts.path
 
-        if not data_dir.is_absolute():
+    elif opts.path.is_file():
+        resource_paths = dataset_paths([opts.path]) \
+                      or narrative_paths([opts.path])
+
+        if resource_paths:
+            default_path = next(iter(resource_paths), None)
+            data_dir = opts.path.resolve(strict = False).parent
+
+            # Go up one more level (to X) when we're given a path to
+            # …/X/narratives/*.md, in the hopes that the datasets needed by the
+            # narrative will be in …/X/ or …/X/auspice/.
+            #
+            # We don't check if data_dir.name == "auspice" because while
+            # narratives rely on datasets, datasets do not rely on narratives.
+            if data_dir.name == "narratives":
+                data_dir = data_dir.parent
+
+    if not data_dir:
+        warn("Error: Path \"%s\" does not exist, or is not a directory, or is not a dataset or narrative file." % opts.path)
+
+        if not opts.path.is_absolute():
             warn()
             warn("Perhaps your current working directory is different than you expect?")
 
         return 1
 
-    # Find the available dataset paths
-    datasets = dataset_paths(data_dir)
+    # A volume which will be our working dir.
+    working_volume = NamedVolume("auspice/data", data_dir)
+    opts.volumes.append(working_volume) # for Docker
+
+    # If auspice/ exists, then use it for datasets.  Otherwise, look for
+    # datasets in the given dir.
+    if (data_dir / "auspice/").is_dir():
+        datasets_dir = data_dir / "auspice/"
+
+        # Override our default --datasetDir=. above
+        opts.default_exec_args += ["--datasetDir=auspice/"]
+    else:
+        datasets_dir = data_dir
+
+    # If narratives/ exist, then use it for narratives.  Otherwise, look for
+    # narratives in the given dir.
+    if (data_dir / "narratives/").is_dir():
+        narratives_dir = data_dir / "narratives/"
+
+        # Override our default --narrativeDir=. above
+        opts.default_exec_args += ["--narrativeDir=narratives/"]
+    else:
+        narratives_dir = data_dir
+
+    # Find the available dataset and narrative paths
+    datasets = dataset_paths(datasets_dir.glob("*.json"))
+    narratives = narrative_paths(narratives_dir.glob("*.md"))
+
+    available_paths = [
+        *sorted(datasets, key = str.casefold),
+        *sorted(narratives, key = str.casefold),
+    ]
+
+    if not default_path and len(available_paths) == 1:
+        default_path = available_paths[0]
 
     # Setup the published port.  Default to localhost for security reasons
     # unless explicitly told otherwise.
@@ -146,15 +280,18 @@ def run(opts):
     #   -trs, 17 Dec 2021
 
     # Show a helpful message about where to connect
-    print_url(host, port, datasets)
+    print_url(host, port, available_paths)
 
-    return runner.run(opts, working_volume = opts.auspice_data, extra_env = env)
+    if opts.open:
+        open_browser(f"http://{host}:{port}/{default_path or ''}")
+
+    return runner.run(opts, working_volume = working_volume, extra_env = env)
 
 
-def dataset_paths(data_dir: Path) -> Iterable[str]:
+def dataset_paths(paths: Iterable[Path]) -> Iterable[str]:
     """
     Returns a :py:class:`set` of Auspice (not filesystem) paths for datasets in
-    *data_dir*.
+    *paths*.
     """
     # This file matching/organization logic is similar to organize_files() in
     # nextstrain/cli/remote/nextstrain_dot_org.py, but with a slightly
@@ -176,8 +313,8 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
 
     datasets_v2 = set(
         path.stem.replace("_", "/")
-            for path in data_dir.glob("*.json")
-            if not sidecar_file(path))
+            for path in paths
+            if path.match("*.json") and not sidecar_file(path))
 
     # v1: All *_tree.json files with corresponding *_meta.json files.
     def meta_exists(path):
@@ -185,16 +322,29 @@ def dataset_paths(data_dir: Path) -> Iterable[str]:
 
     datasets_v1 = set(
         re.sub(r"_tree$", "", path.stem).replace("_", "/")
-            for path in data_dir.glob("*_tree.json")
-            if meta_exists(path))
+            for path in paths
+            if path.match("*_tree.json") and meta_exists(path))
 
     return datasets_v2 | datasets_v1
 
 
-def print_url(host, port, datasets):
+def narrative_paths(paths: Iterable[Path]) -> Iterable[str]:
     """
-    Prints a list of available dataset URLs, if any.  Otherwise, prints a
-    generic URL.
+    Returns a :py:class:`set` of Auspice (not filesystem) paths for narratives
+    in *paths*.
+    """
+    # Narratives: all *.md files except README.md and group-overview.md
+    return {
+        "narratives/" + path.stem.replace("_", "/")
+            for path in paths
+             if path.match("*.md")
+            and path.name not in {"README.md", "group-overview.md"}}
+
+
+def print_url(host, port, available_paths):
+    """
+    Prints a list of available dataset and narrative URLs, if any.  Otherwise,
+    prints a generic URL.
     """
     # Surround IPv6 addresses with square brackets for the URL.
     if ":" in host:
@@ -213,14 +363,14 @@ def print_url(host, port, datasets):
     print()
     print(horizontal_rule)
 
-    if len(datasets):
-        print("    The following datasets should be available in a moment:")
-        for path in sorted(datasets, key = str.casefold):
+    if available_paths:
+        print("    The following datasets and/or narratives should be available in a moment:")
+        for path in available_paths:
             print("       • %s" % url(path))
     else:
         print("    Open <%s> in your browser." % url())
         print()
-        print("   ", colored("yellow", "Warning: No datasets detected."))
+        print("   ", colored("yellow", "Warning: No datasets or narratives detected."))
 
     print(horizontal_rule)
     print()
@@ -252,3 +402,27 @@ class AddressInfo(NamedTuple):
     proto: int
     canonname: str
     sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int]] # (ip, addr, ...)
+
+
+def open_browser(url: str) -> None:
+    try:
+        Process(target = _open_browser, args = (url,), daemon = True).start()
+    except ProcessError as err:
+        warn(f"Couldn't open <{url}> in browser: {err!r}")
+
+
+def _open_browser(url: str):
+    if not BROWSER:
+        warn(f"Couldn't open <{url}> in browser: no browser found")
+        return
+
+    # XXX TODO: Many better ways to wait for Auspice to be running… but this is
+    # the simplest (if not the most reliable or most responsive).
+    #   -trs, 6 Dec 2022
+    sleep(2)
+
+    try:
+        # new = 2 means new tab, if possible
+        BROWSER.open(url, new = 2, autoraise = True)
+    except webbrowser.Error as err:
+        warn(f"Couldn't open <{url}> in browser: {err!r}")
