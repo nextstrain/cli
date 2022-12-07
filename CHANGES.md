@@ -13,6 +13,44 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release contains a **potentially-breaking change** for existing usages of
+`nextstrain view`, though we expect the change to impact very few usages.  The
+change is described below.
+
+## Features
+
+* `nextstrain view` now supports viewing narratives, as was always intended.
+  Previously the launched Auspice would either show baked in test narratives or
+  no narratives at all, depending on the Auspice version in the runtime.
+  ([#240][])
+
+* `nextstrain view` now supports being given more kinds of paths, including
+  paths to a specific dataset or narrative file and paths to directories
+  containing _auspice/_ and/or _narratives/_ subdirectories.
+
+  This is a **potentially-breaking change**, as `nextstrain view <dir>` will
+  now prefer to show datasets from _`<dir>`/auspice/_ if that subdirectory
+  exists.  Previously it would only ever look for datasets in the given
+  _`<dir>`_.  We expect this to change behaviour for very few usages as it only
+  affects situations where _`<dir>`_ contains both datasets and an _auspice/_
+  directory.
+
+  See `nextstrain view --help` for more details on the kinds of paths
+  supported.
+  ([#240][])
+
+* `nextstrain view` now automatically opens Auspice in a new browser tab (or
+  window) by default when possible.
+
+  If a specific dataset or narrative file was given as the path to `nextstrain
+  view`, then that dataset or narrative is opened.  Otherwise, if there's only
+  a single dataset or narrative available in the directory path given to
+  `nextstrain view`, then it is opened.  Otherwise, Auspice's listing of
+  available datasets and narratives is opened.
+  ([#240][])
+
+[#240]: https://github.com/nextstrain/cli/pull/240
+
 ## Development
 
 * The Conda runtime now uses Micromamba 1.0.0 (an upgrade from 0.27.0).
