@@ -52,6 +52,13 @@ Environment variables
         NEXTSTRAIN_DOT_ORG=http://localhost:5000 nextstrain remote ls nextstrain.org
 
     will interact with ``http://localhost:5000`` instead of nextstrain.org_.
+
+.. envvar:: NEXTSTRAIN_DISABLE_NARRATIVE_IMAGE_EMBEDDING
+
+    Set to any non-empty value to disable the automatic embedding of local
+    images into narratives during upload.  The narrative's Markdown contents
+    will be uploaded as-is, but any local images referenced by it will almost
+    certainly be broken.
 """
 
 import json
@@ -63,9 +70,11 @@ from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
 from requests.utils import parse_dict_header
+from tempfile import NamedTemporaryFile
 from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 from urllib.parse import urljoin, urlsplit, quote as urlquote
+from .. import markdown
 from ..authn import current_user
 from ..errors import UserError
 from ..gzip import GzipCompressingReader
@@ -74,6 +83,10 @@ from ..util import remove_prefix, glob_matcher, glob_match
 
 NEXTSTRAIN_DOT_ORG = os.environ.get("NEXTSTRAIN_DOT_ORG") \
                   or "https://nextstrain.org"
+
+# Default to embedding images, but allow it to be turned off as an escape
+# hatch.
+EMBED_IMAGES = not os.environ.get("NEXTSTRAIN_DISABLE_NARRATIVE_IMAGE_EMBEDDING")
 
 
 # This subtype lets us use the type checker to catch places where code
@@ -281,7 +294,27 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
             if dry_run:
                 continue
 
-            put(endpoint, file, markdown_type)
+            if EMBED_IMAGES:
+                # Embed images into the narrative.
+                #
+                # Don't delete the temp file on close.  Allows us to manually close
+                # the temp file so put() can reliably re-open it, per the docs¹:
+                #
+                #    Whether the name can be used to open the file a second time,
+                #    while the named temporary file is still open, varies across
+                #    platforms (it can be so used on Unix; it cannot on Windows).
+                #
+                # ¹ https://docs.python.org/3/library/tempfile.html#tempfile.NamedTemporaryFile
+                with NamedTemporaryFile("w", delete = False) as dst:
+                    dst.write(
+                        markdown.generate(
+                            markdown.embed_images(
+                                markdown.parse(file.read_text()),
+                                file.resolve(strict = True).parent)))
+                    dst.close()
+                    put(endpoint, Path(dst.name), markdown_type)
+            else:
+                put(endpoint, file, markdown_type)
 
 
 def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:

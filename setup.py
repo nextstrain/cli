@@ -84,12 +84,14 @@ setup(
     python_requires = '>=3.6',
 
     install_requires = [
+        "dataclasses; python_version < '3.7'",
         "docutils",
         "fasteners",
         "importlib_metadata; python_version < '3.8'",
         "importlib_resources >=5.3.0; python_version < '3.11'",
         "packaging",
         "pyjwt[crypto] >=2.0.0",
+        "pyparsing",
         "requests",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",

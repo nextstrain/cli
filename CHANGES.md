@@ -51,6 +51,13 @@ change is described below.
 
 [#240]: https://github.com/nextstrain/cli/pull/240
 
+* Local images used in a narrative are now automatically embedded into it when
+  uploading the narrative to nextstrain.org via `nextstrain remote upload`.
+  In local text editors which can render Markdown, this permits previewing of
+  narratives that reference images on the local filesystem without requiring
+  manual conversion to remote images or embedded images before upload.
+  ([#235](https://github.com/nextstrain/cli/pull/235))
+
 * The `nextstrain remote upload` command now outputs a nicer error message
   that's more interpretable and actionable when nextstrain.org returns a "bad
   request" error.  The error message also includes the error details returned
