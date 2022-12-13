@@ -17,7 +17,7 @@ This release contains a **potentially-breaking change** for existing usages of
 `nextstrain view`, though we expect the change to impact very few usages.  The
 change is described below.
 
-## Features
+## Improvements
 
 * `nextstrain view` now supports viewing narratives, as was always intended.
   Previously the launched Auspice would either show baked in test narratives or
@@ -50,6 +50,12 @@ change is described below.
   ([#240][])
 
 [#240]: https://github.com/nextstrain/cli/pull/240
+
+* The `nextstrain remote upload` command now outputs a nicer error message
+  that's more interpretable and actionable when nextstrain.org returns a "bad
+  request" error.  The error message also includes the error details returned
+  by nextstrain.org.
+  ([#238](https://github.com/nextstrain/cli/pull/238))
 
 ## Development
 
