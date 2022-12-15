@@ -69,10 +69,16 @@ main() {
         rm -rf "$tmp"
     fi
 
+    log "Checking installation"
+    local installed_version
+    if ! installed_version="$("$DESTINATION"/nextstrain --version)"; then
+        die "installation check failed: unable to run \`"$DESTINATION"/nextstrain --version\`; look for error message above."
+    fi
+
     cat <<~~
 ______________________________________________________________________________
 
-Nextstrain CLI ($("$DESTINATION"/nextstrain --version)) installed to $DESTINATION.
+Nextstrain CLI ($installed_version) installed to $DESTINATION.
 
 ~~
 
