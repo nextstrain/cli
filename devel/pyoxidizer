@@ -1,0 +1,77 @@
+#!/bin/bash
+set -euo pipefail
+shopt -s extglob failglob
+
+devel="$(dirname "$0")"
+
+main() {
+    local pyoxidizer
+
+    if pyoxidizer="$(locate 2>/dev/null)"; then
+        echo "--> Located existing PyOxidizer binary at $pyoxidizer" >&2
+    else
+        echo "--> Downloading PyOxidizer binary…" >&2
+        pyoxidizer="$(download)"
+        echo "--> Downloaded PyOxidizer binary to $pyoxidizer" >&2
+    fi
+
+    # On Linux, exec into a manylinux container with an old glibc version.
+    # These manylinux images are used in the Python packaging ecosystem to
+    # build widely-compatible binary packages (wheels).
+    #
+    # https://github.com/pypa/manylinux#readme
+    if [[ "$(platform-system)" == Linux ]]; then
+        exec "$devel"/within-container quay.io/pypa/manylinux2014_x86_64 "$pyoxidizer" "$@"
+    else
+        exec "$pyoxidizer" "$@"
+    fi
+}
+
+locate() {
+    # Locate existing local copy of pyoxidizer.
+    echo "$devel"/pyoxidizer-[0-9]*_"$(platform-machine)"?(.exe) | head -n1
+}
+
+download() {
+    # Download pyoxidizer and return the path to it.
+    #
+    # Even though it's a Rust project, the easiest cross-platform way to
+    # download it is via pip since they publish wheels with the binaries. :-)
+    # Using Pip also allows us to piggy back on the version specification
+    # system and platform-specific bits of a package manager/registry
+    # ecosystem.
+    local tmp
+    tmp="$(mktemp -d)"
+    trap "rm -rf \"$tmp\"" EXIT
+
+    python3 -m pip download \
+        --disable-pip-version-check \
+        --quiet \
+        --no-deps \
+        --dest "$tmp" \
+        'pyoxidizer !=0.23.0' \
+            >&2
+
+    local wheel binary
+    wheel=("$tmp"/pyoxidizer-[0-9]*.whl)
+    binary="$(basename "$wheel" .whl)"
+
+    if [[ "$(platform-system)" == Windows ]]; then
+        binary+=.exe
+    fi
+
+    unzip -p "$wheel" '*/scripts/pyoxidizer*' > "$devel/$binary"
+    chmod +x "$devel/$binary"
+
+    echo "$devel/$binary"
+}
+
+platform-machine() {
+    python3 -c 'import platform; print(platform.machine())'
+}
+
+platform-system() {
+    python3 -c 'import platform; print(platform.system())'
+}
+
+main "$@"

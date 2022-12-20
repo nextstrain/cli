@@ -119,15 +119,10 @@ jobs:
       run:
         shell: bash
     steps:
-      # Install pyoxidizer.
-      #
-      # Even though it's a Rust project, the easiest cross-platform way to
-      # install it is via pip since they publish wheels with the binaries. :-)
       # Note that this Python version doesn't impact the actual build.
       - uses: actions/setup-python@v3
         with:
           python-version: "3.10"
-      - run: pip install 'pyoxidizer !=0.23.0'
 
       # Build the executable + necessary external files from the dists.
       - uses: actions/checkout@v3
@@ -149,7 +144,7 @@ jobs:
           done
 
       - run: |
-          pyoxidizer build \
+          ./devel/pyoxidizer build \
             --release \
             --target-triple ${{ matrix.target }} \
             --var NEXTSTRAIN_CLI_DIST "$DIST"
@@ -160,7 +155,7 @@ jobs:
       # if it fails.  Currently it only works on Linux, though it's supposed to
       # eventually work on all platforms supported by pyoxidizer.
       - if: runner.os == 'Linux'
-        run: pyoxidizer analyze build/${{ matrix.target }}/release/installation/${{ matrix.exe }}
+        run: ./devel/pyoxidizer analyze build/${{ matrix.target }}/release/installation/${{ matrix.exe }}
         continue-on-error: true
 
       # XXX TODO: Review and report on licensing of all the stuff built into

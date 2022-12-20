@@ -1,0 +1,11 @@
+#!/bin/bash
+# usage: devel/within-container <image> [<argv0> [<argv1> [...]]]
+set -euo pipefail
+
+exec docker run \
+  --rm \
+  --env HOME=/tmp \
+  --volume "$PWD:$PWD" \
+  --workdir "$PWD" \
+  --user "$(id -u):$(id -g)" \
+  "$@"
