@@ -13,6 +13,31 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The standalone installation archives used by the standalone installer will
+  now work on even older Linux distributions:
+
+  |distro       |now    |was    |
+  |-------------|-------|-------|
+  |Ubuntu       |14\.04 |18\.04 |
+  |Debian       |8      |10     |
+  |RHEL/CentOS  |7      |8      |
+  |Fedora       |19     |28     |
+  |OpenSUSE     |12\.3  |15\.3  |
+
+  If you've previously encountered errors like the following:
+
+      /lib64/libc.so.6: version `GLIBC_2.27' not found (required by […]/.nextstrain/cli-standalone/nextstrain)
+
+  when using the standalone installer (or standalone archives directly), i.e.:
+
+      curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash
+
+  then this change should resolve that error!  The new minimum required glibc
+  version is 2.17 (was 2.27 previously).
+  ([#243](https://github.com/nextstrain/cli/pull/243))
+
 
 # 6.0.0 (13 December 2022)
 
