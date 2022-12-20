@@ -2,6 +2,9 @@
 __pycache__/
 environment*
 
+# Automatically-managed PyOxidizer binaries (e.g. pyoxidizer-0.22.0-py3-none-manylinux2010_x86_64).
+/devel/pyoxidizer-[0-9]*
+
 # Package build dirs
 /build/
 /dist/
