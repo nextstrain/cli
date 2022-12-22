@@ -45,7 +45,7 @@ be ignored for the purposes of finding available narratives.
 .. _narrative (.md) file: https://docs.nextstrain.org/page/reference/glossary.html#term-narrative
 """
 
-import multiprocessing
+from multiprocessing import Process, ProcessError
 import re
 import webbrowser
 from os import environ
@@ -58,17 +58,6 @@ from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_H
 from ..runner import docker, ambient, conda
 from ..util import colored, remove_suffix, warn
 from ..volume import NamedVolume
-
-
-# Always use the "spawn" start method which is available on all platforms,
-# instead of using the platform-dependent default (e.g. "spawn" on Windows and
-# macOS but "fork" on other Unixes).  The semantics and behaviour of forking is
-# so different from spawning re: shared variables and program state that it's
-# easier to use the same method everywhere (even if forking is nicer than
-# spawning).
-mp_spawn = multiprocessing.get_context("spawn")
-Process = mp_spawn.Process
-ProcessError = mp_spawn.ProcessError
 
 
 # Avoid text-mode browsers
@@ -404,13 +393,25 @@ class AddressInfo(NamedTuple):
     sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int]] # (ip, addr, ...)
 
 
-def open_browser(url: str) -> None:
+def open_browser(url: str) -> bool:
     try:
         Process(target = _open_browser, args = (url,), daemon = True).start()
+        return True
     except ProcessError as err:
         warn(f"Couldn't open <{url}> in browser: {err!r}")
+        return False
 
 
+# This function runs in a separate process.  The process is started via
+# different methods (either forking or spawning) depending on the platform, per
+# multiprocessing defaults (and, in our standalone executable, PyOxidizer
+# defaults).  As the start method impacts what state (e.g. variables, fds, etc)
+# is shared between the processes, this function needs to accomodate the method
+# with the least shared state (i.e. "spawn").  Otherwise, it may work fine
+# under the "fork" start method but not under "spawn", and this may not be
+# noticeable during development.  Our tests in tests/open_browser.py try to
+# ensure we don't mess it up.
+#   -trs, 21 Dec 2022
 def _open_browser(url: str):
     if not BROWSER:
         warn(f"Couldn't open <{url}> in browser: no browser found")

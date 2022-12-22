@@ -131,6 +131,7 @@ setup(
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
+            "pytest-forked",
             "recommonmark",
             "sphinx>=3",
             "sphinx-argparse ~=0.3",
