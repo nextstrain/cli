@@ -38,6 +38,13 @@ development source code and as such may not be routinely kept up to date.
   version is 2.17 (was 2.27 previously).
   ([#243](https://github.com/nextstrain/cli/pull/243))
 
+## Bug fixes
+
+* The automatic opening of a browser tab (or window) by `nextstrain view`—a
+  feature introduced in the last release (6.0.0)—now also works for standalone
+  installations.
+  ([#244](https://github.com/nextstrain/cli/pull/244))
+
 
 # 6.0.0 (13 December 2022)
 
