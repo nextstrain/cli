@@ -13,6 +13,20 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* We've added a new Singularity runtime based on our existing Docker runtime.
+
+  Singularity is a container system freely-available for Linux platforms.  It
+  is commonly available on institutional HPC systems as an alternative to
+  Docker, which is often not supported on such systems.  When you use
+  Singularity with the Nextstrain CLI, you don't need to install any other
+  Nextstrain software dependencies as validated versions are already bundled
+  into a container image by the Nextstrain team.
+
+  Run `nextstrain setup singularity` to get started.
+  ([#248](https://github.com/nextstrain/cli/pull/248))
+
 
 # 6.0.3 (17 January 2023)
 
