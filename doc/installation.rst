@@ -116,7 +116,8 @@ Runtimes
 The Nextstrain CLI provides a consistent interface and computing environment
 for running and visualizing Nextstrain pathogen builds across several different
 computing platforms, such as `Docker <https://docker.com>`__, `Conda
-<https://docs.conda.io/en/latest/miniconda.html>`__, and `AWS Batch
+<https://docs.conda.io/en/latest/miniconda.html>`__,
+:ref:`Singularity <installation/singularity>`, and `AWS Batch
 <https://aws.amazon.com/batch/>`__.
 
 We call the provided computing environments the :term:`Nextstrain runtimes
@@ -131,8 +132,9 @@ At least one of these runtimes must be setup in order for many of
 The default runtime is Docker, using the `nextstrain/base`_ container image.
 Containers provide a tremendous amount of benefit for scientific workflows by
 isolating dependencies and increasing reproducibility. However, they're not
-always appropriate, so a Conda runtime and "ambient" runtime are also supported.
-The installation and setup of supported runtimes is described below.
+always appropriate, so a Conda runtime, Singularity runtime, and "ambient"
+runtime are also supported.  The installation and setup of supported runtimes
+is described below.
 
 .. _nextstrain/base: https://github.com/nextstrain/docker-base
 
@@ -172,6 +174,34 @@ On macOS and Linux, run ``nextstrain setup conda`` to get started.
 This runtime is not directly supported on Windows, but you can use `WSL2
 <https://docs.microsoft.com/en-us/windows/wsl/wsl2-index>`__ to "switch" to
 Linux and run the above setup command.
+
+.. _installation/singularity:
+
+Singularity
+-----------
+
+Singularity is a container system freely-available for Linux platforms.  It is
+commonly available on institutional HPC systems as an alternative to Docker,
+which is often not supported on such systems.  When you use Singularity with
+the Nextstrain CLI, you don't need to install any other Nextstrain software
+dependencies as validated versions are already bundled into a container image
+by the Nextstrain team.
+
+Run ``nextstrain setup singularity`` to get started.
+
+Note that the Singularity project forked into two separate projects in late
+2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux
+Foundation`_.  Either fork should work with Nextstrain CLI, as both projects
+still provide very similar interfaces and functionality via the ``singularity``
+command.  You can read `Sylab's announcement`_ and `Apptainer's announcement`_
+for more information on the fork.
+
+.. _SingularityCE: https://sylabs.io/singularity/
+.. _Sylabs: https://sylabs.io/
+.. _Apptainer: https://apptainer.org
+.. _Linux Foundation: https://www.linuxfoundation.org/
+.. _Sylab's announcement: https://sylabs.io/2022/06/singularityce-is-singularity/
+.. _Apptainer's announcement: https://apptainer.org/news/community-announcement-20211130
 
 Ambient
 -------
@@ -238,6 +268,10 @@ based on what's available. You should see output similar to the following:
    ✔ yes: augur is installed and runnable
    ✔ yes: auspice is installed and runnable
 
+   # singularity is supported
+   ✔ yes: singularity is installed
+   ✔ yes: singularity works
+
    # ambient is not supported
    ✔ yes: snakemake is installed and runnable
    ✘ no: augur is installed and runnable
@@ -248,15 +282,16 @@ based on what's available. You should see output similar to the following:
    ✘ no: job queue "nextstrain-job-queue" exists
    ✘ no: S3 bucket "nextstrain-jobs" exists
 
-   All good!  Supported Nextstrain runtimes: docker, conda
+   All good!  Supported Nextstrain runtimes: docker, conda, singularity
 
    Setting default runtime to docker.
 
 If the output doesn't say "All good!" and list at least one supported
-Nextstrain runtime (typically Docker, Conda, or ambient), then something may be
-wrong with your installation.
+Nextstrain runtime (typically Docker, Conda, Singularity, or ambient), then
+something may be wrong with your installation.
 
 The default is written to the :file:`~/.nextstrain/config` file. If multiple
 runtimes are supported, you can override the default for specific runs
-using command-line options such as ``--docker``, ``--conda``, ``--ambient``,
-and ``--aws-batch``, e.g. ``nextstrain build --ambient …``.
+using command-line options such as ``--docker``, ``--conda``,
+``--singularity``, ``--ambient``, and ``--aws-batch``, e.g. ``nextstrain build
+--ambient …``.

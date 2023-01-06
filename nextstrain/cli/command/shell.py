@@ -9,7 +9,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags
 from ..errors import UserError
 from ..paths import SHELL_HISTORY
-from ..runner import docker, conda
+from ..runner import docker, conda, singularity
 from ..util import colored, remove_prefix, runner_name, warn
 from ..volume import store_volume, NamedVolume
 
@@ -37,7 +37,7 @@ def register_parser(subparser):
     runner.register_runners(
         parser,
         exec    = ["bash", ...],
-        runners = [docker, conda])
+        runners = [docker, conda, singularity])
 
     return parser
 
@@ -55,24 +55,24 @@ def run(opts):
 
     overlay_volumes = [v for v in opts.volumes if v is not opts.build]
 
-    if overlay_volumes and opts.__runner__ is not docker:
+    if overlay_volumes and opts.__runner__ not in {docker, singularity}:
         raise UserError(f"""
             The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
-            Use the Docker runtime (--docker) if overlays are necessary.
+            Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
             """)
 
     print(colored("bold", "Entering the Nextstrain runtime"))
     print()
 
-    if opts.volumes and opts.__runner__ is docker:
+    if opts.volumes and opts.__runner__ in {docker, singularity}:
         print(colored("bold", "Mapped volumes:"))
 
-        # This is more tightly coupled to the Docker runner than I'd like (i.e.
-        # assuming /nextstrain/…), but right now that's the only runner this
-        # command supports (and the only one it makes sense to).
-        #   -trs, 25 Sept 2018
+        # This is more tightly coupled to the Docker/Singularity runners than
+        # I'd like (i.e.  assuming /nextstrain/…), but the number of runtimes
+        # will always be small so some special-casing seems ok.
+        #   -trs, 5 Jan 2023 (updated from 25 Sept 2018)
         for volume in opts.volumes:
-            print("  /nextstrain/%s is from %s" % (volume.name, volume.src.resolve(strict = True)))
+            print("  %s is from %s" % (docker.mount_point(volume), volume.src.resolve(strict = True))) # type: ignore
 
         print()
 
@@ -80,10 +80,10 @@ def run(opts):
     print()
 
     with resources.as_file("bashrc") as bashrc:
-        # Ensure the history file exists to pass checks the Docker runner
-        # performs for mounted volumes.  This also makes sure that the file is
-        # writable by the Conda runtime too by ensuring the parent directory
-        # exists.
+        # Ensure the history file exists to pass checks the Docker/Singularity
+        # runners perform for mounted volumes.  This also makes sure that the
+        # file is writable by the Conda runtime too by ensuring the parent
+        # directory exists.
         #
         # Don't use strict=True because it's ok if it doesn't exist yet!
         history_file = SHELL_HISTORY.resolve()
@@ -101,7 +101,7 @@ def run(opts):
                 "--rcfile", str(bashrc),
             ]
 
-        elif opts.__runner__ is docker:
+        elif opts.__runner__ in {docker, singularity}:
             opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
 
             history_volume = NamedVolume("bash_history", history_file, dir = False)

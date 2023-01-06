@@ -19,13 +19,13 @@ Batch job, monitors the job status, streams the job logs to your terminal, and
 downloads build results back to the `zika-tutorial/` directory.
 
 The interface aims to be very similar to that of local builds (run in the
-Docker, Conda, or ambient runtimes), so the `nextstrain build` command stays in
-the foreground and result files are written back directly to the local build
-directory.  Alternatively, you can specify the `--detach` option to run AWS
-Batch builds in the background once they're submitted.  The Nextstrain CLI will
-tell you how to reattach to the build later to view the logs and download the
-results.  If you forget to use the `--detach` option, you can press Control-Z
-to detach at any point once the build is submitted.
+Docker, Conda, Singularity, or ambient runtimes), so the `nextstrain build`
+command stays in the foreground and result files are written back directly to
+the local build directory.  Alternatively, you can specify the `--detach`
+option to run AWS Batch builds in the background once they're submitted.  The
+Nextstrain CLI will tell you how to reattach to the build later to view the
+logs and download the results.  If you forget to use the `--detach` option, you
+can press Control-Z to detach at any point once the build is submitted.
 
 [AWS Batch]: https://aws.amazon.com/batch/
 [`zika-tutorial/` directory]: https://github.com/nextstrain/zika-tutorial
