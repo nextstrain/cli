@@ -23,6 +23,10 @@ runs:
       shell: bash -l -eo pipefail {0}
       run: nextstrain setup conda
 
+    - if: runner.os != 'macOS' && runner.os != 'Windows'
+      shell: bash -l -eo pipefail {0}
+      run: nextstrain setup singularity
+
     - shell: bash -l -eo pipefail {0}
       run: nextstrain check-setup --set-default
 
@@ -42,6 +46,13 @@ runs:
       run: |
         git -C zika-tutorial clean -dfqx
         nextstrain build --conda --cpus 2 zika-tutorial
+
+    - if: runner.os != 'macOS' && runner.os != 'Windows'
+      name: Build zika-tutorial with --singularity
+      shell: bash -l -eo pipefail {0}
+      run: |
+        git -C zika-tutorial clean -dfqx
+        nextstrain build --singularity --cpus 2 zika-tutorial
 
     - if: runner.os != 'Windows'
       name: Build zika-tutorial with --ambient
