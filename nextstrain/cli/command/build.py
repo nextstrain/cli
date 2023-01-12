@@ -4,16 +4,9 @@ Runs a pathogen build in a Nextstrain runtime.
 The build directory should contain a Snakefile, which will be run with
 snakemake.
 
-The default runtime is an ephemeral Docker container which has
-all the necessary Nextstrain components available.  You may instead run the
-build in the ambient environment by passing the --ambient flag, but all
-dependencies must already be installed and configured.  For larger builds, you
-may want to use the --aws-batch flag to launch jobs on AWS Batch instead of
-running locally (if the required AWS resources are configured in your AWS
-account).
-
-You can test if Docker, ambient, or AWS Batch runtimes are properly
-supported on your computer by running:
+You need at least one runtime available to run a build.  You can test if the
+Docker, Conda, ambient, or AWS Batch runtimes are properly supported on your
+computer by running:
 
     nextstrain check-setup
 
