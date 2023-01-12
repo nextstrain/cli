@@ -59,29 +59,33 @@ installation by running ``nextstrain version``:
 The version you get will probably be different than the one shown in the
 example above.
 
-Computing environment
-=====================
+Runtimes
+========
 
-The Nextstrain CLI provides a consistent interface for running and visualizing
-Nextstrain pathogen builds across several different computing environments,
-such as `Docker <https://docker.com>`__, `Conda
+.. XXX TODO: Move this heading and subheadings (with modification) to their own
+   top-level doc section (e.g. like Remotes).
+     -trs, 12 Jan 2023
+
+The Nextstrain CLI provides a consistent interface and computing environment
+for running and visualizing Nextstrain pathogen builds across several different
+computing platforms, such as `Docker <https://docker.com>`__, `Conda
 <https://docs.conda.io/en/latest/miniconda.html>`__, and `AWS Batch
-<https://aws.amazon.com/batch/>`__. Each computing environment provides
-specific versions of Nextstrain's software components and is responsible for
-running Nextstrain's programs like `Augur
-<https://github.com/nextstrain/augur>`__ and `Auspice
-<https://github.com/nextstrain/auspice>`__. For this reason, the different
-computing environments are called "runners" by the CLI.
+<https://aws.amazon.com/batch/>`__.
 
-At least one of these computing environments, or runners, must be setup in
-order for many of ``nextstrain``'s subcommands to work, such as ``nextstrain
-build`` and ``nextstrain view``.
+We call the provided computing environments the :term:`Nextstrain runtimes
+<docs:runtime>`.  Each runtime provides specific versions of Nextstrain's
+software components, like `Augur <https://github.com/nextstrain/augur>`__ and
+`Auspice <https://github.com/nextstrain/auspice>`__.
 
-The default runner is Docker, using the `nextstrain/base`_ container image.
+At least one of these runtimes must be setup in order for many of
+``nextstrain``'s subcommands to work, such as ``nextstrain build`` and
+``nextstrain view``.
+
+The default runtime is Docker, using the `nextstrain/base`_ container image.
 Containers provide a tremendous amount of benefit for scientific workflows by
 isolating dependencies and increasing reproducibility. However, they're not
-always appropriate, so a Conda runner and "ambient" runner are also supported.
-The installation and setup of supported runners is described below.
+always appropriate, so a Conda runtime and "ambient" runtime are also supported.
+The installation and setup of supported runtimes is described below.
 
 .. _nextstrain/base: https://github.com/nextstrain/docker-base
 
@@ -118,16 +122,16 @@ location (isolated even from other Conda environments you may manage yourself).
 
 On macOS and Linux, run ``nextstrain setup conda`` to get started.
 
-This runner is not directly supported on Windows, but you can use `WSL2
+This runtime is not directly supported on Windows, but you can use `WSL2
 <https://docs.microsoft.com/en-us/windows/wsl/wsl2-index>`__ to "switch" to
 Linux and run the above setup command.
 
 Ambient
 -------
 
-The "ambient" runner allows you to use the Nextstrain CLI with your own ambient
+The "ambient" runtime allows you to use the Nextstrain CLI with your own ambient
 setup, for when you cannot or do not want to have Nextstrain CLI manage its own
-environment.
+runtime.
 
 However, you will need to make sure all of the Nextstrain software dependencies
 are available locally or "ambiently" on your computer. A common way to do this
@@ -146,9 +150,9 @@ AWS Batch
 ---------
 
 `AWS Batch <https://aws.amazon.com/batch/>`__ is an advanced computing
-environment which allows you to launch and monitor Nextstrain builds in the
+platform which allows you to launch and monitor Nextstrain builds in the
 cloud from the comfort of your own computer. The same image used by the local
-Docker runner is used by AWS Batch, making your builds more reproducible, and
+Docker runtime is used by AWS Batch, making your builds more reproducible, and
 builds have access to computers with very large CPU and memory allocations if
 necessary.
 
@@ -164,7 +168,7 @@ Checking your setup
 ===================
 
 After installation and setup, run ``nextstrain check-setup --set-default`` to
-ensure everything works and automatically pick an appropriate default runner
+ensure everything works and automatically pick an appropriate default runtime
 based on what's available. You should see output similar to the following:
 
 .. code-block:: console
@@ -197,15 +201,15 @@ based on what's available. You should see output similar to the following:
    ✘ no: job queue "nextstrain-job-queue" exists
    ✘ no: S3 bucket "nextstrain-jobs" exists
 
-   All good!  Supported Nextstrain environments: docker, conda
+   All good!  Supported Nextstrain runtimes: docker, conda
 
-   Setting default environment to docker.
+   Setting default runtime to docker.
 
 If the output doesn't say "All good!" and list at least one supported
-Nextstrain computing environment (typically Docker, Conda, or ambient), then
-something may be wrong with your installation.
+Nextstrain runtime (typically Docker, Conda, or ambient), then something may be
+wrong with your installation.
 
 The default is written to the :file:`~/.nextstrain/config` file. If multiple
-environments are supported, you can override the default for specific runs
+runtimes are supported, you can override the default for specific runs
 using command-line options such as ``--docker``, ``--conda``, ``--ambient``,
 and ``--aws-batch``, e.g. ``nextstrain build --ambient …``.

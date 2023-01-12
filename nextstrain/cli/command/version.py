@@ -14,7 +14,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--verbose",
-        help   = "Show versions of individual Nextstrain components in the image",
+        help   = "Show versions of individual Nextstrain components in each runtime",
         action = "store_true")
 
     return parser

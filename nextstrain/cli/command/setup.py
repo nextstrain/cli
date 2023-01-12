@@ -23,7 +23,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "runner",
-        help     = "The Nextstrain build environment (aka Nextstrain runtime) to set up. "
+        help     = "The Nextstrain runtime to set up. "
                    f"One of {{{', '.join(all_runners_by_name)}}}.",
         metavar  = "<runtime>",
         type     = runner_module_argument)
@@ -41,7 +41,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--set-default",
-        help   = "Use the build environment (runtime) as the default if set up is successful.",
+        help   = "Use the runtime as the default if set up is successful.",
         action = "store_true")
 
     return parser
@@ -85,7 +85,7 @@ def run(opts: Options) -> int:
     if opts.set_default:
         default_runner = opts.runner
         print()
-        print("Setting default environment to %s." % runner_name(default_runner))
+        print("Setting default runtime to %s." % runner_name(default_runner))
 
         if not opts.dry_run:
             config.set("core", "runner", runner_name(default_runner))
@@ -95,9 +95,9 @@ def run(opts: Options) -> int:
     if default_runner is not opts.runner:
         print()
         if not configured_runner:
-            print(f"Warning: No default environment is configured so {runner_name(default_runner)} will be used.")
+            print(f"Warning: No default runtime is configured so {runner_name(default_runner)} will be used.")
         else:
-            print(f"Note that your default environment is still {runner_name(default_runner)}.")
+            print(f"Note that your default runtime is still {runner_name(default_runner)}.")
         print()
         print(dedent(f"""\
             You can use {runner_name(opts.runner)} on an ad-hoc basis with commands like `nextstrain build`,

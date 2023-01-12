@@ -26,7 +26,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "runner",
-        help     = "The Nextstrain build environment (aka Nextstrain runtime) to check. "
+        help     = "The Nextstrain runtime to check. "
                    f"One of {{{', '.join(all_runners_by_name)}}}. "
                    f"(default: {runner_name(default_runner)})"
                    f"{SKIP_AUTO_DEFAULT_IN_HELP}",

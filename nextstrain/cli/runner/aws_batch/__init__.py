@@ -370,7 +370,7 @@ def set_default_config() -> None:
 
 def update() -> RunnerUpdateStatus:
     """
-    Not supported.  Updating the AWS Batch environment isn't meaningful.
+    Not supported.  Updating the AWS Batch runtime isn't meaningful.
     """
     return None
 

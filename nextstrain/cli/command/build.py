@@ -1,10 +1,10 @@
 """
-Runs a pathogen build in the Nextstrain build environment.
+Runs a pathogen build in a Nextstrain runtime.
 
 The build directory should contain a Snakefile, which will be run with
 snakemake.
 
-The default build environment is inside an ephemeral Docker container which has
+The default runtime is an ephemeral Docker container which has
 all the necessary Nextstrain components available.  You may instead run the
 build in the ambient environment by passing the --ambient flag, but all
 dependencies must already be installed and configured.  For larger builds, you
@@ -12,14 +12,14 @@ may want to use the --aws-batch flag to launch jobs on AWS Batch instead of
 running locally (if the required AWS resources are configured in your AWS
 account).
 
-You can test if Docker, ambient, or AWS Batch build environments are properly
+You can test if Docker, ambient, or AWS Batch runtimes are properly
 supported on your computer by running:
 
     nextstrain check-setup
 
 The `nextstrain build` command is designed to cleanly separate the Nextstrain
-build interface from provisioning a build environment, so that running builds
-is as easy as possible.  It also lets us more seamlessly make environment
+build interface from provisioning a runtime environment, so that running builds
+is as easy as possible.  It also lets us more seamlessly make runtime
 changes in the future as desired or necessary.
 """
 
