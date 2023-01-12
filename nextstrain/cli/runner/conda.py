@@ -46,7 +46,7 @@ from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, exec_or_return, warn
+from ..util import capture_output, exec_or_return, runner_tests_ok, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -351,24 +351,6 @@ def micromamba(*args, add_prefix: bool = True) -> None:
 
 
 def test_setup() -> RunnerTestResults:
-    def supported_os() -> bool:
-        machine = platform.machine()
-        system = platform.system()
-
-        if system == "Linux":
-            return machine == "x86_64"
-
-        # Note even on arm64 (e.g. aarch64, Apple Silicon M1) we use x86_64
-        # binaries because of current ecosystem compatibility, but Rosetta will
-        # make it work.
-        elif system == "Darwin":
-            return machine in {"x86_64", "arm64"}
-
-        # Conda supports Windows, but we can't because several programs we need
-        # are not available for Windows.
-        else:
-            return False
-
     def which_finds_our(cmd) -> bool:
         # which() checks executability and also handles PATHEXT, e.g. the
         # ".exe" extension on Windows, which is why we don't just naively test
@@ -397,12 +379,22 @@ def test_setup() -> RunnerTestResults:
             return False
 
 
-    return [
-        ('operating system is supported',
-            supported_os()),
+    support = test_support()
 
-        ("runtime data dir doesn't have spaces",
-            " " not in str(RUNTIME_ROOT)),
+    if not runner_tests_ok(support):
+        return support
+
+    if not PREFIX_BIN.exists():
+        return [
+            *support,
+            ("runtime appears set up\n\n"
+             "The Conda runtime appears supported but not yet set up.\n"
+             "Try running `nextstrain setup conda` first.", False),
+        ]
+
+    return [
+        *support,
+        ("runtime appears set up", True),
 
         ('snakemake is installed and runnable',
             which_finds_our("snakemake") and runnable("snakemake", "--version")),
@@ -412,6 +404,35 @@ def test_setup() -> RunnerTestResults:
 
         ('auspice is installed and runnable',
             which_finds_our("auspice") and runnable("auspice", "--version")),
+    ]
+
+
+def test_support() -> RunnerTestResults:
+    def supported_os() -> bool:
+        machine = platform.machine()
+        system = platform.system()
+
+        if system == "Linux":
+            return machine == "x86_64"
+
+        # Note even on arm64 (e.g. aarch64, Apple Silicon M1) we use x86_64
+        # binaries because of current ecosystem compatibility, but Rosetta will
+        # make it work.
+        elif system == "Darwin":
+            return machine in {"x86_64", "arm64"}
+
+        # Conda supports Windows, but we can't because several programs we need
+        # are not available for Windows.
+        else:
+            return False
+
+
+    return [
+        ('operating system is supported',
+            supported_os()),
+
+        ("runtime data dir doesn't have spaces",
+            " " not in str(RUNTIME_ROOT)),
     ]
 
 
