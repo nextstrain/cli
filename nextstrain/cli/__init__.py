@@ -4,6 +4,9 @@ Nextstrain command-line interface (CLI)
 The `nextstrain` program and its subcommands aim to provide a consistent way to
 run and visualize pathogen builds and access Nextstrain components like Augur
 and Auspice across computing platforms such as Docker, Conda, and AWS Batch.
+
+Run `nextstrain <command> --help` for usage information about each command.
+See <:doc:`/`> for more documentation.
 """
 
 
