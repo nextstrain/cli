@@ -27,7 +27,6 @@ runs:
         python-version: ${{ inputs.python-version }}
         mamba-version: "*"
         channels: conda-forge,bioconda
-        channel-priority: true
         activate-environment: test
 
     - run: cat ~/.profile || true
