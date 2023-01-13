@@ -62,6 +62,12 @@ Table of Contents
     nextstrain.org <remotes/nextstrain.org>
     Amazon S3 <remotes/s3>
 
+.. toctree::
+    :caption: Development
+    :titlesonly:
+
+    glossary
+
 
 Big Picture
 ===========
