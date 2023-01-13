@@ -83,6 +83,18 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     # memory, at least on POSIX systems.
     #   -trs, 21 May 2020 (copied from ./native.py on 30 Aug 2022)
 
+    # XXX TODO: If we need to support Conda activation scripts (e.g.
+    # …/env/etc/conda/activate.d/) in the future, we could probably switch to
+    # exec chaining thru `micromamba run` here (with carefully constructed
+    # options and environ akin to what we do in micromamba() below).
+    #
+    # Currently our env has a couple activation scripts, but they're not
+    # necessary due to 1) our particular usage of the related packages and 2)
+    # that this runtime, for reasons of package availability, can't support
+    # Windows at this time (where activation is more crucial than Unix due to
+    # DLL searching).
+    #   -trs, 13 Jan 2023
+
     extra_env.update({
         "PATH": path_with_prefix(),
     })
