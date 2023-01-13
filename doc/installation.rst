@@ -8,32 +8,60 @@ Installation
    general Nextstrain installation page
    <https://docs.nextstrain.org/page/install.html>`__.
 
-Python 3.6 or newer
-===================
+The ``nextstrain`` command
+==========================
 
-This program is written in Python 3 and requires at least Python 3.6.  There
-are many ways to install Python 3 on Windows, macOS, or Linux, including the
-`official packages`_, `Homebrew`_ for macOS, and the `Anaconda Distribution`_.
-Details are beyond the scope of this guide, but make sure you install Python
-3.6 or higher. You may already have Python 3 installed, especially if you're on
-Linux. Check by running ``python --version`` or ``python3 --version``.
+Install the ``nextstrain`` command with one of the installation methods below.
 
-.. _official packages: https://www.python.org/downloads/
-.. _Homebrew: https://brew.sh
-.. _Anaconda Distribution: https://www.anaconda.com/distribution/
+Standalone
+----------
 
-nextstrain-cli
-==============
+Use our installers to quickly install a self-contained ("standalone") version
+of Nextstrain CLI on Linux:
 
-With Python 3 installed, you can use `Pip <https://pip.pypa.io>`__ to install
-the `nextstrain-cli package <https://pypi.org/project/nextstrain-cli>`__:
+.. code-block:: bash
+
+    curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash
+
+macOS:
+
+.. code-block:: bash
+
+    curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash
+
+or Windows:
+
+.. code-block:: powershell
+
+    Invoke-RestMethod https://nextstrain.org/cli/installer/windows | Invoke-Expression
+
+Follow the instructions from the installer at the end.
+
+
+From PyPI
+---------
+
+.. note::
+    Nextstrain CLI is written in Python 3 and requires at least Python 3.6.  There
+    are many ways to install Python 3 on Windows, macOS, or Linux, including the
+    `official packages`_, `Homebrew`_ for macOS, and the `Anaconda Distribution`_.
+    Details are beyond the scope of this guide, but make sure you install Python
+    3.6 or higher. You may already have Python 3 installed, especially if you're on
+    Linux. Check by running ``python --version`` or ``python3 --version``.
+
+    .. _official packages: https://www.python.org/downloads/
+    .. _Homebrew: https://brew.sh
+    .. _Anaconda Distribution: https://www.anaconda.com/distribution/
+
+Use `Pip <https://pip.pypa.io>`__ to install the `nextstrain-cli package on
+PyPI <https://pypi.org/project/nextstrain-cli>`__:
 
 .. code-block:: console
 
    $ python3 -m pip install nextstrain-cli
    Collecting nextstrain-cli
    […a lot of output…]
-   Successfully installed nextstrain-cli-1.16.5
+   Successfully installed nextstrain-cli-6.0.2
 
 This package also works great with `Pipx
 <https://pipxproject.github.io/pipx/>`__, a nice alternative to Pip for
@@ -43,21 +71,40 @@ command-line apps like this one:
 
    $ pipx install nextstrain-cli
    Installing to directory '/home/tom/.local/pipx/venvs/nextstrain-cli'
-     installed package nextstrain-cli 1.16.5, Python 3.6.9
+     installed package nextstrain-cli 6.0.2, Python 3.6.9
      These apps are now globally available
        - nextstrain
    done! ✨ 🌟 ✨
 
-Either way you choose, make sure the ``nextstrain`` command is available after
-installation by running ``nextstrain version``:
+
+From Bioconda
+-------------
+
+Use `Conda <https://conda.io>`__ (or `Mamba <https://mamba.readthedocs.io>`__) to
+install the `nextstrain-cli package in Bioconda
+<https://bioconda.github.io/recipes/nextstrain-cli/README.html>`__:
+
+.. code-block:: bash
+
+    conda install nextstrain-cli \
+      -c conda-forge -c bioconda \
+      --strict-channel-priority \
+      --override-channels
+
+Checking the version
+--------------------
+
+Whatever installation method you choose, make sure the ``nextstrain`` command
+is available after installation by running ``nextstrain version``:
 
 .. code-block:: console
 
    $ nextstrain version
-   nextstrain.cli 1.16.5
+   nextstrain.cli 6.0.2
 
 The version you get will probably be different than the one shown in the
 example above.
+
 
 Runtimes
 ========
