@@ -1,5 +1,5 @@
 """
-Translation of local host environment to the runner (build) environments.
+Translation of local host environment to the runtime environments.
 """
 
 import os

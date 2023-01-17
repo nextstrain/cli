@@ -89,8 +89,8 @@ def register_flags(parser: ArgumentParser, runners: List[RunnerModule], default:
     Register runner selection flags on the given ArgumentParser instance.
     """
     runner_selection = parser.add_argument_group(
-        "runner selection options",
-        "Select the method for running a Nextstrain computing environment, if the\n"
+        "runtime selection options",
+        "Select the Nextstrain runtime to use, if the\n"
         "default is not suitable.")
 
     # We use a different flag for each runner for a simpler UX, but only one
@@ -148,7 +148,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     # Image to use; shared by Docker and AWS Batch runners
     development.add_argument(
         "--image",
-        help    = "Container image name to use for the Nextstrain computing environment",
+        help    = "Container image name to use for the Nextstrain runtime",
         metavar = "<image>",
         default = docker.DEFAULT_IMAGE) # type: ignore
 
@@ -163,7 +163,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     #   -trs, 21 May 2020
     development.add_argument(
         "--exec",
-        help    = "Program to run inside the build environment",
+        help    = "Program to run inside the runtime",
         metavar = "<prog>",
         default = exec_cmd)
 
@@ -208,14 +208,14 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
     and opts.__runner__ in {conda, ambient}):
         why_runner = "the configured default" if default_runner in {conda, ambient} else f"selected by --{runner_name(opts.__runner__)}"
         raise UserError(f"""
-            The --image option is incompatible with the {runner_name(opts.__runner__)} runner ({why_runner}).
+            The --image option is incompatible with the {runner_name(opts.__runner__)} runtime ({why_runner}).
 
-            If you need to use the {runner_name(opts.__runner__)} runner, please omit the --image option.
+            If you need to use the {runner_name(opts.__runner__)} runtime, please omit the --image option.
 
-            If you need the --image option, please select another runner (e.g.
+            If you need the --image option, please select another runtime (e.g.
             with the --docker option) that supports it.  Currently --image is
             supported by the Docker (--docker) and AWS Batch (--aws-batch)
-            runners.  You can check if your setup supports these runners with
+            runtimes.  You can check if your setup supports these runtimes with
             `nextstrain check-setup`.
             """)
 

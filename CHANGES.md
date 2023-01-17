@@ -13,6 +13,49 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The output of `nextstrain check-setup` for the Conda runtime will now hint
+  about running `nextstrain setup conda` first if the runtime seems supported
+  but not yet set up.
+  ([#250][])
+
+## Documentation
+
+* Documentation and `--help` output now standardizes on the term _runtime_ to
+  describe the various ways Nextstrain CLI provides access to the Nextstrain
+  software tools.  Previously we used a mix of _build environment_, _runner_,
+  and _runtime_ in user-facing messages.  This brings Nextstrain CLI in line
+  with the rest of our documentation.
+  ([#250][])
+
+* The installation documentation now includes the standalone installer as well
+  as installing from Bioconda.  It now covers all the ways our releases are
+  distributed.
+  ([#250][])
+
+* The output of `nextstrain --help` now notes how to find command-specific
+  usage info and our online documentation.
+  ([#250][])
+
+* An out-of-date description in `nextstrain build --help` has been revised and
+  updated.
+  ([#250][])
+
+## Development
+
+* A new [glossary page in our documentation](https://docs.nextstrain.org/projects/cli/page/glossary/)
+  will help keep our shared understanding of terms straight.
+  ([#250][])
+
+* Links to our online documention in the `--help` output of commands will now
+  omit any [local part](https://peps.python.org/pep-0440/#local-version-identifiers),
+  e.g. `+git`, of the running CLI version.  This makes links correct even when
+  running development builds.
+  ([#250][])
+
+[#250]: https://github.com/nextstrain/cli/pull/250
+
 
 # 6.0.2 (3 January 2023)
 

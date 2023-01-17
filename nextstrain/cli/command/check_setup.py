@@ -1,25 +1,25 @@
 """
-Checks for supported build environments (aka Nextstrain runtimes).
+Checks for supported runtimes.
 
 Four runtimes are tested by default:
 
-  • Our Docker image is the preferred build environment.  Docker itself must
+  • Our Docker image is the preferred runtime.  Docker itself must
     be installed and configured on your computer first, but once it is, the
-    build environment is robust and reproducible.
+    runtime is robust and reproducible.
 
-  • Our Conda environment will be tested for existence and appearance of
+  • Our Conda runtime will be tested for existence and appearance of
     completeness. This runtime is more isolated and reproducible than your
-    ambient environment, but is less isolated and robust than the Docker
+    ambient runtime, but is less isolated and robust than the Docker
     runtime.
 
-  • Your ambient environment will be tested for snakemake, augur, and auspice.
-    Their presence implies a working build environment, but does not guarantee
+  • Your ambient setup will be tested for snakemake, augur, and auspice.
+    Their presence implies a working runtime, but does not guarantee
     it.
 
   • Remote jobs on AWS Batch.  Your AWS account, if credentials are available
     in your environment or via aws-cli configuration, will be tested for the
     presence of appropriate resources.  Their presence implies a working AWS
-    Batch environment, but does not guarantee it.
+    Batch runtime, but does not guarantee it.
 
 Provide one or more runtime names as arguments to test just those instead.
 
@@ -44,7 +44,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "runners",
-        help     = "The Nextstrain build environments (aka Nextstrain runtimes) to check. "
+        help     = "The Nextstrain runtimes to check. "
                    f"(default: {', '.join(all_runners_by_name)})"
                    f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar  = "<runtime>",
@@ -54,7 +54,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--set-default",
-        help   = "Set the default environment to the first which passes check-setup. "
+        help   = "Set the default runtime to the first which passes check-setup. "
                  "Checks run in the order given, if any, "
                  "otherwise in the default order: %s." % (", ".join(all_runners_by_name),),
         action = "store_true")
@@ -106,32 +106,32 @@ def run(opts: Options) -> int:
     ]
 
     if supported_runners:
-        print("Supported Nextstrain environments:", ", ".join(success(runner_name(r)) for r in supported_runners))
+        print("Supported Nextstrain runtimes:", ", ".join(success(runner_name(r)) for r in supported_runners))
 
         if opts.set_default:
             default_runner = supported_runners[0]
             print()
-            print("Setting default environment to %s." % runner_name(default_runner))
+            print("Setting default runtime to %s." % runner_name(default_runner))
             config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
     else:
         if set(opts.runners) == set(all_runners):
-            print(failure("No support for any Nextstrain environment."))
+            print(failure("No support for any Nextstrain runtime."))
         else:
-            print(failure("No support for selected Nextstrain environments."))
+            print(failure("No support for selected Nextstrain runtimes."))
 
     print()
     if default_runner in supported_runners:
-        print(f"All good!  Default environment ({runner_name(default_runner)}) is supported.")
+        print(f"All good!  Default runtime ({runner_name(default_runner)}) is supported.")
     else:
         if default_runner in opts.runners:
-            print(failure(f"No good.  Default environment ({runner_name(default_runner)}) is not supported."))
+            print(failure(f"No good.  Default runtime ({runner_name(default_runner)}) is not supported."))
         else:
-            print(f"Warning: Support for the default environment ({runner_name(default_runner)}) was not checked.")
+            print(f"Warning: Support for the default runtime ({runner_name(default_runner)}) was not checked.")
 
         if supported_runners and not opts.set_default:
             print()
-            print("Try running check-setup again with the --set-default option to pick a supported runner above.")
+            print("Try running check-setup again with the --set-default option to pick a supported runtime above.")
 
     # Return a 1 or 0 exit code
     if default_runner in opts.runners:

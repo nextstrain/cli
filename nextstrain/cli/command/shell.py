@@ -1,5 +1,5 @@
 """
-Start a new shell inside the Nextstrain build environment to run ad-hoc
+Start a new shell inside a Nextstrain runtime to run ad-hoc
 commands and perform debugging.
 """
 
@@ -20,7 +20,7 @@ def register_parser(subparser):
     %(prog)s --help
     """
 
-    parser = subparser.add_parser("shell", help = "Start a new shell in the build environment", add_help = False)
+    parser = subparser.add_parser("shell", help = "Start a new shell in a runtime", add_help = False)
 
     # Support --help and --help-all
     add_extended_help_flags(parser)
@@ -61,7 +61,7 @@ def run(opts):
             Use the Docker runtime (--docker) if overlays are necessary.
             """)
 
-    print(colored("bold", "Entering the Nextstrain build environment"))
+    print(colored("bold", "Entering the Nextstrain runtime"))
     print()
 
     if opts.volumes and opts.__runner__ is docker:
@@ -76,7 +76,7 @@ def run(opts):
 
         print()
 
-    print(colored("bold", 'Run the command "exit" to leave the build environment.'))
+    print(colored("bold", 'Run the command "exit" to leave the runtime.'))
     print()
 
     with resources.as_file("bashrc") as bashrc:

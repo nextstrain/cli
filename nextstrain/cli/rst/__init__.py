@@ -161,13 +161,17 @@ def doc_url(target: str) -> str:
     for an unknown project identifier in *target*.  Otherwise, *target* is
     returned as-is if unrecognized.
     """
+    # Remove any +local part from the version (e.g. +git development versions)
+    # since those never exist on RTD.
+    cli_doc_version = cli_version.split("+", 1)[0]
+
     if ":" in target:
         project, path = target.split(":", 1)
     else:
         project, path = None, target
 
     project_urls = {
-        None: (f"https://docs.nextstrain.org/projects/cli/en/{cli_version}/", ""),
+        None: (f"https://docs.nextstrain.org/projects/cli/en/{cli_doc_version}/", ""),
         "docs": ("https://docs.nextstrain.org/page/", ".html"),
     }
 

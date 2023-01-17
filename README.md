@@ -3,7 +3,7 @@
 This is the source code repository for a program called `nextstrain`, the
 Nextstrain command-line interface (CLI).  It aims to provide a consistent way
 to run and visualize pathogen builds and access Nextstrain components like
-[Augur][] and [Auspice][] across computing environments such as [Docker][],
+[Augur][] and [Auspice][] across computing platforms such as [Docker][],
 [Conda][], and [AWS Batch][].
 
 Get started using the Nextstrain CLI by reading the [documentation][], which
