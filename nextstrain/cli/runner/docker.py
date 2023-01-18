@@ -11,6 +11,7 @@ from pathlib import PurePosixPath
 from textwrap import dedent
 from typing import Iterable, List
 from .. import hostenv, config
+from ..errors import UserError
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume, NamedVolume
@@ -60,23 +61,7 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
-    # Ensure all volume source paths exist.  Docker will auto-create missing
-    # directories in the path, which, while desirable under some circumstances,
-    # doesn't match up well with our use case.  We're aiming to not surprise or
-    # confuse the user.
-    #
-    missing_volumes = [
-        vol for vol in opts.volumes
-             if (vol.dir and not vol.src.is_dir())
-             or not vol.src.exists() ]
-
-    if missing_volumes:
-        warn("Error: The path(s) given for the following components do not exist")
-        warn("or are not directories:")
-        warn()
-        for vol in missing_volumes:
-            warn("    • %s: %s" % (vol.name, vol.src))
-        return 1
+    assert_volumes_exist(opts.volumes)
 
     # Check if all our stdio fds (stdin = 0, stdout = 1, stderr = 2) are TTYs.
     # This uses fds explicitly as that's what we (and `docker run`) ultimately
@@ -145,6 +130,26 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         opts.image,
         *argv,
     ], extra_env)
+
+
+def assert_volumes_exist(volumes: Iterable[NamedVolume]):
+    # Ensure all volume source paths exist.  Docker will auto-create missing
+    # directories in the path, which, while desirable under some circumstances,
+    # doesn't match up well with our use case.  We're aiming to not surprise or
+    # confuse the user.
+    #
+    missing_volumes = [
+        vol for vol in volumes
+             if (vol.dir and not vol.src.is_dir())
+             or not vol.src.exists() ]
+
+    if missing_volumes:
+        raise UserError("""
+            Error: The path(s) given for the following components do not exist
+            or are not directories:
+
+            {missing}
+            """, missing = "\n".join(f"    • {vol.name}: {vol.src}" for vol in missing_volumes))
 
 
 def mount_point(volume: NamedVolume) -> PurePosixPath:
@@ -536,11 +541,14 @@ def component_versions() -> Iterable[str]:
     """
     Print the git ids of the Nextstrain components in the image.
     """
+    yield from run_bash(report_component_versions())
 
+
+def report_component_versions() -> str:
     # It is much faster to spin up a single ephemeral container and read all
     # the versions with a little bash than to do it one-by-one.  It also lets
     # us more easily do fine-grained reporting of presence/absence.
-    report_versions = """
+    return """
         for component in %s; do
             if [[ -e /nextstrain/$component/.GIT_ID ]]; then
                 echo $component $(</nextstrain/$component/.GIT_ID)
@@ -551,8 +559,6 @@ def component_versions() -> Iterable[str]:
             fi
         done
     """ % " ".join(COMPONENTS)
-
-    yield from run_bash(report_versions)
 
 
 def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:

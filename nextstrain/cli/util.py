@@ -366,12 +366,12 @@ def runner_module(name: str) -> RunnerModule:
     >>> runner_module("invalid")
     Traceback (most recent call last):
         ...
-    ValueError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'ambient', 'aws-batch'
+    ValueError: invalid runtime name: 'invalid'; valid names are: 'docker', 'conda', 'singularity', 'ambient', 'aws-batch'
 
     >>> runner_module("Invalid Name")
     Traceback (most recent call last):
         ...
-    ValueError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'ambient', 'aws-batch'
+    ValueError: invalid runtime name: 'Invalid Name' (normalized to 'invalid-name'); valid names are: 'docker', 'conda', 'singularity', 'ambient', 'aws-batch'
     """
     # Import here to avoid circular import
     from .runner import all_runners_by_name

@@ -68,6 +68,34 @@ runs:
         python3 --version | grep -F 'Python ${{ inputs.python-version }}.'
         [[ "$(python --version)" == "$(python3 --version)" ]]
 
+    # Install Singularity on Linux.
+    #
+    # We don't install it with Conda because Conda Forge provides a non-suid
+    # build of Singularity.  We're compatible with Singularity's non-suid mode,
+    # but production usages of Singularity are likely to use its suid mode, so
+    # I'd rather test against that.
+    #   -trs, 6 Jan 2023
+    - if: runner.os == 'Linux'
+      shell: bash -l -eo pipefail {0}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        # Work in a temp dir to avoid cluttering the caller's working dir
+        pushd "$(mktemp -d)"
+        export "$(grep UBUNTU_CODENAME /etc/os-release)"
+
+        # Download latest SingularityCE .deb for this version of Ubuntu
+        url="$(
+          curl -fsSL --proto '=https' -H "Authorization: Bearer $GITHUB_TOKEN" \
+            https://api.github.com/repos/sylabs/singularity/releases/latest \
+              | jq -r '.assets | map(select(.name | endswith("\(env.UBUNTU_CODENAME)_amd64.deb"))) | .[0].browser_download_url')"
+
+        curl -fsSL --proto '=https' "$url" > singularity.deb
+
+        # Install and check that it runs
+        sudo dpkg -i singularity.deb
+        singularity --version
+
     # Clone the small build we'll use as an integration test case.
     - run: git clone https://github.com/nextstrain/zika-tutorial
       shell: bash -l -eo pipefail {0}

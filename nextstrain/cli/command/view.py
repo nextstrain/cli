@@ -55,7 +55,7 @@ from time import sleep
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
-from ..runner import docker, ambient, conda
+from ..runner import docker, ambient, conda, singularity
 from ..util import colored, remove_suffix, warn
 from ..volume import NamedVolume
 
@@ -136,7 +136,7 @@ def register_parser(subparser):
     runner.register_runners(
         parser,
         exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
-        runners = [docker, ambient, conda])
+        runners = [docker, ambient, conda, singularity])
 
     return parser
 
@@ -176,7 +176,7 @@ def run(opts):
 
     # A volume which will be our working dir.
     working_volume = NamedVolume("auspice/data", data_dir)
-    opts.volumes.append(working_volume) # for Docker
+    opts.volumes.append(working_volume) # for Docker and Singularity
 
     # If auspice/ exists, then use it for datasets.  Otherwise, look for
     # datasets in the given dir.

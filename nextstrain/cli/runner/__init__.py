@@ -5,6 +5,7 @@ from typing import cast, Mapping, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
     conda as __conda,
+    singularity as __singularity,
     ambient as __ambient,
     aws_batch as __aws_batch,
 )
@@ -36,11 +37,13 @@ MYPY = False
 if TYPE_CHECKING and MYPY:
     docker = cast(RunnerModule, __docker)
     conda = cast(RunnerModule, __conda)
+    singularity = cast(RunnerModule, __singularity)
     ambient = cast(RunnerModule, __ambient)
     aws_batch = cast(RunnerModule, __aws_batch)
 else:
     docker = __docker
     conda = __conda
+    singularity = __singularity
     ambient = __ambient
     aws_batch = __aws_batch
 
@@ -48,6 +51,7 @@ else:
 all_runners: List[RunnerModule] = [
     docker,
     conda,
+    singularity,
     ambient,
     aws_batch,
 ]
@@ -145,10 +149,11 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
         "development options",
         "These should generally be unnecessary unless you're developing Nextstrain.")
 
-    # Image to use; shared by Docker and AWS Batch runners
+    # Image to use; shared by Docker, AWS Batch, and Singularity runners
     development.add_argument(
         "--image",
-        help    = "Container image name to use for the Nextstrain runtime",
+        help    = "Container image name to use for the Nextstrain runtime "                                         # type: ignore
+                  f"(default: %(default)s for Docker and AWS Batch, {singularity.DEFAULT_IMAGE} for Singularity)",  # type: ignore
         metavar = "<image>",
         default = docker.DEFAULT_IMAGE) # type: ignore
 
@@ -214,10 +219,15 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
 
             If you need the --image option, please select another runtime (e.g.
             with the --docker option) that supports it.  Currently --image is
-            supported by the Docker (--docker) and AWS Batch (--aws-batch)
-            runtimes.  You can check if your setup supports these runtimes with
-            `nextstrain check-setup`.
+            supported by the Docker (--docker), AWS Batch (--aws-batch), and
+            Singularity (--singularity) runtimes.  You can check if your setup
+            supports these runtimes with `nextstrain check-setup`.
             """)
+
+    # Account for potentially different defaults for --image depending on the
+    # selected runner.
+    if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
+        opts.image = singularity.DEFAULT_IMAGE # type: ignore
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 

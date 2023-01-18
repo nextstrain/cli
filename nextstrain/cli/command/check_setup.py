@@ -1,7 +1,7 @@
 """
 Checks for supported runtimes.
 
-Four runtimes are tested by default:
+Five runtimes are tested by default:
 
   • Our Docker image is the preferred runtime.  Docker itself must
     be installed and configured on your computer first, but once it is, the
@@ -11,6 +11,12 @@ Four runtimes are tested by default:
     completeness. This runtime is more isolated and reproducible than your
     ambient runtime, but is less isolated and robust than the Docker
     runtime.
+
+  • Our Singularity runtime uses the same container image as our Docker
+    runtime.  Singularity must be installed and configured on your computer
+    first, although it is often already present on HPC systems.  This runtime
+    is more isolated and reproducible than the Conda runtime, but potentially
+    less so than the Docker runtime.
 
   • Your ambient setup will be tested for snakemake, augur, and auspice.
     Their presence implies a working runtime, but does not guarantee

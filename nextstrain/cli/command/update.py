@@ -5,8 +5,8 @@ The default runtime ({default_runner_name}) is updated when this command is run
 without arguments.  Provide a runtime name as an argument to update a specific
 runtime instead.
 
-Only two runtimes currently support updates: Docker and Conda.  Both may take
-several minutes as new software versions are downloaded.
+Three runtimes currently support updates: Docker, Conda, and Singularity.
+Updates may take several minutes as new software versions are downloaded.
 
 This command also checks for newer versions of the Nextstrain CLI (the
 ``nextstrain`` program) itself and will suggest upgrade instructions if an
