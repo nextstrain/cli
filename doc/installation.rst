@@ -115,10 +115,11 @@ Runtimes
 
 The Nextstrain CLI provides a consistent interface and computing environment
 for running and visualizing Nextstrain pathogen builds across several different
-computing platforms, such as `Docker <https://docker.com>`__, `Conda
-<https://docs.conda.io/en/latest/miniconda.html>`__,
-:ref:`Singularity <installation/singularity>`, and `AWS Batch
-<https://aws.amazon.com/batch/>`__.
+computing platforms, such as
+:ref:`installation/docker`,
+:ref:`installation/conda`,
+:ref:`installation/singularity`, and
+:ref:`installation/aws-batch`.
 
 We call the provided computing environments the :term:`Nextstrain runtimes
 <docs:runtime>`.  Each runtime provides specific versions of Nextstrain's
@@ -137,6 +138,8 @@ runtime are also supported.  The installation and setup of supported runtimes
 is described below.
 
 .. _nextstrain/base: https://github.com/nextstrain/docker-base
+
+.. _installation/docker:
 
 Docker
 ------
@@ -159,6 +162,8 @@ Once you've installed Docker, proceed with :ref:`checking your setup
 <installation/check-setup>`.
 
 .. _Docker Desktop: https://www.docker.com/products/docker-desktop
+
+.. _installation/conda:
 
 Conda
 -----
@@ -222,6 +227,8 @@ although this is not recommended.
 
 Once you've installed dependencies, proceed with :ref:`checking your setup
 <installation/check-setup>`.
+
+.. _installation/aws-batch:
 
 AWS Batch
 ---------

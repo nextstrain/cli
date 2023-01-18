@@ -4,7 +4,7 @@ This is the source code repository for a program called `nextstrain`, the
 Nextstrain command-line interface (CLI).  It aims to provide a consistent way
 to run and visualize pathogen builds and access Nextstrain components like
 [Augur][] and [Auspice][] across computing platforms such as [Docker][],
-[Conda][], and [AWS Batch][].
+[Conda][], [Singularity][], and [AWS Batch][].
 
 Get started using the Nextstrain CLI by reading the [documentation][], which
 includes installation and usage information.
@@ -18,9 +18,10 @@ email to <hello@nextstrain.org>.
 
 [Augur]: https://docs.nextstrain.org/projects/augur/
 [Auspice]: https://docs.nextstrain.org/projects/auspice/
-[AWS Batch]: https://aws.amazon.com/batch/
-[Docker]: https://docker.com
-[Conda]: https://docs.conda.io/en/latest/miniconda.html
+[Docker]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#docker
+[Conda]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#conda
+[Singularity]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#singularity
+[AWS Batch]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#aws-batch
 [documentation]: https://docs.nextstrain.org/projects/cli/
 [development docs]: https://docs.nextstrain.org/projects/cli/page/development/
 [open an issue]: https://github.com/nextstrain/cli/issues/new
