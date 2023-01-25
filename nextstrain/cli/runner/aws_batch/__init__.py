@@ -1,5 +1,54 @@
 """
 Run commands remotely on AWS Batch inside the Nextstrain container image.
+
+`AWS Batch <https://aws.amazon.com/batch/>`__ is an advanced computing
+platform which allows you to launch and monitor Nextstrain builds in the
+cloud from the comfort of your own computer. The same image used by the local
+Docker runtime is used by AWS Batch, making your builds more reproducible, and
+builds have access to computers with very large CPU and memory allocations if
+necessary.
+
+.. versionadded:: 1.7.0
+
+
+.. _aws-batch-setup:
+
+Setup
+=====
+
+The initial setup is quite a bit more involved than most runtimes, but
+:doc:`detailed instructions </aws-batch>` are available.
+
+Once you've set up AWS, proceed with ``nextstrain setup aws-batch``.
+
+
+.. _aws-batch-env:
+
+Environment variables
+=====================
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by config file variables.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_JOB
+
+    Default for ``--aws-batch-job``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_QUEUE
+
+    Default for ``--aws-batch-queue``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_S3_BUCKET
+
+    Default for ``--aws-batch-bucket``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_CPUS
+
+    Default for ``--aws-batch-cpus``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_MEMORY
+
+    Default for ``--aws-batch-memory``.
 """
 
 import os

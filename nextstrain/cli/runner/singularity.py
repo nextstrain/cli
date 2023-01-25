@@ -1,9 +1,59 @@
 """
 Run commands inside a container image using Singularity.
 
-Uses the images built for the Docker runtime by automatically converting them
-to local Singularity images.  Local images are stored as files named
+Singularity is a container system freely-available for Linux platforms.  It is
+commonly available on institutional HPC systems as an alternative to Docker,
+which is often not supported on such systems.  When you use Singularity with
+the Nextstrain CLI, you don't need to install any other Nextstrain software
+dependencies as validated versions are already bundled into a container image
+by the Nextstrain team.
+
+The Singularity runtime uses the same images built for the Docker runtime by
+automatically converting them to local Singularity images.  Local images are
+stored as files named
 :file:`~/.nextstrain/runtimes/singularity/images/{repository}/{tag}.sif`.
+
+.. versionadded:: 6.1.0
+
+
+.. _singularity-setup:
+
+Setup
+=====
+
+Run ``nextstrain setup singularity`` to get started.
+Singularity version 3.0.0 or newer is required, but we recommend at least
+version 3.10.0 or newer when possible.
+
+Note that the Singularity project forked into two separate projects in late
+2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux
+Foundation`_.  Either fork should work with Nextstrain CLI, as both projects
+still provide very similar interfaces and functionality via the ``singularity``
+command.  You can read `Sylab's announcement`_ and `Apptainer's announcement`_
+for more information on the fork.
+
+.. _SingularityCE: https://sylabs.io/singularity/
+.. _Sylabs: https://sylabs.io/
+.. _Apptainer: https://apptainer.org
+.. _Linux Foundation: https://www.linuxfoundation.org/
+.. _Sylab's announcement: https://sylabs.io/2022/06/singularityce-is-singularity/
+.. _Apptainer's announcement: https://apptainer.org/news/community-announcement-20211130
+
+
+.. _singularity-env:
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set these during normal operation.
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by config file variables.
+
+.. envvar:: NEXTSTRAIN_SINGULARITY_IMAGE
+
+    Default for ``--image`` when using the Singularity runtime.
 """
 
 import itertools

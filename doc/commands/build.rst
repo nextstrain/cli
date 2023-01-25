@@ -120,7 +120,7 @@ default is not suitable.
 
 .. option:: --ambient
 
-    Run commands in the ambient environment, outside of any container image.
+    Run commands in the ambient environment, outside of any container image or managed environment.
 
 .. option:: --aws-batch
 

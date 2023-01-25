@@ -18,10 +18,10 @@ email to <hello@nextstrain.org>.
 
 [Augur]: https://docs.nextstrain.org/projects/augur/
 [Auspice]: https://docs.nextstrain.org/projects/auspice/
-[Docker]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#docker
-[Conda]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#conda
-[Singularity]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#singularity
-[AWS Batch]: https://docs.nextstrain.org/projects/cli/en/stable/installation/#aws-batch
+[Docker]: https://docs.nextstrain.org/projects/cli/page/runtimes/docker/
+[Conda]: https://docs.nextstrain.org/projects/cli/page/runtimes/conda/
+[Singularity]: https://docs.nextstrain.org/projects/cli/page/runtimes/singularity/
+[AWS Batch]: https://docs.nextstrain.org/projects/cli/page/runtimes/aws-batch/
 [documentation]: https://docs.nextstrain.org/projects/cli/
 [development docs]: https://docs.nextstrain.org/projects/cli/page/development/
 [open an issue]: https://github.com/nextstrain/cli/issues/new

@@ -1,6 +1,28 @@
 """
 Run commands with access to a fully-managed Conda environment.
 
+`Conda <https://docs.conda.io/en/latest/miniconda.html>`__ is a very popular
+packaging system freely-available for all platforms. When you use Nextstrain
+CLI's built-in Conda support, you don't need to install any other Nextstrain
+software dependencies yourself as they're automatically managed in an isolated
+location (isolated even from other Conda environments you may manage yourself).
+
+.. versionadded:: 5.0.0
+
+
+.. _conda-setup:
+
+Setup
+=====
+
+On macOS and Linux, run ``nextstrain setup conda`` to get started.
+
+This runtime is not directly supported on Windows, but you can use `WSL2
+<https://docs.microsoft.com/en-us/windows/wsl/wsl2-index>`__ to "switch" to
+Linux and run the above setup command.
+
+
+.. _conda-env:
 
 Environment variables
 =====================

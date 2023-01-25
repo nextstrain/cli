@@ -1,5 +1,53 @@
 """
 Run commands inside a container image using Docker.
+
+`Docker <https://docker.com>`__ is a very popular container system
+freely-available for all platforms. When you use Docker with the Nextstrain
+CLI, you don't need to install any other Nextstrain software dependencies as
+validated versions are already bundled into a container image
+(`nextstrain/base`_) by the Nextstrain team.
+
+
+.. _nextstrain/base: https://github.com/nextstrain/docker-base
+
+
+.. _docker-setup:
+
+Setup
+=====
+
+.. hint::
+   This is a reference page with brief pointers for set up.  For a more
+   comprehensive installation guide, please see `our general Nextstrain
+   installation page <https://docs.nextstrain.org/page/install.html>`__.
+
+On macOS, download and install `Docker Desktop`_, also known previously as
+"Docker for Mac".
+
+On Linux, install Docker with the standard package manager. For example, on
+Ubuntu, you can install Docker with ``sudo apt install docker.io``.
+
+On Windows, install `Docker Desktop`_ with its support for a WSL2 backend.
+
+Once you've installed Docker, proceed with ``nextstrain setup docker``.
+
+.. _Docker Desktop: https://www.docker.com/products/docker-desktop
+
+
+.. _docker-env:
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set these during normal operation.
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by config file variables.
+
+.. envvar:: NEXTSTRAIN_DOCKER_IMAGE
+
+    Default for ``--image`` when using the Docker runtime.
 """
 
 import os
