@@ -19,5 +19,8 @@ help:
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
+HOST ?= 127.0.0.1
+PORT ?= 8000
+
 livehtml:
-	sphinx-autobuild -b dirhtml "$(SOURCEDIR)" "$(BUILDDIR)/dirhtml" $(SPHINXOPTS) $(O)
+	sphinx-autobuild -b dirhtml "$(SOURCEDIR)" "$(BUILDDIR)/dirhtml" --host "$(HOST)" --port "$(PORT)" $(SPHINXOPTS) $(O)
