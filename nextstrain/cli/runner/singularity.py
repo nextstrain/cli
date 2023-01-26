@@ -46,7 +46,14 @@ SINGULARITY_CONFIG_ENV = {
 }
 
 SINGULARITY_EXEC_ARGS = [
-    # Increase isolation
+    # Increase isolation.
+    #
+    # In the future, we may find we want to use additional related flags to
+    # further increase isolation.¹  Note, however, that we'll want to think
+    # about the minimum Singularity version we want to support, as many flags
+    # in this area are not available on older versions.
+    #
+    # ¹ e.g. <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
     "--contain",
     "--no-home",
     "--cleanenv",
