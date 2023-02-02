@@ -159,6 +159,17 @@ def run(opts):
                 # they'll also need to explicitly provide "mem_mb", which may mean
                 # repeating a previous --memory argument they provided us.
                 #   -trs, 20 May 2020
+                #
+                # We might accomplish this TODO with a bit of a trick: using a
+                # stack-walking --log-handler-script to get access to
+                # Snakemake's in-process state and update --resources from
+                # there.  I wrote a proof of concept¹ when exploring options
+                # around custom resources for an ncov PR², and it worked well
+                # in manual testing.
+                #   -trs, 1 Feb 2023
+                #
+                # ¹ <https://gist.github.com/tsibley/6b3b5c37e651518d85810945a4140cde>
+                # ² <https://github.com/nextstrain/ncov/pull/1045>
                 warn(dedent("""
                     Warning: The explicit %s option passed to Snakemake prevents
                     the Nextstrain CLI from automatically providing a "mem_mb" resource
