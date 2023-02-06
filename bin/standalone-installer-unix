@@ -115,7 +115,7 @@ target-triple() {
 
         Darwin)
             [[ "$machine" == x86_64 || "$machine" == arm64 ]] || die "unsupported architecture: $machine"
-            [[ "$machine" != arm64 ]] || pgrep -qf /usr/libexec/rosetta/oahd || die "Rosetta 2 not enabled.  Please run:"$'\n\n'"    softwareupdate --install-rosetta"$'\n\n'"and then retry this installation of Nextstrain CLI."
+            [[ "$machine" != arm64 ]] || pgrep -qU _oahd 2>/dev/null || die "Rosetta 2 not enabled.  Please run:"$'\n\n'"    softwareupdate --install-rosetta"$'\n\n'"and then retry this installation of Nextstrain CLI."
             machine=x86_64
             vendor=apple
             os=darwin
