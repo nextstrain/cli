@@ -21,6 +21,13 @@ development source code and as such may not be routinely kept up to date.
   cancel the job.
   ([#253][])
 
+* `nextstrain build` now supports a `--no-logs` option to suppress the fetching
+  and printing of job logs when attaching to a completed AWS Batch build.  As
+  log fetching can often take longer than a selective download of the results
+  (i.e. via `--download`), this is a time (and terminal scrollback) saver when
+  all you want are a few of the results files.
+  ([#253][])
+
 [#253]: https://github.com/nextstrain/cli/pull/253
 
 ## Bug fixes

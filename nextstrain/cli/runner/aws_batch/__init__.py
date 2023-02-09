@@ -218,8 +218,9 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
 
             if job.is_running and not log_watcher:
                 # Transitioned from waiting → running, so kick off the log watcher.
-                log_watcher = job.log_watcher(consumer = print_job_log)
-                log_watcher.start()
+                if opts.logs:
+                    log_watcher = job.log_watcher(consumer = print_job_log)
+                    log_watcher.start()
 
             elif job.is_complete:
                 if log_watcher:
@@ -229,8 +230,9 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
                 else:
                     # The watcher never started, so we probably missed the
                     # transition to running.  Display the whole log now!
-                    for entry in job.log_entries():
-                        print_job_log(entry)
+                    if opts.logs:
+                        for entry in job.log_entries():
+                            print_job_log(entry)
 
                 print_stage(
                     "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
