@@ -13,6 +13,16 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain build --aws-batch --attach …` no longer offers to cancel (via
+  Control-C) or detach (via Control-Z) from the job if it's already complete.
+  Instead, Control-C will exit the program without delay and without trying to
+  cancel the job.
+  ([#253][])
+
+[#253]: https://github.com/nextstrain/cli/pull/253
+
 ## Bug fixes
 
 * An error message that's printed by `nextstrain remote upload` when unknown
