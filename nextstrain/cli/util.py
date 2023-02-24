@@ -273,6 +273,8 @@ def capture_output(argv, extra_env: Mapping = {}):
     parameter wasn't added until Python 3.7 and we aim for compat with 3.6.
     When we bump our minimum Python version, we can remove this wrapper.
 
+    TODO: Remove this wrapper now that our minimum Python version is 3.7.
+
     If an *extra_env* mapping is passed, the provided keys and values are
     overlayed onto the current environment.
     """

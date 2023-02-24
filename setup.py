@@ -70,7 +70,11 @@ setup(
 
         # Python 3 only
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        # No Python 3.11 yet?
     ],
 
     # Install a "nextstrain" program which calls nextstrain.cli.__main__.main()
@@ -81,10 +85,9 @@ setup(
         ],
     },
 
-    python_requires = '>=3.6',
+    python_requires = '>=3.7',
 
     install_requires = [
-        "dataclasses; python_version < '3.7'",
         "docutils",
         "fasteners",
         "importlib_metadata; python_version < '3.8'",

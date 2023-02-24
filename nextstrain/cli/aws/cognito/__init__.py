@@ -5,6 +5,7 @@ import boto3
 import warnings
 
 # Ignore noisy warning from cryptography 37.0.0 and 39.0.0 about deprecated support for Python 3.6.
+# TODO: Remove this now that we've dropped support for Python 3.6.
 with warnings.catch_warnings():
     warnings.filterwarnings(
         "ignore",

@@ -2,7 +2,7 @@
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
 
-We currently target compatibility with Python 3.6 and higher.
+We currently target compatibility with Python 3.7 and higher.
 
 Versions for this project follow the [Semantic Versioning rules][].
 
@@ -84,7 +84,7 @@ There are also many [editor integrations for mypy][], and Pyright is integrated
 into VS Code's Python support.
 
 The [`typing_extensions`][] module should be used for features added to the
-standard `typings` module after 3.6.
+standard `typings` module after 3.7.
 
 We also use [Flake8][] for some static analysis checks focusing on runtime
 safety and correctness.  You can run them like this:
