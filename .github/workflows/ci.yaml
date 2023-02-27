@@ -13,6 +13,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+  # Routinely check that we continue to work in the face of external changes.
+  schedule:
+    # Every day at 17:42 UTC / 9:42 Seattle (winter) / 10:42 Seattle (summer)
+    - cron: "42 17 * * *"
+
 jobs:
   test-source:
     name: test-source (python=${{ matrix.python }} os=${{ matrix.os }})
