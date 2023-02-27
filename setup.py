@@ -140,7 +140,8 @@ setup(
             "sphinx_rtd_theme",
             "types-docutils",
             "types-setuptools",
-            "types-requests",
+            "types-requests; python_version != '3.6'",
+            "types-requests <=2.28.11.12; python_version == '3.6'",
         ],
     },
 )
