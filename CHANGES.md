@@ -13,6 +13,14 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* An error message that's printed by `nextstrain remote upload` when unknown
+  files are given for upload to destinations on nextstrain.org now properly
+  includes the actual list of unknown files instead of the placeholder
+  `{files}`.
+  ([#260](https://github.com/nextstrain/cli/pull/260))
+
 
 # 6.1.0.post1 (18 January 2023)
 
