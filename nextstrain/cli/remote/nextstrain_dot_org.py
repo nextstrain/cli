@@ -196,7 +196,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
         # appropriate API requests to the group endpoint (which doesn't yet
         # exist).
         #   -trs, 23 Sept 2021
-        raise UserError("""
+        raise UserError(f"""
             Only datasets (v2) and narratives are currently supported for
             upload to nextstrain.org, but other files were given:
 
