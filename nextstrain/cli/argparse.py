@@ -1,6 +1,7 @@
 """
 Custom helpers for extending the behaviour of argparse standard library.
 """
+import sys
 from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentTypeError, SUPPRESS
 from itertools import takewhile
 from textwrap import indent
@@ -113,9 +114,13 @@ class ShowBriefHelp(Action):
 
     def truncate_help(self, full_help):
         """
-        Truncate the full help after the standard "optional arguments" listing
-        and before any custom argument groups.
+        Truncate the full help after the standard "options" (or "optional
+        arguments") listing and before any custom argument groups.
         """
+        # See <https://github.com/python/cpython/pull/23858>
+        # and <https://bugs.python.org/issue9694>.
+        heading = "options:\n" if sys.version_info >= (3, 10) else "optional arguments:\n"
+
         seen_optional_arguments_heading = False
 
         def before_extra_argument_groups(line):
@@ -127,7 +132,7 @@ class ShowBriefHelp(Action):
             nonlocal seen_optional_arguments_heading
 
             if not seen_optional_arguments_heading:
-                if line == "optional arguments:\n":
+                if line == heading:
                     seen_optional_arguments_heading = True
 
             return not seen_optional_arguments_heading \

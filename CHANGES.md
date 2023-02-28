@@ -21,6 +21,14 @@ development source code and as such may not be routinely kept up to date.
   `{files}`.
   ([#260](https://github.com/nextstrain/cli/pull/260))
 
+* When running on Python ≥3.10, the `--help` output of `nextstrain build`,
+  `nextstrain view`, and `nextstrain shell` once again shows just the most
+  common options.  All options are still shown with `--help-all`.  A regression
+  since Python 3.10 meant that `--help` acted the same as `--help-all` before
+  this fix.  This affected any installation on Python ≥3.10, including
+  standalone installations, since the standalone binaries bundle Python 3.10.
+  ([#259](https://github.com/nextstrain/cli/pull/259))
+
 
 # 6.1.0.post1 (18 January 2023)
 
