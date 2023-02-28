@@ -169,31 +169,34 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
             return detach(job, local_workdir)
 
 
-    # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
-    # we guard this non-essential feature.
-    SIGTSTP = getattr(signal, "SIGTSTP", None)
+    # Don't setup signal handlers for jobs that are already complete.
+    if not job.is_complete:
+        # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
+        # we guard this non-essential feature.
+        SIGTSTP = getattr(signal, "SIGTSTP", None)
 
-    if SIGTSTP:
-        def handler(sig, frame):
-            exit(detach(job, local_workdir))
-        signal.signal(SIGTSTP, handler)
+        if SIGTSTP:
+            def handler(sig, frame):
+                exit(detach(job, local_workdir))
+            signal.signal(SIGTSTP, handler)
+
+
+        print_stage("Watching job status")
+
+        if SIGTSTP:
+            control_hints = """
+                Press Control-C twice within %d seconds to cancel this job,
+                      Control-Z to detach from it.
+                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+        else:
+            control_hints = """
+                Press Control-C twice within %d seconds to cancel this job.
+                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+
+        print(dedent(control_hints))
 
 
     # Watch job status and tail logs.
-    print_stage("Watching job status")
-
-    if SIGTSTP:
-        control_hints = """
-            Press Control-C twice within %d seconds to cancel this job,
-                  Control-Z to detach from it.
-            """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
-    else:
-        control_hints = """
-            Press Control-C twice within %d seconds to cancel this job.
-            """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
-
-    print(dedent(control_hints))
-
     log_watcher = None
     stop_sent = False
     ctrl_c_time = 0
@@ -215,8 +218,9 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
 
             if job.is_running and not log_watcher:
                 # Transitioned from waiting → running, so kick off the log watcher.
-                log_watcher = job.log_watcher(consumer = print_job_log)
-                log_watcher.start()
+                if opts.logs:
+                    log_watcher = job.log_watcher(consumer = print_job_log)
+                    log_watcher.start()
 
             elif job.is_complete:
                 if log_watcher:
@@ -226,8 +230,9 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
                 else:
                     # The watcher never started, so we probably missed the
                     # transition to running.  Display the whole log now!
-                    for entry in job.log_entries():
-                        print_job_log(entry)
+                    if opts.logs:
+                        for entry in job.log_entries():
+                            print_job_log(entry)
 
                 print_stage(
                     "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
@@ -240,7 +245,8 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         except KeyboardInterrupt as interrupt:
             print()
 
-            if not stop_sent:
+            # Don't try to cancel a job that's already complete.
+            if not job.is_complete and not stop_sent:
                 now = int(time())
 
                 if now - ctrl_c_time > CTRL_C_CONFIRMATION_TIMEOUT:

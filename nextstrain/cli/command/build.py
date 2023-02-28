@@ -98,6 +98,22 @@ def register_parser(subparser):
         dest   = "download",
         action = "store_false")
 
+    # A --logs option doesn't make much sense right now for most of our
+    # runtimes, but I can see how it might in the future.  So we're ready if
+    # that future comes to pass, set up --no-logs as if there's a --logs option
+    # enabled by default.  This also avoids a double negative in conditions,
+    # e.g. avoids writing "if not opts.no_logs".
+    #   -trs, 9 Feb 2023
+    parser.set_defaults(logs = True)
+    parser.add_argument(
+        "--no-logs",
+        help   = "Do not show the log messages of the remote build. "
+                 "Currently only supported when also using --aws-batch. "
+                 "Default is to show all log messages, even when attaching to a completed build."
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        dest   = "logs",
+        action = "store_false")
+
     # Positional parameters
     parser.add_argument(
         "directory",
