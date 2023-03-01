@@ -290,7 +290,7 @@ def override_definition(base_definition_name: str, image: str) -> str:
 
         # These are AWS-assigned keys returned by describe_job_definitions() which
         # aren't supported as keyword arguments by register_job_definition().
-        for key in {'jobDefinitionArn', 'revision', 'status'}:
+        for key in {'jobDefinitionArn', 'revision', 'status', 'containerOrchestrationType'}:
             del derived_definition[key]
 
         batch.register_job_definition(**derived_definition)
