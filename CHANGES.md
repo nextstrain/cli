@@ -13,6 +13,13 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* We've fixed and future-proofed a compatibility bug with a third-party library
+  that can occur under very specific conditions when `nextstrain build` submits
+  AWS Batch jobs.
+  ([#261](https://github.com/nextstrain/cli/pull/261))
+
 
 # 6.2.0 (28 February 2023)
 
