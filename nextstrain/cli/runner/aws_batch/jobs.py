@@ -288,9 +288,11 @@ def override_definition(base_definition_name: str, image: str) -> str:
         derived_definition["jobDefinitionName"] = derived_definition_name
         derived_definition["containerProperties"]["image"] = image
 
-        # These are AWS-assigned keys returned by describe_job_definitions() which
+        # Remove AWS-assigned keys returned by describe_job_definitions() which
         # aren't supported as keyword arguments by register_job_definition().
-        for key in {'jobDefinitionArn', 'revision', 'status'}:
+        register_inputs = batch.meta.service_model.operation_model("RegisterJobDefinition").input_shape.members
+
+        for key in set(derived_definition) - set(register_inputs):
             del derived_definition[key]
 
         batch.register_job_definition(**derived_definition)
