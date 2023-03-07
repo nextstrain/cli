@@ -6,7 +6,7 @@ If PATH does not contain the expected installation path, emits an appropriate
 
 Use this command in your shell config with a line like the following::
 
-    source <({INSTALLATION_PATH}/nextstrain init-shell)
+    eval "$({INSTALLATION_PATH}/nextstrain init-shell)"
 
 Exits with error if run in an non-standalone installation.
 """
@@ -53,6 +53,19 @@ def register_parser(subparser):
 
 
 def run(opts):
+    # The output of this command must remain less than the limits on command
+    # line length.  These vary by OS but also system to system.
+    #
+    # execve() is typically limited on the total argv + environ size to
+    # `getconf ARG_MAX`, but there are also limits on the size of a single
+    # argument within that total.  This single argument limit applies to the
+    # `eval "$(…)"` pattern we recommend.  On Linux, for example, the limit is
+    # hardcoded to 131071 bytes (MAX_ARG_STRLEN constant).
+    #
+    # The `source <(…)` pattern doesn't suffer this limitation but has other
+    # issues on the old Bash version found on macOS.
+    #   -trs, 7 March 2023
+
     if not INSTALLATION_PATH:
         raise UserError("No shell init required because this is not a standalone installation.")
 
