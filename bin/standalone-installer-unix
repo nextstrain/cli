@@ -72,7 +72,7 @@ main() {
     log "Checking installation"
     local installed_version
     if ! installed_version="$("$DESTINATION"/nextstrain --version)"; then
-        die "installation check failed: unable to run \`"$DESTINATION"/nextstrain --version\`; look for error message above."
+        die "installation check failed: unable to run \`\"$DESTINATION\"/nextstrain --version\`; look for error message above."
     fi
 
     cat <<~~
