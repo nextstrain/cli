@@ -97,6 +97,10 @@ jobs:
         # considerations affecting the choice of build machine OS¹ and future
         # plans for robust, turnkey build environments².
         #
+        # On Linux, we build inside a container to avoid portability issues, so
+        # the container's host OS version here doesn't have an impact (other
+        # than CI stability).
+        #
         # ¹ https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_distributing_binary_portability.html
         # ² https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_status.html#an-official-build-environment
         #
@@ -107,7 +111,7 @@ jobs:
         # Mac Mini for ~$700 which would pay for itself in less than 2 months.
         #   -trs, 31 May 2022
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             exe: nextstrain
 
@@ -257,7 +261,6 @@ jobs:
         #
         # XXX TODO: macOS aarch64 (M1, Apple Silicon, arm64); see above.
         include:
-          - { os: ubuntu-18.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-20.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
           - { os: macos-11,     target: x86_64-apple-darwin }
