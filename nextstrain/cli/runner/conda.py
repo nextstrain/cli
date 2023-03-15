@@ -305,6 +305,13 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             # Don't automatically pin Python so nextstrain-base deps can change
             # it on upgrade.
             "--no-py-pin",
+
+            # Allow uninstalls and downgrades of existing installed packages so
+            # nextstrain-base deps can change on upgrade.  Uninstalls are
+            # currently allowed by default (unlike downgrades), but make it
+            # explicit here.
+            "--allow-uninstall",
+            "--allow-downgrade",
         )
 
     env = {
