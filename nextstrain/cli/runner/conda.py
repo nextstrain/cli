@@ -462,6 +462,14 @@ def update() -> RunnerUpdateStatus:
         traceback.print_exc()
         return False
 
+    # Clean up unnecessary caches
+    print("Cleaning up…")
+    try:
+        micromamba("clean", "--all", add_prefix = False)
+    except InternalError as err:
+        warn(err)
+        warn(f"Continuing anyway.")
+
     return True
 
 
