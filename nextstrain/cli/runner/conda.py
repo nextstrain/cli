@@ -41,7 +41,7 @@ import subprocess
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable
+from typing import Iterable, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
@@ -151,30 +151,13 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
     # Query for Micromamba release
-    response = requests.get(f"https://api.anaconda.org/release/conda-forge/micromamba/{urlquote(MICROMAMBA_VERSION)}")
-    response.raise_for_status()
-
-    dists = response.json().get("distributions", [])
-
-    system = platform.system()
-    machine = platform.machine()
-
-    if (system, machine) == ("Linux", "x86_64"):
-        subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
-        subdir = "osx-64"
-    else:
-        warn(f"Unsupported system/machine: {system}/{machine}")
+    try:
+        dist = package_distribution("conda-forge", "micromamba", MICROMAMBA_VERSION)
+    except InternalError as err:
+        warn(err)
         return False
 
-    # Releases have other attributes related to system/machine, but they're
-    # informational-only and subdir is what Conda *actually* uses to
-    # differentiate distributions/files/etc.  Use it too so we have the same
-    # view of reality.
-    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
-
-    assert dist, f"unable to find micromamba dist with subdir == {subdir!r}"
+    assert dist, f"unable to find micromamba dist"
 
     # download_url is scheme-less, so add our preferred scheme but in a way
     # that won't break if it starts including a scheme later.
@@ -508,3 +491,32 @@ def package_version(name: str) -> str:
         channel = anaconda_channel["repo"]
 
     return f"{name} {version} ({build}, {channel})"
+
+
+def package_distribution(channel: str, package: str, version: str = None) -> Optional[dict]:
+    if version is None:
+        version = "latest"
+
+    response = requests.get(f"https://api.anaconda.org/release/{urlquote(channel)}/{urlquote(package)}/{urlquote(version)}")
+    response.raise_for_status()
+
+    dists = response.json().get("distributions", [])
+
+    system = platform.system()
+    machine = platform.machine()
+
+    if (system, machine) == ("Linux", "x86_64"):
+        subdir = "linux-64"
+    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
+        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+        subdir = "osx-64"
+    else:
+        raise InternalError(f"Unsupported system/machine: {system}/{machine}")
+
+    # Releases have other attributes related to system/machine, but they're
+    # informational-only and subdir is what Conda *actually* uses to
+    # differentiate distributions/files/etc.  Use it too so we have the same
+    # view of reality.
+    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
+
+    return dist
