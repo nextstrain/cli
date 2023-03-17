@@ -19,7 +19,13 @@ Environment variables
 
     Conda meta-package name to use for the Nextstrain base runtime dependencies.
 
+    May be a two- or three-part `Conda package match spec`_ instead of just a
+    package name.  Note that a ``conda install``-style package spec, with a
+    single ``=`` or without spaces, is not supported.
+
     Defaults to ``nextstrain-base``.
+
+    .. _Conda package match spec: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
 
 .. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
 
@@ -41,7 +47,7 @@ import subprocess
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable, Optional
+from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
@@ -473,13 +479,12 @@ def versions() -> Iterable[str]:
         pass
 
 
-def package_version(name: str) -> str:
-    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+def package_version(spec: str) -> str:
+    name = package_name(spec)
+    meta = package_meta(spec)
 
-    if not metafile:
+    if not meta:
         return f"{name} unknown"
-
-    meta = json.loads(metafile.read_bytes())
 
     version = meta.get("version", "unknown")
     build   = meta.get("build",   "unknown")
@@ -493,7 +498,20 @@ def package_version(name: str) -> str:
     return f"{name} {version} ({build}, {channel})"
 
 
+def package_meta(spec: str) -> Optional[dict]:
+    name = package_name(spec)
+    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+
+    if not metafile:
+        return None
+
+    return json.loads(metafile.read_bytes())
+
+
 def package_distribution(channel: str, package: str, version: str = None) -> Optional[dict]:
+    # If *package* is a package spec, convert it just to a name.
+    package = package_name(package)
+
     if version is None:
         version = "latest"
 
@@ -520,3 +538,32 @@ def package_distribution(channel: str, package: str, version: str = None) -> Opt
     dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
 
     return dist
+
+
+def package_name(spec: str) -> str:
+    return PackageSpec.parse(spec).name
+
+
+class PackageSpec(NamedTuple):
+    name: str
+    version_spec: Optional[str] = None
+    build_id: Optional[str] = None
+
+    @staticmethod
+    def parse(spec):
+        """
+        Splits a `Conda package match spec`_ into a tuple of (name, version_spec, build_id).
+
+        Returns a :cls:`PackageSpec`.
+
+        .. _Conda package match spec: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
+        """
+        parts = spec.split(maxsplit = 2)
+
+        try:
+            return PackageSpec(parts[0], parts[1], parts[2])
+        except IndexError:
+            try:
+                return PackageSpec(parts[0], parts[1], None)
+            except IndexError:
+                return PackageSpec(parts[0], None, None)
