@@ -458,7 +458,7 @@ def update() -> RunnerUpdateStatus:
 
 def versions() -> Iterable[str]:
     try:
-        yield package_version("nextstrain-base")
+        yield package_version(NEXTSTRAIN_BASE)
     except OSError:
         pass
 
