@@ -52,7 +52,7 @@ from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, exec_or_return, runner_tests_ok, warn
+from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -443,9 +443,44 @@ def update() -> RunnerUpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
-    print("Updating Conda packages…")
+    current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
+
+    # We accept a package match spec, which one to three space-separated parts.¹
+    # If we got a spec, then we need to handle updates a bit differently.
+    #
+    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
+    #
+    if " " in NEXTSTRAIN_BASE.strip():
+        pkg = PackageSpec.parse(NEXTSTRAIN_BASE)
+        print(colored("bold", f"Updating {pkg.name} from {current_version} to {pkg.version_spec}…"))
+        update_spec = NEXTSTRAIN_BASE
+
+    else:
+        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
+
+        if latest_version:
+            if latest_version == current_version:
+                print(f"Conda package {NEXTSTRAIN_BASE} {current_version} already at latest version")
+                print()
+                return True
+
+            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version} to {latest_version}…"))
+
+            update_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
+
+        else:
+            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific update")
+
+            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version}…"))
+
+            update_spec = NEXTSTRAIN_BASE
+
+    print()
+    print(f"Updating Conda packages in {PREFIX}…")
+    print(f"  - {update_spec}")
+
     try:
-        micromamba("update", NEXTSTRAIN_BASE)
+        micromamba("update", update_spec)
     except InternalError as err:
         warn(err)
         traceback.print_exc()
