@@ -42,6 +42,8 @@ download() {
     # ecosystem.
     local tmp
     tmp="$(mktemp -d)"
+
+    # shellcheck disable=SC2064
     trap "rm -rf \"$tmp\"" EXIT
 
     python3 -m pip download \
@@ -52,8 +54,9 @@ download() {
         'pyoxidizer !=0.23.0' \
             >&2
 
-    local wheel binary
-    wheel=("$tmp"/pyoxidizer-[0-9]*.whl)
+    local wheels wheel binary
+    wheels=("$tmp"/pyoxidizer-[0-9]*.whl)
+    wheel="${wheels[0]}"
     binary="$(basename "$wheel" .whl)"
 
     if [[ "$(platform-system)" == Windows ]]; then

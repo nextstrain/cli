@@ -148,7 +148,9 @@ jobs:
 
       - name: Set DIST, DIST_VERSION, and INSTALLATION_ARCHIVE_STEM
         run: |
-          DIST=(dist/nextstrain_cli-*-py3-none-any.whl)
+          # shellcheck disable=SC2034
+          DISTS=(dist/nextstrain_cli-*-py3-none-any.whl)
+          DIST="${DISTS[0]}"
           DIST_VERSION="$DIST"
           DIST_VERSION="${DIST_VERSION#dist/nextstrain_cli-}"
           DIST_VERSION="${DIST_VERSION%-py3-none-any.whl}"

@@ -1,13 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 
-devel="$(dirname $0)"
+devel="$(dirname "$0")"
 repo="$devel/.."
 version_file="$repo/nextstrain/cli/__version__.py"
 
 main() {
     local new_version="${1:?version is required}"
-    local current_version="$("$devel"/read-version)"
 
     perl -pi -e "s/(?<=^__version__ = ')(.*)(?='$)/$new_version/" "$version_file"
 
