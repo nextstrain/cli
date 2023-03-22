@@ -19,6 +19,12 @@ on:
     - cron: "42 17 * * *"
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nextstrain/.github/actions/shellcheck@master
+
   test-source:
     name: test-source (python=${{ matrix.python }} os=${{ matrix.os }})
     strategy:
@@ -330,6 +336,7 @@ jobs:
       - test-source
       - test-dist
       - test-standalone
+      - lint
       - doc
     runs-on: ubuntu-latest
     steps:
