@@ -50,7 +50,9 @@ jobs:
       # fetched from nextstrain.org.  This tests that the shell programs work
       # when they're specifically executed this way.
       - if: runner.os != 'Windows'
-        run: cat ./bin/standalone-installer-unix | bash
+        run: |
+          # shellcheck disable=SC2002
+          cat ./bin/standalone-installer-unix | bash
         shell: bash
 
       - if: runner.os == 'Windows'

@@ -39,6 +39,7 @@ main() {
     # Move into a temporary working dir
     tmp="$(mktemp -d)"
     if ! debug; then
+        # shellcheck disable=SC2064
         trap "rm -rf $tmp" EXIT
     fi
     pushd "$tmp" >/dev/null
@@ -51,7 +52,7 @@ main() {
 
     log "Extracting $archive"
     mkdir standalone
-    tar xz$(if-debug v)f "$archive" -C standalone
+    tar xz"$(if-debug v)"f "$archive" -C standalone
 
     if [[ -d "$DESTINATION" ]]; then
         log "Removing existing $DESTINATION"
@@ -175,27 +176,35 @@ shell-rc() {
                     #   that exists and is readable.
                     #
                     if [[ -r ~/.bash_profile ]]; then
+                        # shellcheck disable=SC2088
                         echo "~/.bash_profile"
 
                     elif [[ -r ~/.bash_login ]]; then
+                        # shellcheck disable=SC2088
                         echo "~/.bash_login"
 
                     elif [[ -r ~/.profile ]]; then
+                        # shellcheck disable=SC2088
                         echo "~/.profile"
 
                     else
                         # If none exist, then we fallback to ~/.bash_profile
                         # and expect it to be created by our suggested shell
                         # init commands.
+                        #
+                        # shellcheck disable=SC2088
                         echo "~/.bash_profile"
                     fi;;
                 *)
+                    # shellcheck disable=SC2088
                     echo "~/.bashrc";;
             esac;;
         zsh)
             echo "${ZDOTDIR:-~}/.zshrc";;
         *)
             # A decent guess?
+            #
+            # shellcheck disable=SC2088
             echo "~/.${shell}rc";;
     esac
 }
@@ -211,7 +220,7 @@ if-debug() {
 }
 
 log() {
-    echo "--> $@"
+    echo "--> $*"
 }
 
 die() {
