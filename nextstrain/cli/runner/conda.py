@@ -19,7 +19,13 @@ Environment variables
 
     Conda meta-package name to use for the Nextstrain base runtime dependencies.
 
+    May be a two- or three-part `Conda package match spec`_ instead of just a
+    package name.  Note that a ``conda install``-style package spec, with a
+    single ``=`` or without spaces, is not supported.
+
     Defaults to ``nextstrain-base``.
+
+    .. _Conda package match spec: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
 
 .. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
 
@@ -41,12 +47,12 @@ import subprocess
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable
+from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, exec_or_return, runner_tests_ok, warn
+from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -151,30 +157,13 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
     # Query for Micromamba release
-    response = requests.get(f"https://api.anaconda.org/release/conda-forge/micromamba/{urlquote(MICROMAMBA_VERSION)}")
-    response.raise_for_status()
-
-    dists = response.json().get("distributions", [])
-
-    system = platform.system()
-    machine = platform.machine()
-
-    if (system, machine) == ("Linux", "x86_64"):
-        subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
-        subdir = "osx-64"
-    else:
-        warn(f"Unsupported system/machine: {system}/{machine}")
+    try:
+        dist = package_distribution("conda-forge", "micromamba", MICROMAMBA_VERSION)
+    except InternalError as err:
+        warn(err)
         return False
 
-    # Releases have other attributes related to system/machine, but they're
-    # informational-only and subdir is what Conda *actually* uses to
-    # differentiate distributions/files/etc.  Use it too so we have the same
-    # view of reality.
-    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
-
-    assert dist, f"unable to find micromamba dist with subdir == {subdir!r}"
+    assert dist, f"unable to find micromamba dist"
 
     # download_url is scheme-less, so add our preferred scheme but in a way
     # that won't break if it starts including a scheme later.
@@ -305,6 +294,13 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             # Don't automatically pin Python so nextstrain-base deps can change
             # it on upgrade.
             "--no-py-pin",
+
+            # Allow uninstalls and downgrades of existing installed packages so
+            # nextstrain-base deps can change on upgrade.  Uninstalls are
+            # currently allowed by default (unlike downgrades), but make it
+            # explicit here.
+            "--allow-uninstall",
+            "--allow-downgrade",
         )
 
     env = {
@@ -447,20 +443,63 @@ def update() -> RunnerUpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
-    print("Updating Conda packages…")
+    current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
+
+    # We accept a package match spec, which one to three space-separated parts.¹
+    # If we got a spec, then we need to handle updates a bit differently.
+    #
+    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
+    #
+    if " " in NEXTSTRAIN_BASE.strip():
+        pkg = PackageSpec.parse(NEXTSTRAIN_BASE)
+        print(colored("bold", f"Updating {pkg.name} from {current_version} to {pkg.version_spec}…"))
+        update_spec = NEXTSTRAIN_BASE
+
+    else:
+        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
+
+        if latest_version:
+            if latest_version == current_version:
+                print(f"Conda package {NEXTSTRAIN_BASE} {current_version} already at latest version")
+                print()
+                return True
+
+            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version} to {latest_version}…"))
+
+            update_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
+
+        else:
+            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific update")
+
+            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version}…"))
+
+            update_spec = NEXTSTRAIN_BASE
+
+    print()
+    print(f"Updating Conda packages in {PREFIX}…")
+    print(f"  - {update_spec}")
+
     try:
-        micromamba("update", NEXTSTRAIN_BASE)
+        micromamba("update", update_spec)
     except InternalError as err:
         warn(err)
         traceback.print_exc()
         return False
+
+    # Clean up unnecessary caches
+    print("Cleaning up…")
+    try:
+        micromamba("clean", "--all", add_prefix = False)
+    except InternalError as err:
+        warn(err)
+        warn(f"Continuing anyway.")
 
     return True
 
 
 def versions() -> Iterable[str]:
     try:
-        yield package_version("nextstrain-base")
+        yield package_version(NEXTSTRAIN_BASE)
     except OSError:
         pass
 
@@ -475,13 +514,12 @@ def versions() -> Iterable[str]:
         pass
 
 
-def package_version(name: str) -> str:
-    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+def package_version(spec: str) -> str:
+    name = package_name(spec)
+    meta = package_meta(spec)
 
-    if not metafile:
+    if not meta:
         return f"{name} unknown"
-
-    meta = json.loads(metafile.read_bytes())
 
     version = meta.get("version", "unknown")
     build   = meta.get("build",   "unknown")
@@ -493,3 +531,74 @@ def package_version(name: str) -> str:
         channel = anaconda_channel["repo"]
 
     return f"{name} {version} ({build}, {channel})"
+
+
+def package_meta(spec: str) -> Optional[dict]:
+    name = package_name(spec)
+    metafile = next((PREFIX / "conda-meta").glob(f"{name}-*.json"), None)
+
+    if not metafile:
+        return None
+
+    return json.loads(metafile.read_bytes())
+
+
+def package_distribution(channel: str, package: str, version: str = None) -> Optional[dict]:
+    # If *package* is a package spec, convert it just to a name.
+    package = package_name(package)
+
+    if version is None:
+        version = "latest"
+
+    response = requests.get(f"https://api.anaconda.org/release/{urlquote(channel)}/{urlquote(package)}/{urlquote(version)}")
+    response.raise_for_status()
+
+    dists = response.json().get("distributions", [])
+
+    system = platform.system()
+    machine = platform.machine()
+
+    if (system, machine) == ("Linux", "x86_64"):
+        subdir = "linux-64"
+    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
+        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+        subdir = "osx-64"
+    else:
+        raise InternalError(f"Unsupported system/machine: {system}/{machine}")
+
+    # Releases have other attributes related to system/machine, but they're
+    # informational-only and subdir is what Conda *actually* uses to
+    # differentiate distributions/files/etc.  Use it too so we have the same
+    # view of reality.
+    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
+
+    return dist
+
+
+def package_name(spec: str) -> str:
+    return PackageSpec.parse(spec).name
+
+
+class PackageSpec(NamedTuple):
+    name: str
+    version_spec: Optional[str] = None
+    build_id: Optional[str] = None
+
+    @staticmethod
+    def parse(spec):
+        """
+        Splits a `Conda package match spec`_ into a tuple of (name, version_spec, build_id).
+
+        Returns a :cls:`PackageSpec`.
+
+        .. _Conda package match spec: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
+        """
+        parts = spec.split(maxsplit = 2)
+
+        try:
+            return PackageSpec(parts[0], parts[1], parts[2])
+        except IndexError:
+            try:
+                return PackageSpec(parts[0], parts[1], None)
+            except IndexError:
+                return PackageSpec(parts[0], None, None)

@@ -20,6 +20,10 @@ development source code and as such may not be routinely kept up to date.
   AWS Batch jobs.
   ([#261](https://github.com/nextstrain/cli/pull/261))
 
+* The update process for the Conda runtime is now more robust and less likely
+  to get stuck at an old version.
+  ([#266](https://github.com/nextstrain/cli/pull/266))
+
 
 # 6.2.0 (28 February 2023)
 
