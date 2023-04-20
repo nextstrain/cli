@@ -1,6 +1,18 @@
 """
 Authentication routines.
+
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set these during normal operation.
+
+.. envvar:: NEXTSTRAIN_COGNITO_USER_POOL_ID
+
+.. envvar:: NEXTSTRAIN_COGNITO_CLI_CLIENT_ID
 """
+import os
 from functools import partial
 from sys import stderr
 from typing import Dict, List, Optional
@@ -14,8 +26,11 @@ from .aws import cognito
 CONFIG_SECTION = "authn"
 
 # Public ids.  Client id is specific to the CLI.
-COGNITO_USER_POOL_ID = "us-east-1_Cg5rcTged"
-COGNITO_CLIENT_ID    = "2vmc93kj4fiul8uv40uqge93m5"
+COGNITO_USER_POOL_ID = os.environ.get("NEXTSTRAIN_COGNITO_USER_POOL_ID") \
+                    or "us-east-1_Cg5rcTged"
+
+COGNITO_CLIENT_ID = os.environ.get("NEXTSTRAIN_COGNITO_CLI_CLIENT_ID") \
+                 or "2vmc93kj4fiul8uv40uqge93m5"
 
 CognitoSession = partial(cognito.Session, COGNITO_USER_POOL_ID, COGNITO_CLIENT_ID)
 
