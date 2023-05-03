@@ -78,9 +78,10 @@ def run(opts):
 
     if not nextstrain or nextstrain.parent != INSTALLATION_PATH:
         if nextstrain:
-            print(f"# This will mask {nextstrain}")
-            print()
+            # This will mask an existing nextstrain.
+            pass
 
+        # Add INSTALLATION_PATH to front of PATH.
         # This risks duplication if INSTALLATION_PATH is already in PATH but
         # `nextstrain` is found on an earlier PATH entry.  A duplication-free
         # solution would be to detect that condition and *move* the existing
@@ -100,13 +101,11 @@ def run(opts):
         # what's already a edge case, let's not sweat it after all.
         #   -trs, 14 Sept 2022
         init = """
-            # Add %(INSTALLATION_PATH)s to front of PATH
             export PATH=%(INSTALLATION_PATH)s"${PATH:+%(pathsep)s}$PATH"
         """
     else:
-        init = """
-            # PATH already finds this nextstrain at %(INSTALLATION_PATH)s
-        """
+        # PATH already finds this nextstrain at INSTALLATION_PATH.
+        init = ""
 
     print(dedent(init.lstrip("\n")) % {
         "INSTALLATION_PATH": shquote(str(INSTALLATION_PATH)),
