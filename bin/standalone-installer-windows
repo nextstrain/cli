@@ -108,12 +108,13 @@ function main([string]$version) {
         Remove-Item -Recurse -Force $tmp
     }
 
-    $version = Invoke-Expression "$destination\nextstrain --version"
+    log "Checking installation"
+    $installed_version = Invoke-Expression "$destination\nextstrain --version"
 
     echo @"
 ______________________________________________________________________________
 
-Nextstrain CLI ($version) installed to $destination.
+Nextstrain CLI ($installed_version) installed to $destination.
 "@
 }
 
