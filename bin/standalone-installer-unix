@@ -71,11 +71,11 @@ main() {
         rc="$(shell-rc "$shell")"
 
         # Initialize for this session.
-        eval "$("$DESTINATION/nextstrain" init-shell $shell)"
+        eval "$("$DESTINATION/nextstrain" init-shell "$shell")"
 
         # Automatically initialize for new sessions.
         # shellcheck disable=SC2016
-        printf '\n%s\n' 'eval "\$("$DESTINATION/nextstrain" init-shell $shell)"' >> "$rc"
+        printf '\n%s\n' 'eval "\$("$DESTINATION/nextstrain" init-shell "$shell")"' >> "$rc"
     fi
 
     popd >/dev/null
