@@ -113,7 +113,7 @@ function main([string]$version) {
     }
 
     log "Checking installation"
-    $installed_version = Invoke-Expression "$destination\nextstrain --version"
+    $installed_version = Invoke-Expression "nextstrain --version"
 
     echo @"
 ______________________________________________________________________________
