@@ -108,7 +108,7 @@ function main([string]$version) {
         Remove-Item -Recurse -Force $tmp
     }
 
-    $version = Invoke-Expression "$destination\nextstrain --version"
+    $version = & "$destination\nextstrain" --version
 
     echo @"
 ______________________________________________________________________________
