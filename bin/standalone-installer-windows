@@ -77,7 +77,11 @@ function main([string]$version) {
     # Naively splitting is wrong in the general case, but fine for this check as
     # long as $destination itself doesn't contain a semi-colon.
     if ($destination -notin ($env:PATH -split ";")) {
-        log "Prepending $destination to PATH for current user"
+        log "Making Nextstrain CLI available for the current user"
+
+        # XXX TODO: Replace the commands below with a call to the init-shell
+        # subcommand if it ever supports PowerShell.
+        #   -victorlin, 03 May 2023
 
         # Update it for this session
         $env:PATH = "${destination};${env:PATH}"

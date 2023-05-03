@@ -66,6 +66,11 @@ def run(opts):
     # issues on the old Bash version found on macOS.
     #   -trs, 7 March 2023
 
+    # XXX TODO: Any changes here should be reflected in
+    # standalone-installer-windows since that does not currently call this
+    # subcommand.
+    #   -victorlin, 03 May 2023
+
     if not INSTALLATION_PATH:
         raise UserError("No shell init required because this is not a standalone installation.")
 
