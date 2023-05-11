@@ -575,7 +575,8 @@ def package_distribution(channel: str, package: str, version: str = None, label:
     # informational-only and subdir is what Conda *actually* uses to
     # differentiate distributions/files/etc.  Use it too so we have the same
     # view of reality.
-    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
+    subdir_dists = (d for d in dists if d.get("attrs", {}).get("subdir") == subdir)
+    dist = max(subdir_dists, default=None, key=lambda d: d.get("attrs", {}).get("build_number", 0))
 
     return dist
 
