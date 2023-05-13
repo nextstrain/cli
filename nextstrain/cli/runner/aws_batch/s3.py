@@ -11,7 +11,7 @@ from calendar import timegm
 from os import utime
 from pathlib import Path
 from time import struct_time
-from typing import Callable, Generator, Iterable, List, Optional
+from typing import Callable, Generator, Iterable, List, Optional, Any
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ...types import S3Bucket, S3Object
@@ -65,6 +65,7 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
     ])
 
     # Stream writes directly to the remote ZIP file
+    remote_file: Any
     with fsspec.open(object_url(remote_workdir), "wb", auto_mkdir = False) as remote_file:
         with ZipFile(remote_file, "w") as zipfile:
             for path in walk(workdir, excluded):
@@ -108,6 +109,7 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
         selected = lambda path: True
 
     # Open a seekable handle to the remote ZIP file…
+    remote_file: Any
     with fsspec.open(object_url(remote_workdir)) as remote_file:
 
         # …and extract its contents to the workdir.
