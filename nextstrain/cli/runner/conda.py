@@ -46,6 +46,7 @@ import shutil
 import subprocess
 import tarfile
 import traceback
+from packaging.version import parse as parse_version
 from pathlib import Path, PurePosixPath
 from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
@@ -543,12 +544,16 @@ def package_meta(spec: str) -> Optional[dict]:
     return json.loads(metafile.read_bytes())
 
 
-def package_distribution(channel: str, package: str, version: str = None) -> Optional[dict]:
+def package_distribution(channel: str, package: str, version: str = None, label: str = "main") -> Optional[dict]:
     # If *package* is a package spec, convert it just to a name.
     package = package_name(package)
 
     if version is None:
-        version = "latest"
+        version = latest_package_label_version(channel, package, label)
+        if version is None:
+            warn(f"Could not find latest version of package {package!r} with label {label!r}.",
+                 "\nUsing 'latest' version instead, which will be the latest version of the package regardless of label.")
+            version = "latest"
 
     response = requests.get(f"https://api.anaconda.org/release/{urlquote(channel)}/{urlquote(package)}/{urlquote(version)}")
     response.raise_for_status()
@@ -570,13 +575,25 @@ def package_distribution(channel: str, package: str, version: str = None) -> Opt
     # informational-only and subdir is what Conda *actually* uses to
     # differentiate distributions/files/etc.  Use it too so we have the same
     # view of reality.
-    dist = next((d for d in dists if d.get("attrs", {}).get("subdir") == subdir), None)
+    subdir_dists = (d for d in dists if d.get("attrs", {}).get("subdir") == subdir)
+    dist = max(subdir_dists, default=None, key=lambda d: d.get("attrs", {}).get("build_number", 0))
 
     return dist
 
 
 def package_name(spec: str) -> str:
     return PackageSpec.parse(spec).name
+
+
+def latest_package_label_version(channel: str, package: str, label: str) -> Optional[str]:
+    response = requests.get(f"https://api.anaconda.org/package/{urlquote(channel)}/{urlquote(package)}/files")
+    response.raise_for_status()
+
+    label_files = (file for file in response.json() if label in file.get("labels", []))
+    # Default '0-dev' should be the lowest version according to PEP440
+    # See https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering
+    latest_file: dict = max(label_files, default={}, key=lambda file: parse_version(file.get('version', '0-dev')))
+    return latest_file.get("version")
 
 
 class PackageSpec(NamedTuple):
