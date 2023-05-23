@@ -8,5 +8,13 @@ Debug flags and utilities.
     parent exceptions in an exception chain are omitted from handled errors.
 """
 from os import environ
+from sys import stderr
 
 DEBUGGING = bool(environ.get("NEXTSTRAIN_DEBUG"))
+
+if DEBUGGING:
+    def debug(*args):
+        print("DEBUG:", *args, file = stderr)
+else:
+    def debug(*args):
+        pass
