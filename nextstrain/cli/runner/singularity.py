@@ -48,6 +48,22 @@ SINGULARITY_MINIMUM_VERSION = "3.0.0"
 SINGULARITY_CONFIG_ENV = {
     # Store image caches in our runtime root instead of ~/.singularity/…
     "SINGULARITY_CACHEDIR": str(CACHE),
+
+    # PROMPT_COMMAND is used by Singularity 3.5.3 onwards to forcibly set PS1
+    # to "Singularity> " on the first evaluation.¹  This happens *after* our
+    # bashrc is evaluated, so our Nextstrain prompt is overwritten.
+    # Singularity appends to any existing PROMPT_COMMAND value, so use a
+    # well-placed comment char (#) to avoid evaluating what it appends.
+    # Additionally unset PROMPT_COMMAND the first time it's evaluated so this
+    # silly workaround doesn't happen on every prompt.
+    #
+    # We set this via the special-cased environment passthru instead of setting
+    # it via an --env arg because --env is only first available in 3.6.0.
+    #
+    # ¹ <https://github.com/sylabs/singularity/commit/30823afc>
+    #   <https://github.com/apptainer/singularity/pull/4616>
+    #   <https://github.com/apptainer/singularity/issues/2721>
+    "SINGULARITYENV_PROMPT_COMMAND": "unset PROMPT_COMMAND; #",
 }
 
 SINGULARITY_EXEC_ARGS = [
