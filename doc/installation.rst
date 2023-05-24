@@ -193,7 +193,7 @@ dependencies as validated versions are already bundled into a container image
 by the Nextstrain team.
 
 Run ``nextstrain setup singularity`` to get started.
-Singularity version 2.6.0 or newer is required.
+Singularity version 3.0.0 or newer is required.
 
 Note that the Singularity project forked into two separate projects in late
 2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux

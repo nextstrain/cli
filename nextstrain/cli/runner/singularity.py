@@ -43,7 +43,7 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_SINGULARITY_IMAGE") \
              or "docker://nextstrain/base"
 
 
-SINGULARITY_MINIMUM_VERSION = "2.6.0"
+SINGULARITY_MINIMUM_VERSION = "3.0.0"
 
 SINGULARITY_CONFIG_ENV = {
     # Store image caches in our runtime root instead of ~/.singularity/…
@@ -89,7 +89,29 @@ SINGULARITY_EXEC_ARGS = [
     # ¹ <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
     # ² <https://docs.sylabs.io/guides/latest/user-guide/oci_runtime.html#oci-mode>
     "--contain",
+
+    # Don't mount anything at all at the container's value of HOME.  This is
+    # necesary because --compat includes --containall which includes --contain
+    # which makes HOME in the container an empty temporary directory.
+    # --no-home is available since 2.6.0.
     "--no-home",
+
+    # Singularity really wants to default HOME inside the container to the
+    # value from outside the container, thus ignoring the value set by the
+    # upstream Docker image which is only used as a default by the Singularity
+    # image.  Singularity forbids using --env to directly override HOME, so
+    # instead we use --home <src>:<dst> with two empty values.  <src> doesn't
+    # apply because we use --no-home, and setting <dst> to an empty value
+    # allows the container's default to apply (thus avoiding hardcoding it
+    # here).
+    "--home", ":",
+
+    # Allow writes to the image filesystem, discarded at container exit, à la
+    # Docker.  Snakemake, for example, needs to be able to write to HOME
+    # (/nextstrain).
+    "--writable-tmpfs",
+
+    # Don't copy entire host environment.  We forward our own hostenv.
     "--cleanenv",
 
     # Since we use --no-home above, avoid warnings about not being able to cd
