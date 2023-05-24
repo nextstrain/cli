@@ -8,10 +8,13 @@ to local Singularity images.  Local images are stored as files named
 
 import itertools
 import os
+import re
 import shutil
 import subprocess
+from functools import lru_cache
+from packaging.version import Version, InvalidVersion
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from urllib.parse import urlsplit
 from .. import config, hostenv
 from ..errors import UserError
@@ -39,6 +42,8 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_SINGULARITY_IMAGE") \
              or config.get("singularity", "image") \
              or "docker://nextstrain/base"
 
+
+SINGULARITY_MINIMUM_VERSION = "2.6.0"
 
 SINGULARITY_CONFIG_ENV = {
     # Store image caches in our runtime root instead of ~/.singularity/…
@@ -218,6 +223,8 @@ def test_setup() -> RunnerTestResults:
     return [
         ("singularity is installed",
             shutil.which("singularity") is not None),
+        (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION}",
+            singularity_version_at_least(SINGULARITY_MINIMUM_VERSION)),
         ("singularity works",
             test_run()),
     ]
@@ -406,3 +413,31 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
         "singularity", "run", *SINGULARITY_EXEC_ARGS, image_path(image),
             "bash", "-c", script
     ])
+
+
+@lru_cache(maxsize = None)
+def singularity_version_at_least(min_version: str) -> bool:
+    version = singularity_version()
+
+    if not version:
+        return False
+
+    return version >= Version(min_version)
+
+
+@lru_cache(maxsize = None)
+def singularity_version() -> Optional[Version]:
+    try:
+        raw_version = capture_output(["singularity", "version"])[0]
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    try:
+        return Version(raw_version)
+    except InvalidVersion:
+        # Singularity sometimes reports a version like 3.11.1-bionic with a
+        # (for Python) non-standard suffix ("-bionic"), so try stripping it.
+        try:
+            return Version(re.sub(r'-.+$', '', raw_version))
+        except InvalidVersion:
+            return None
