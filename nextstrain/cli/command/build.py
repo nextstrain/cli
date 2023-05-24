@@ -51,7 +51,7 @@ def register_parser(subparser):
     parser.add_argument(
         "--cpus",
         help    = "Number of CPUs/cores/threads/jobs to utilize at once.  "
-                  "Limits containerized (Docker, AWS Batch) builds to this amount.  "
+                  "Limits containerized (Docker, Singularity, AWS Batch) builds to this amount.  "
                   "Informs Snakemake's resource scheduler when applicable.  "
                   "Informs the AWS Batch instance size selection.  "
                   "By default, no constraints are placed on how many CPUs are used by a build; "
@@ -63,7 +63,7 @@ def register_parser(subparser):
         "--memory",
         help    = "Amount of memory to make available to the build.  "
                   "Units of b, kb, mb, gb, kib, mib, gib are supported.  "
-                  "Limits containerized (Docker, AWS Batch) builds to this amount.  "
+                  "Limits containerized (Docker, Singularity, AWS Batch) builds to this amount.  "
                   "Informs Snakemake's resource scheduler when applicable.  "
                   "Informs the AWS Batch instance size selection.  ",
         metavar = "<quantity>",

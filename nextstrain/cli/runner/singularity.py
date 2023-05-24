@@ -199,6 +199,17 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         # Change the default working directory if requested
         *(("--pwd", "/nextstrain/%s" % working_volume.name) if working_volume else ()),
 
+        # Set resource limits if any.  These options are equivalent to Docker's
+        # and are first available in Singularity 3.10.0.  The lower-level
+        # --apply-cgroups option first available in 3.9.0 can do the same
+        # things, but the version difference seems marginally useful and
+        # there's more implementation overhead required to use --apply-cgroups.
+        *(["--cpus", str(cpus)]
+            if cpus is not None and singularity_version_at_least("3.10.0") else []),
+
+        *(["--memory", str(memory)]
+            if memory is not None and singularity_version_at_least("3.10.0") else []),
+
         str(image_path(image)),
         *argv,
     ], extra_env)
