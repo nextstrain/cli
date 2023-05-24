@@ -53,7 +53,36 @@ SINGULARITY_EXEC_ARGS = [
     # about the minimum Singularity version we want to support, as many flags
     # in this area are not available on older versions.
     #
-    # ¹ e.g. <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
+    #   --compat                (available since 3.9.0; a bundle option)
+    #     --containall            (available since 2.2; a bundle option)
+    #       --contain
+    #       --cleanenv
+    #       --ipc
+    #       --pid
+    #     --writable-tmpfs        (3.0.0)
+    #     --no-init               (3.0.0)
+    #     --no-umask              (3.7.0)
+    #     --no-eval               (3.10.0)
+    #
+    # We opt not to use the --compat bundle option itself mainly for broader
+    # version compatibility but also because what it includes will likely
+    # change over time with newer Singularity releases.  We'd rather a stable,
+    # predictable set of behaviour of our choosing that maximizes
+    # compatibility.
+    #
+    # The options we use here are compatible with Singularity 2.6.0 and newer.
+    #
+    # XXX TODO: Once Singularity 4.0 is released and widely available, we *may*
+    # consider switching from --compat to --oci² for a) stronger Docker-like
+    # isolation and b) no longer having to convert our Docker (OCI) images to
+    # Singularity (SIF) images.  Alternatively, we may want to keep this
+    # runtime as a "middle ground" between the relatively strict isolation of
+    # our Docker runtime and the much looser isolation of the Conda runtime.
+    # Not sure!
+    #   -trs, 23 May 2023
+    #
+    # ¹ <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
+    # ² <https://docs.sylabs.io/guides/latest/user-guide/oci_runtime.html#oci-mode>
     "--contain",
     "--no-home",
     "--cleanenv",
