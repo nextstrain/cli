@@ -66,7 +66,7 @@ SINGULARITY_CONFIG_ENV = {
     "SINGULARITYENV_PROMPT_COMMAND": "unset PROMPT_COMMAND; #",
 }
 
-SINGULARITY_EXEC_ARGS = [
+SINGULARITY_EXEC_ARGS = lambda: [
     # Increase isolation.
     #
     # In the future, we may find we want to use additional related flags to
@@ -130,6 +130,11 @@ SINGULARITY_EXEC_ARGS = [
     # Don't copy entire host environment.  We forward our own hostenv.
     "--cleanenv",
 
+    # Don't evaluate the entrypoint command line (e.g. arguments passed via
+    # `nextstrain build`) before exec-ing the entrypoint.  It leads to unwanted
+    # substitutions that happen too early.
+    *(["--no-eval"] if singularity_version_at_least("3.10.0") else []),
+
     # Since we use --no-home above, avoid warnings about not being able to cd
     # to $HOME (the default behaviour).  run() will override this by specifying
     # --pwd again.
@@ -183,7 +188,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     }
 
     return exec_or_return([
-        "singularity", "run", *SINGULARITY_EXEC_ARGS,
+        "singularity", "run", *SINGULARITY_EXEC_ARGS(),
 
         # Map directories to bind mount into the container.
         *flatten(("--bind", "%s:%s:%s" % (v.src.resolve(strict = True), docker.mount_point(v), "rw" if v.writable else "ro"))
@@ -238,7 +243,7 @@ def test_setup() -> RunnerTestResults:
     def test_run():
         try:
             capture_output([
-                "singularity", "exec", *SINGULARITY_EXEC_ARGS,
+                "singularity", "exec", *SINGULARITY_EXEC_ARGS(),
 
                 # XXX TODO: We should test --bind, as that's maybe most likely
                 # to be adminstratively disabled, but it's a bit more ceremony
@@ -448,7 +453,7 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
     Returns the output of the script as a list of strings.
     """
     return capture_output([
-        "singularity", "run", *SINGULARITY_EXEC_ARGS, image_path(image),
+        "singularity", "run", *SINGULARITY_EXEC_ARGS(), image_path(image),
             "bash", "-c", script
     ])
 
