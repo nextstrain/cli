@@ -66,7 +66,8 @@ SINGULARITY_CONFIG_ENV = {
     "SINGULARITYENV_PROMPT_COMMAND": "unset PROMPT_COMMAND; #",
 }
 
-SINGULARITY_EXEC_ARGS = lambda: [
+# Not "… = lambda: [" due to mypy.  See commit history.
+def SINGULARITY_EXEC_ARGS(): return [
     # Increase isolation.
     #
     # In the future, we may find we want to use additional related flags to
