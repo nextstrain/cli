@@ -96,6 +96,14 @@ runs:
         sudo dpkg -i singularity.deb
         singularity --version
 
+        # Set up a lingering DBus service (required for Singularity's usage of
+        # cgroups v2).
+        sudo loginctl enable-linger "$USER"
+        systemctl --user status dbus.socket
+        systemctl --user status dbus.service
+        echo "XDG_RUNTIME_DIR=/run/user/$(id -u)" | tee -a "$GITHUB_ENV"
+        echo "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus" | tee -a "$GITHUB_ENV"
+
     # Clone the small build we'll use as an integration test case.
     - run: git clone https://github.com/nextstrain/zika-tutorial
       shell: bash -l -eo pipefail {0}
