@@ -138,6 +138,8 @@ setup(
             "sphinx-autobuild",
             "sphinx-markdown-tables !=0.0.16",
             "sphinx_rtd_theme",
+            "types-boto3",
+            "types-botocore",
             "types-docutils",
             "types-setuptools",
             "types-requests; python_version != '3.6'",

@@ -248,7 +248,7 @@ def exists(object: S3Object) -> bool:
         object.load()
         return True
     except ClientError as error:
-        if 404 == int(error.response['Error']['Code']):
+        if 404 == int(error.response.get("Error", {}).get("Code", 0)):
             return False
         else:
             raise
