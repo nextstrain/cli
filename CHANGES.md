@@ -13,6 +13,61 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release is mostly a bug fix release for our Conda and Singularity
+runtimes.  However, it contains a **potentially-breaking change** for existing
+usages of the Singularity runtime: **the minimum required Singularity version
+has changed from 2.6.0 to 3.0.0**.  This change was required for a critical bug
+fix.  If you do not use the Singularity runtime, there are no
+potentially-breaking changes in this release.
+
+## Improvements
+
+* `nextstrain shell` now notes which runtime is being entered in its initial
+  messaging to establish more context for the user (and for developers when
+  troubleshooting).
+  ([#283][])
+
+* The Singularity runtime now checks for the minimum required Singularity
+  version (3.0.0 with this release) during `nextstrain check-setup`.
+  ([#283][])
+
+## Bug fixes
+
+* Setup and upgrade of the Conda runtime now only uses stable "main" channel
+  releases when determining the latest release version, as intended.
+  Previously, testing and development releases could be selected if they were
+  newer than the last stable release.  Additionally, if there are multiple
+  builds for a release version, the highest numbered build (i.e. newest) is now
+  used instead of the lowest.
+  ([#280](https://github.com/nextstrain/cli/pull/280))
+
+* The Singularity runtime now works with our container runtime images from
+  `build-20230411T103027Z` onwards.  The Snakemake upgrade in that image
+  version resulted in "read-only file system" errors which referenced the
+  user's home directory.  Those errors are now fixed.
+  ([#283][])
+
+* The prompt for `nextstrain shell`—a stylized variant of the Nextstrain
+  wordmark—now works when using the Singularity runtime regardless of
+  Singularity version.  Previously Singularity's default prompt of
+  `Singularity> ` overrode ours when using Singularity versions ≥3.5.3.
+  ([#283][])
+
+* More robust command-line processing is used for the Singularity runtime on
+  Singularity versions ≥3.10.0.  Singularity's early (and unexpected)
+  evaluation of arguments that look like (but aren't) shell variable
+  substitutions is disabled.
+  ([#283][])
+
+## Development
+
+* The command lines and environment overrides of many (but not all) process
+  invocations are now logged when `NEXTSTRAIN_DEBUG` is enabled.
+  ([#283][])
+
+
+[#283]: https://github.com/nextstrain/cli/pull/283
+
 
 # 6.2.1 (24 March 2023)
 
