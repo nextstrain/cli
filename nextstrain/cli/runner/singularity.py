@@ -8,10 +8,13 @@ to local Singularity images.  Local images are stored as files named
 
 import itertools
 import os
+import re
 import shutil
 import subprocess
+from functools import lru_cache
+from packaging.version import Version, InvalidVersion
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 from urllib.parse import urlsplit
 from .. import config, hostenv
 from ..errors import UserError
@@ -40,12 +43,31 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_SINGULARITY_IMAGE") \
              or "docker://nextstrain/base"
 
 
+SINGULARITY_MINIMUM_VERSION = "3.0.0"
+
 SINGULARITY_CONFIG_ENV = {
     # Store image caches in our runtime root instead of ~/.singularity/…
     "SINGULARITY_CACHEDIR": str(CACHE),
+
+    # PROMPT_COMMAND is used by Singularity 3.5.3 onwards to forcibly set PS1
+    # to "Singularity> " on the first evaluation.¹  This happens *after* our
+    # bashrc is evaluated, so our Nextstrain prompt is overwritten.
+    # Singularity appends to any existing PROMPT_COMMAND value, so use a
+    # well-placed comment char (#) to avoid evaluating what it appends.
+    # Additionally unset PROMPT_COMMAND the first time it's evaluated so this
+    # silly workaround doesn't happen on every prompt.
+    #
+    # We set this via the special-cased environment passthru instead of setting
+    # it via an --env arg because --env is only first available in 3.6.0.
+    #
+    # ¹ <https://github.com/sylabs/singularity/commit/30823afc>
+    #   <https://github.com/apptainer/singularity/pull/4616>
+    #   <https://github.com/apptainer/singularity/issues/2721>
+    "SINGULARITYENV_PROMPT_COMMAND": "unset PROMPT_COMMAND; #",
 }
 
-SINGULARITY_EXEC_ARGS = [
+# Not "… = lambda: [" due to mypy.  See commit history.
+def SINGULARITY_EXEC_ARGS(): return [
     # Increase isolation.
     #
     # In the future, we may find we want to use additional related flags to
@@ -53,10 +75,66 @@ SINGULARITY_EXEC_ARGS = [
     # about the minimum Singularity version we want to support, as many flags
     # in this area are not available on older versions.
     #
-    # ¹ e.g. <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
+    #   --compat                (available since 3.9.0; a bundle option)
+    #     --containall            (available since 2.2; a bundle option)
+    #       --contain
+    #       --cleanenv
+    #       --ipc
+    #       --pid
+    #     --writable-tmpfs        (3.0.0)
+    #     --no-init               (3.0.0)
+    #     --no-umask              (3.7.0)
+    #     --no-eval               (3.10.0)
+    #
+    # We opt not to use the --compat bundle option itself mainly for broader
+    # version compatibility but also because what it includes will likely
+    # change over time with newer Singularity releases.  We'd rather a stable,
+    # predictable set of behaviour of our choosing that maximizes
+    # compatibility.
+    #
+    # The options we use here are compatible with Singularity 2.6.0 and newer.
+    #
+    # XXX TODO: Once Singularity 4.0 is released and widely available, we *may*
+    # consider switching from --compat to --oci² for a) stronger Docker-like
+    # isolation and b) no longer having to convert our Docker (OCI) images to
+    # Singularity (SIF) images.  Alternatively, we may want to keep this
+    # runtime as a "middle ground" between the relatively strict isolation of
+    # our Docker runtime and the much looser isolation of the Conda runtime.
+    # Not sure!
+    #   -trs, 23 May 2023
+    #
+    # ¹ <https://docs.sylabs.io/guides/latest/user-guide/singularity_and_docker.html#docker-like-compat-flag>
+    # ² <https://docs.sylabs.io/guides/latest/user-guide/oci_runtime.html#oci-mode>
     "--contain",
+
+    # Don't mount anything at all at the container's value of HOME.  This is
+    # necesary because --compat includes --containall which includes --contain
+    # which makes HOME in the container an empty temporary directory.
+    # --no-home is available since 2.6.0.
     "--no-home",
+
+    # Singularity really wants to default HOME inside the container to the
+    # value from outside the container, thus ignoring the value set by the
+    # upstream Docker image which is only used as a default by the Singularity
+    # image.  Singularity forbids using --env to directly override HOME, so
+    # instead we use --home <src>:<dst> with two empty values.  <src> doesn't
+    # apply because we use --no-home, and setting <dst> to an empty value
+    # allows the container's default to apply (thus avoiding hardcoding it
+    # here).
+    "--home", ":",
+
+    # Allow writes to the image filesystem, discarded at container exit, à la
+    # Docker.  Snakemake, for example, needs to be able to write to HOME
+    # (/nextstrain).
+    "--writable-tmpfs",
+
+    # Don't copy entire host environment.  We forward our own hostenv.
     "--cleanenv",
+
+    # Don't evaluate the entrypoint command line (e.g. arguments passed via
+    # `nextstrain build`) before exec-ing the entrypoint.  It leads to unwanted
+    # substitutions that happen too early.
+    *(["--no-eval"] if singularity_version_at_least("3.10.0") else []),
 
     # Since we use --no-home above, avoid warnings about not being able to cd
     # to $HOME (the default behaviour).  run() will override this by specifying
@@ -111,7 +189,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     }
 
     return exec_or_return([
-        "singularity", "run", *SINGULARITY_EXEC_ARGS,
+        "singularity", "run", *SINGULARITY_EXEC_ARGS(),
 
         # Map directories to bind mount into the container.
         *flatten(("--bind", "%s:%s:%s" % (v.src.resolve(strict = True), docker.mount_point(v), "rw" if v.writable else "ro"))
@@ -166,7 +244,7 @@ def test_setup() -> RunnerTestResults:
     def test_run():
         try:
             capture_output([
-                "singularity", "exec", *SINGULARITY_EXEC_ARGS,
+                "singularity", "exec", *SINGULARITY_EXEC_ARGS(),
 
                 # XXX TODO: We should test --bind, as that's maybe most likely
                 # to be adminstratively disabled, but it's a bit more ceremony
@@ -189,6 +267,8 @@ def test_setup() -> RunnerTestResults:
     return [
         ("singularity is installed",
             shutil.which("singularity") is not None),
+        (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION}",
+            singularity_version_at_least(SINGULARITY_MINIMUM_VERSION)),
         ("singularity works",
             test_run()),
     ]
@@ -374,6 +454,34 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
     Returns the output of the script as a list of strings.
     """
     return capture_output([
-        "singularity", "run", *SINGULARITY_EXEC_ARGS, image_path(image),
+        "singularity", "run", *SINGULARITY_EXEC_ARGS(), image_path(image),
             "bash", "-c", script
     ])
+
+
+@lru_cache(maxsize = None)
+def singularity_version_at_least(min_version: str) -> bool:
+    version = singularity_version()
+
+    if not version:
+        return False
+
+    return version >= Version(min_version)
+
+
+@lru_cache(maxsize = None)
+def singularity_version() -> Optional[Version]:
+    try:
+        raw_version = capture_output(["singularity", "version"])[0]
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+    try:
+        return Version(raw_version)
+    except InvalidVersion:
+        # Singularity sometimes reports a version like 3.11.1-bionic with a
+        # (for Python) non-standard suffix ("-bionic"), so try stripping it.
+        try:
+            return Version(re.sub(r'-.+$', '', raw_version))
+        except InvalidVersion:
+            return None

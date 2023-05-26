@@ -20,6 +20,7 @@ from shutil import which
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
+from .debug import debug
 from .types import RunnerModule, RunnerTestResults
 
 
@@ -276,6 +277,8 @@ def capture_output(argv, extra_env: Mapping = {}):
     If an *extra_env* mapping is passed, the provided keys and values are
     overlayed onto the current environment.
     """
+    debug(f"capture_output({argv!r}, {extra_env!r})")
+
     env = os.environ.copy()
 
     if extra_env:
@@ -308,6 +311,8 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
 
     ¹ https://bugs.python.org/issue9148
     """
+    debug(f"exec_or_return({argv!r}, {extra_env!r})")
+
     env = os.environ.copy()
 
     if extra_env:

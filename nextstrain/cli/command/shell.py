@@ -61,7 +61,7 @@ def run(opts):
             Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
             """)
 
-    print(colored("bold", "Entering the Nextstrain runtime"))
+    print(colored("bold", f"Entering the Nextstrain runtime ({runner_name(opts.__runner__)})"))
     print()
 
     if opts.volumes and opts.__runner__ in {docker, singularity}:
