@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* `nextstrain update` for the Conda runtime no longer reports an "invalid
+  version" error.  This was a regression introduced in 7.0.0.
+  ([#286](https://github.com/nextstrain/cli/pull/286))
+
 
 # 7.0.0 (26 May 2023)
 
