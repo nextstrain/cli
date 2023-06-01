@@ -62,8 +62,7 @@ jobs:
       - name: Install Nextstrain CLI
         run: python3 -m pip install --upgrade '.[dev]'
 
-      - name: Run pytest
-        run: pytest -v
+      - run: ./devel/pytest -v
 
   build-dist:
     runs-on: ubuntu-latest

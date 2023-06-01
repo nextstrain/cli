@@ -82,7 +82,7 @@ PyPi](https://pypi.org/project/nextstrain-cli).
 
 Tests are run with [pytest](https://pytest.org).  To run everything, use:
 
-    pytest
+    ./devel/pytest
 
 This includes the type annotation and static analysis checks described below.
 
