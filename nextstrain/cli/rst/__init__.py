@@ -231,7 +231,7 @@ class MarkEmbeddedHyperlinkReferencesAnonymous(docutils.transforms.Transform):
     default_priority = 480
 
     def apply(self):
-        for ref in self.document.traverse(docutils.nodes.reference):
+        for ref in self.findall(docutils.nodes.reference):
             # Not embedded if it's got a refname, which refers to a target
             # name.
             if ref.get("refname"):
@@ -249,3 +249,13 @@ class MarkEmbeddedHyperlinkReferencesAnonymous(docutils.transforms.Transform):
             # Some refs by this point will already be marked anonymous, but
             # there's no harm in marking "again".
             ref["anonymous"] = 1
+
+    @property
+    def findall(self):
+        try:
+            # docutils 0.18.1 started issuing a PendingDeprecationWarning for
+            # calls to traverse(), so use the findall() method introduced in
+            # that same version when we can.
+            return self.document.findall
+        except AttributeError:
+            return self.document.traverse
