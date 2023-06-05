@@ -179,9 +179,8 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         # ¹ <https://docs.sylabs.io/guides/3.0/user-guide/environment_and_metadata.html#environment>
         #
         # Pass through certain environment variables
-        **{f"SINGULARITYENV_{k}": os.environ[k]
-            for k in hostenv.forwarded_names
-             if k in os.environ},
+        **{f"SINGULARITYENV_{k}": v
+            for k, v in hostenv.forwarded_values() },
 
         # Plus any extra environment variables provided by us
         **{f"SINGULARITYENV_{k}": v
