@@ -9,7 +9,8 @@ from . import (
     ambient as __ambient,
     aws_batch as __aws_batch,
 )
-from .. import config
+from .. import config, env
+from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
 from ..types import Env, Options, RunnerModule
 from ..util import runner_name, runner_module, runner_help, warn
@@ -145,6 +146,34 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     (exec_cmd, *exec_args) = exec
 
     # Arguments for all runners
+    runtime = parser.add_argument_group(
+        "runtime options",
+        "Options shared by all runtimes.")
+
+    runtime.add_argument(
+        "--env",
+        metavar = "<name>[=<value>]",
+        help    = "Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. "
+                  "May be specified more than once. "
+                  "Overrides any variables of the same name set via --envdir."
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        action  = "append",
+        default = [])
+
+    runtime.add_argument(
+        "--envdir",
+        metavar = "<path>",
+        help    = "Set environment variables from the envdir at <path>. "
+                  "May be specified more than once. "
+                  "An envdir is a directory containing files describing environment variables. "
+                  "Each filename is used as the variable name. "
+                  "The first line of the contents of each file is used as the variable value. "
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        type    = DirectoryPath,
+        action  = "append",
+        default = [])
+
+    # Development arguments for all runners
     development = parser.add_argument_group(
         "development options",
         "These should generally be unnecessary unless you're developing Nextstrain.")
@@ -228,6 +257,15 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
     # selected runner.
     if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
         opts.image = singularity.DEFAULT_IMAGE # type: ignore
+
+    # Add values from --envdir and --env to extra_env without overriding values
+    # explicitly set by our commands' own internals (i.e. the callers of this
+    # function).
+    extra_env = {
+        **dict(env.from_dirs(opts.envdir)),
+        **dict(env.from_vars(opts.env)),
+        **extra_env,
+    }
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 

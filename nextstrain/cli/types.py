@@ -20,7 +20,10 @@ Each (*name*, *value*) pair represents a single environment variable.
 A *value* of ``None`` indicates the positive absence of *name* (e.g. it is to
 be removed if present).
 """
-Env = Mapping[str, Union[str, None]]
+Env = Mapping['EnvName', 'EnvValue']
+EnvItem = Tuple['EnvName', 'EnvValue']
+EnvName = str
+EnvValue = Union[str, None]
 
 Options = argparse.Namespace
 
