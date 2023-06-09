@@ -103,9 +103,10 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # DLL searching).
     #   -trs, 13 Jan 2023
 
-    extra_env.update({
+    extra_env = {
+        **extra_env,
         "PATH": path_with_prefix(),
-    })
+    }
 
     return exec_or_return(argv, extra_env)
 
