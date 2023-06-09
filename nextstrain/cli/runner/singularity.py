@@ -184,7 +184,8 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         # Plus any extra environment variables provided by us
         **{f"SINGULARITYENV_{k}": v
-            for k, v in extra_env.items()},
+            for k, v in extra_env.items()
+             if v is not None },
     }
 
     return exec_or_return([

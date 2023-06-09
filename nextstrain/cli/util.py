@@ -275,14 +275,19 @@ def capture_output(argv, extra_env: Mapping = {}):
     When we bump our minimum Python version, we can remove this wrapper.
 
     If an *extra_env* mapping is passed, the provided keys and values are
-    overlayed onto the current environment.
+    overlayed onto the current environment.  Keys with a value of ``None`` are
+    removed from the current environment (i.e. like ``del os.environ[key]``).
     """
     debug(f"capture_output({argv!r}, {extra_env!r})")
 
     env = os.environ.copy()
 
     if extra_env:
-        env.update(extra_env)
+        for k, v in extra_env.items():
+            if v is None:
+                env.pop(k, None)
+            else:
+                env[k] = v
 
     result = subprocess.run(
         argv,
@@ -307,7 +312,8 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
     signals.
 
     If an *extra_env* mapping is passed, the provided keys and values are
-    overlayed onto the current environment.
+    overlayed onto the current environment.  Keys with a value of ``None`` are
+    removed from the current environment (i.e. like ``del os.environ[key]``).
 
     ¹ https://bugs.python.org/issue9148
     """
@@ -316,7 +322,11 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
     env = os.environ.copy()
 
     if extra_env:
-        env.update(extra_env)
+        for k, v in extra_env.items():
+            if v is None:
+                env.pop(k, None)
+            else:
+                env[k] = v
 
     # Use a POSIX exec(3) for file descriptor and signal handling…
     if os.name == "posix":

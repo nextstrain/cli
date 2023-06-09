@@ -156,7 +156,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                 memory     = memory,
                 workdir    = remote_workdir,
                 exec       = argv,
-                env        = extra_env)
+                env        = { k: v for k, v in extra_env.items() if v is not None })
         except Exception as error:
             warn(error)
             warn("Job submission failed!")

@@ -117,7 +117,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         *["--env=%s" % name for name in hostenv.forwarded_names],
 
         # Plus any extra environment variables provided by us
-        *["--env=%s" % name for name in extra_env.keys()],
+        *["--env=%s" % name for name, value in extra_env.items() if value is not None],
 
         # Set resource limits if any
         *(["--cpus=%d" % cpus]
