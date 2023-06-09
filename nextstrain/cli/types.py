@@ -10,6 +10,8 @@ from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 from typing_extensions import Protocol
 from .volume import NamedVolume
 
+Env = Mapping
+
 Options = argparse.Namespace
 
 RunnerSetupStatus = Optional[bool]
@@ -35,7 +37,7 @@ class RunnerModule(Protocol):
     def run(opts: Options,
             argv: List[str],
             working_volume: Optional[NamedVolume],
-            extra_env: Mapping,
+            extra_env: Env,
             cpus: Optional[int],
             memory: Optional[int]) -> int:
         ...

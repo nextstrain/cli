@@ -53,7 +53,7 @@ from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
-from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
 
 
@@ -83,7 +83,7 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     if working_volume:
         os.chdir(str(working_volume.src))
 

@@ -12,7 +12,7 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
-from ...types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
 from ... import config
 from . import jobs, s3
@@ -86,7 +86,7 @@ def register_arguments(parser) -> None:
         default = DEFAULT_MEMORY)
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     # Unlike other runners, the AWS Bach runner currently *requires* a working
     # dir.  This is ok as we only provide the AWS Batch runner for commands
     # which also require a working dir (e.g. build), whereas other runners also

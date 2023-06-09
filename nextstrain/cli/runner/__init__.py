@@ -1,7 +1,7 @@
 import argparse
 import builtins
 from argparse import ArgumentParser
-from typing import cast, Mapping, List, Union, TYPE_CHECKING
+from typing import cast, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
     conda as __conda,
@@ -11,7 +11,7 @@ from . import (
 )
 from .. import config
 from ..errors import UserError
-from ..types import Options, RunnerModule
+from ..types import Env, Options, RunnerModule
 from ..util import runner_name, runner_module, runner_help, warn
 from ..volume import NamedVolume
 
@@ -192,7 +192,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
         runner.register_arguments(parser)
 
 
-def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     """
     Inspect the given options object and call the selected runner's run()
     function with appropriate arguments.

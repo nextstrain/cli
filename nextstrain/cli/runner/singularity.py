@@ -19,7 +19,7 @@ from urllib.parse import urlsplit
 from .. import config, hostenv
 from ..errors import UserError
 from ..paths import RUNTIMES
-from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, colored, exec_or_return, split_image_name, warn
 from . import docker
 
@@ -150,7 +150,7 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     docker.assert_volumes_exist(opts.volumes)
 
     # We require docker:// qualified image names in this runtime internally,

@@ -12,7 +12,7 @@ from textwrap import dedent
 from typing import Iterable, List
 from .. import hostenv, config
 from ..errors import UserError
-from ..types import RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
+from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
@@ -60,7 +60,7 @@ def register_arguments(parser) -> None:
         action  = "append")
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     assert_volumes_exist(opts.volumes)
 
     # Check if all our stdio fds (stdin = 0, stdout = 1, stderr = 2) are TTYs.
