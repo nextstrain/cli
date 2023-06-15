@@ -14,7 +14,8 @@ from time import struct_time
 from typing import Callable, Generator, Iterable, List, Optional, Any
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
-from ...types import S3Bucket, S3Object
+from ... import env
+from ...types import Env, S3Bucket, S3Object
 from ...util import glob_matcher
 
 
@@ -195,6 +196,25 @@ def zipinfo_mtime(member: ZipInfo) -> float:
     # placeholders, are tm_wday (day of week), tm_yday (day of year), and
     # tm_isdst (DST flag).
     return timegm(struct_time((*member.date_time, -1, -1, -1)))
+
+
+def upload_envd(extra_env: Env, bucket: S3Bucket, run_id: str) -> S3Object:
+    """
+    Upload a ZIP archive of *extra_env* as an envdir to the remote S3 *bucket*
+    for the given *run_id*.
+
+    Returns the S3.Object instance of the uploaded archive.
+    """
+
+    remote_zip = bucket.Object(run_id + "-env.d.zip")
+
+    remote_file: Any
+    with fsspec.open(object_url(remote_zip), "wb", auto_mkdir = False) as remote_file:
+        with ZipFile(remote_file, "w") as zipfile:
+            for name, contents in env.to_dir_items(extra_env):
+                zipfile.writestr(name, contents)
+
+    return remote_zip
 
 
 def bucket(name: str) -> S3Bucket:

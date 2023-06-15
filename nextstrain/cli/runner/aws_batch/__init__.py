@@ -15,6 +15,7 @@ from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
 from ... import config
+from .. import docker
 from . import jobs, s3
 
 
@@ -130,6 +131,21 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         print("uploaded:", s3.object_url(remote_workdir))
 
+        # If the image supports /nextstrain/env.d, then pass any env vars using
+        # it so values aren't visible in the job's config (i.e. visible via
+        # `aws batch describe-jobs` and the web console).
+        if extra_env and docker.image_supports(docker.IMAGE_FEATURE.envd, opts.image):
+            # Write out all env directly to a ZIP archive on S3…
+            envd = s3.upload_envd(extra_env, bucket, run_id)
+
+            print("uploaded:", s3.object_url(envd))
+
+            # …then clear the env we pass via the job config and replace it
+            # with the URL of the ZIP archive and a flag to delete the
+            # /nextstrain/env.d contents and ZIP archive after use.
+            extra_env = {
+                "NEXTSTRAIN_ENVD_URL": s3.object_url(envd),
+                "NEXTSTRAIN_DELETE_ENVD": "1" }
 
         # Submit job.
         print_stage("Submitting job")

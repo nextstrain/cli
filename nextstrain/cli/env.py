@@ -3,8 +3,8 @@ Environment variable support.
 """
 import os
 from pathlib import Path
-from typing import Iterable, Iterator, List, Union
-from .types import EnvItem
+from typing import Iterable, Iterator, List, Tuple, Union
+from .types import Env, EnvItem
 
 
 Envd = Union[Path, str]
@@ -141,3 +141,73 @@ def from_dir(envd: Envd) -> Iterator[EnvItem]:
             value = None
 
         yield file.name, value
+
+
+def to_dir(envd: Envd, env: Env):
+    """
+    Write *env* to an *envd* directory like read by :func:`from_dir` and
+    :program:`envdir`.
+
+    >>> from tempfile import TemporaryDirectory
+    >>> tmp = TemporaryDirectory()
+    >>> env = {"x": "y", "multiline": "a\\nb\\nc", "emptystr": "", "none": None}
+    >>> to_dir(tmp.name, env)
+
+    >>> env == dict(from_dir(tmp.name))
+    True
+
+    >>> sorted(f.name for f in Path(tmp.name).iterdir())
+    ['emptystr', 'multiline', 'none', 'x']
+    >>> Path(tmp.name, "x").read_bytes()
+    b'y\\n'
+    >>> Path(tmp.name, "multiline").read_bytes()
+    b'a\\x00b\\x00c\\n'
+    >>> Path(tmp.name, "emptystr").read_bytes()
+    b'\\n'
+    >>> Path(tmp.name, "none").read_bytes()
+    b''
+
+    The keys of *env* may not contain ``=``.
+
+    >>> to_dir(tmp.name, {"a=b": "c"})
+    Traceback (most recent call last):
+      ...
+    ValueError: illegal environment variable name 'a=b'
+
+    >>> tmp.cleanup()
+    """
+    if not isinstance(envd, Path):
+        envd = Path(envd)
+
+    assert envd.is_dir(), f"envd {str(envd)!r} is not a directory"
+
+    for name, contents in to_dir_items(env):
+        with (envd / name).open("wb") as f:
+            f.write(contents)
+
+
+def to_dir_items(env: Env) -> Iterator[Tuple[str, bytes]]:
+    """
+    Convert *env* to a stream of (name, contents) pairs representing files in
+    an *envd* directory like read by :func:`from_dir` and :program:`envdir`.
+
+    >>> env = {"x": "y", "multiline": "a\\nb\\nc", "emptystr": "", "none": None}
+    >>> dict(to_dir_items(env))
+    {'x': b'y\\n', 'multiline': b'a\\x00b\\x00c\\n', 'emptystr': b'\\n', 'none': b''}
+
+    The keys of *env* may not contain ``=``.
+
+    >>> dict(to_dir_items({"a=b": "c"}))
+    Traceback (most recent call last):
+      ...
+    ValueError: illegal environment variable name 'a=b'
+    """
+    for name, value in env.items():
+        # See rationale for error above.
+        if "=" in name:
+            raise ValueError(f"illegal environment variable name {name!r}")
+
+        if value is not None:
+            yield name, (value.replace("\n", "\0") + "\n").encode("utf-8")
+        else:
+            yield name, b""
