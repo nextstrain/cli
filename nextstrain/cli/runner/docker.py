@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from textwrap import dedent
 from typing import Iterable, List
-from .. import hostenv, config, env
+from .. import config, env
 from ..errors import UserError
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
@@ -147,10 +147,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         # Change the default working directory if requested
         *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
 
-        # Pass through certain environment variables
-        *["--env=%s" % name for name in hostenv.forwarded_names],
-
-        # Plus any extra environment variables provided by us (not via an env.d)
+        # Pass thru any extra environment variables provided by us (not via an env.d)
         *["--env=%s" % name for name, value in extra_env.items() if value is not None],
 
         # Set resource limits if any

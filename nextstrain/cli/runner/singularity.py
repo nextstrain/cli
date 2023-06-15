@@ -16,7 +16,7 @@ from packaging.version import Version, InvalidVersion
 from pathlib import Path
 from typing import Iterable, List, Optional
 from urllib.parse import urlsplit
-from .. import config, hostenv
+from .. import config
 from ..errors import UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
@@ -177,12 +177,6 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         # prefixing with SINGULARITYENV_….¹
         #
         # ¹ <https://docs.sylabs.io/guides/3.0/user-guide/environment_and_metadata.html#environment>
-        #
-        # Pass through certain environment variables
-        **{f"SINGULARITYENV_{k}": v
-            for k, v in hostenv.forwarded_values() },
-
-        # Plus any extra environment variables provided by us
         **{f"SINGULARITYENV_{k}": v
             for k, v in extra_env.items()
              if v is not None },

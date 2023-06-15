@@ -9,7 +9,7 @@ from . import (
     ambient as __ambient,
     aws_batch as __aws_batch,
 )
-from .. import config, env
+from .. import config, env, hostenv
 from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
 from ..types import Env, Options, RunnerModule
@@ -258,10 +258,11 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
     if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
         opts.image = singularity.DEFAULT_IMAGE # type: ignore
 
-    # Add values from --envdir and --env to extra_env without overriding values
-    # explicitly set by our commands' own internals (i.e. the callers of this
-    # function).
+    # Add env from automatically forwarded vars, from --envdir, and from --env
+    # without overriding values explicitly set by our commands' own internals
+    # (i.e. the callers of this function).
     extra_env = {
+        **dict(hostenv.forwarded_values()),
         **dict(env.from_dirs(opts.envdir)),
         **dict(env.from_vars(opts.env)),
         **extra_env,

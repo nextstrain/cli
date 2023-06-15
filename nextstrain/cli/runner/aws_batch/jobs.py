@@ -6,8 +6,8 @@ import re
 from copy import deepcopy
 from operator import itemgetter
 from time import time
-from typing import Callable, Generator, Iterable, Mapping, List, Optional
-from ... import hostenv, aws
+from typing import Callable, Generator, Iterable, Mapping, Optional
+from ... import aws
 from ...errors import UserError
 from ...util import split_image_name
 from . import logs, s3
@@ -173,7 +173,6 @@ def submit(name: str,
                     "name": "NEXTSTRAIN_AWS_BATCH_WORKDIR_URL",
                     "value": s3.object_url(workdir),
                 },
-                *forwarded_environment(),
                 *[{"name": name, "value": value} for name, value in env.items()]
             ],
             "resourceRequirements": [
@@ -201,34 +200,6 @@ def lookup(job_id: str) -> JobState:
     job = JobState(job_id)
     job.update()
     return job
-
-
-def forwarded_environment() -> List[dict]:
-    """
-    Return a list of Batch job environment entries for the ambient local host
-    environment we want to forward along.
-    """
-
-    # XXX TODO: This isn't great from a security perspective as it makes the
-    # secrets visible in the AWS Batch job descriptions and possibly even the
-    # underlying Docker invocations in the process list on our
-    # dynamically-provisioned EC2 instances.  It probably ends up in logs
-    # somewhere too.  Naturally, Amazon recommends against it:
-    #
-    #    https://docs.aws.amazon.com/batch/latest/userguide/job_definition_parameters.html#containerProperties
-    #
-    # A better approach to implement in the future would be writing an env dir,
-    # shipping it over S3 like the rest of the job context, and adding envdir
-    # into the entrypoint exec-chain.
-    #
-    # I'm punting on that in the immediate-term as the risk/threat seems low,
-    # especially as our AWS Batch queue will only be used by ourselves.  (Other
-    # people will have to setup their own Batch queue.)
-    #   -trs, 17 Sept 2018
-    return [
-        { "name": name, "value": value }
-            for name, value in hostenv.forwarded_values()
-    ]
 
 
 def override_definition(base_definition_name: str, image: str) -> str:
