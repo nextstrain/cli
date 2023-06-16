@@ -265,9 +265,9 @@ def test_setup() -> RunnerTestResults:
                     is too old for this version of the CLI (%s).  At least
                     version %s of the image is required.
 
-                    Please run `nextstrain update` to download a newer image.
-                    Afterwards, run `nextstrain check-setup` again and this
-                    version check shoud pass.
+                    Please run `nextstrain update docker` to download a newer
+                    image.  Afterwards, run `nextstrain check-setup docker`
+                    again and this version check shoud pass.
                     """ % (tag, __version__, minimum_tag))
 
         # If we're using the "latest" tag and the image doesn't yet exist
