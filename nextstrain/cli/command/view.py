@@ -47,11 +47,12 @@ be ignored for the purposes of finding available narratives.
 
 from multiprocessing import Process, ProcessError
 import re
+import requests
 import webbrowser
 from os import environ
 from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
-from time import sleep
+from time import sleep, time
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
@@ -417,10 +418,20 @@ def _open_browser(url: str):
         warn(f"Couldn't open <{url}> in browser: no browser found")
         return
 
-    # XXX TODO: Many better ways to wait for Auspice to be running… but this is
-    # the simplest (if not the most reliable or most responsive).
-    #   -trs, 6 Dec 2022
-    sleep(2)
+    # Wait for Auspice to start responding…
+    timeout = 10
+    started = time()
+    while time() - started < timeout:
+        try:
+            with requests.get(url, timeout = 2, stream = True):
+                pass
+        except requests.RequestException:
+            sleep(0.2)
+        else:
+            break
+    else:
+        warn(f"Couldn't open <{url}> in browser: Auspice never started listening")
+        return
 
     try:
         # new = 2 means new tab, if possible
