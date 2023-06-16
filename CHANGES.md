@@ -13,6 +13,13 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* `nextstrain view` now waits (up to 10s) for Auspice to start responding
+  before automatically opening it in the browser.  This should eliminate the
+  previous behaviour of sometimes opening the browser too soon.
+  ([#291](https://github.com/nextstrain/cli/pull/291))
+
 
 # 7.0.1 (31 May 2023)
 
