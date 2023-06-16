@@ -2,7 +2,7 @@
 # shellcheck disable=SC1091
 set -eou pipefail
 
-base="$(realpath "$(dirname "$0")/..")"
+base="$(cd "$(dirname "$0")/.."; pwd)"
 
 source "$base/.venv/bin/activate"
 exec "$@"
