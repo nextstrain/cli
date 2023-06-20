@@ -155,7 +155,10 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
         metavar = "<name>[=<value>]",
         help    = "Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. "
                   "May be specified more than once. "
-                  "Overrides any variables of the same name set via --envdir."
+                  "Overrides any variables of the same name set via --envdir. "
+                  "When this option or --envdir is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  f"The \"well-known\" variables are: {' '.join(hostenv.forwarded_names)}. "
+                  "Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         action  = "append",
         default = [])
@@ -168,6 +171,8 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
                   "An envdir is a directory containing files describing environment variables. "
                   "Each filename is used as the variable name. "
                   "The first line of the contents of each file is used as the variable value. "
+                  "When this option or --env is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  "See the description of --env for more details. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         type    = DirectoryPath,
         action  = "append",
@@ -258,15 +263,18 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
     if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
         opts.image = singularity.DEFAULT_IMAGE # type: ignore
 
-    # Add env from automatically forwarded vars, from --envdir, and from --env
+    # Add env from automatically forwarded vars xor from --envdir and --env
     # without overriding values explicitly set by our commands' own internals
     # (i.e. the callers of this function).
-    extra_env = {
-        **dict(hostenv.forwarded_values()),
-        **dict(env.from_dirs(opts.envdir)),
-        **dict(env.from_vars(opts.env)),
-        **extra_env,
-    }
+    if opts.envdir or opts.env:
+        extra_env = {
+            **dict(env.from_dirs(opts.envdir)),
+            **dict(env.from_vars(opts.env)),
+            **extra_env }
+    else:
+        extra_env = {
+            **dict(hostenv.forwarded_values()),
+            **extra_env }
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 
