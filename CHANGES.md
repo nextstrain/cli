@@ -13,6 +13,57 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* Commands that use a runtime (`nextstrain build`, `nextstrain shell`, and
+  `nextstrain view`) now support two new options for setting or passing thru
+  environment variables into the runtime environment:
+
+      --env <name>[=<value>]
+      --envdir <path>
+
+  When either of these options are given, the default behaviour of
+  automatically passing thru several "well-known" environment variables is
+  disabled.  That is, the following "well-known" environment variables are only
+  automatically passed thru when the new `--env` and `--envdir` options are
+  _not_ used:
+
+    - `AUGUR_RECURSION_LIMIT`
+    - `AUGUR_MINIFY_JSON`
+    - `AWS_ACCESS_KEY_ID`
+    - `AWS_SECRET_ACCESS_KEY`
+    - `AWS_SESSION_TOKEN`
+    - `ID3C_URL`
+    - `ID3C_USERNAME`
+    - `ID3C_PASSWORD`
+    - `RETHINK_HOST`
+    - `RETHINK_AUTH_KEY`
+
+  Pass these variables explicitly via `--env` or `--envdir` if you need them in
+  combination with other `--env` or `--envdir` usage.  For more usage details,
+  use the `--help-all` flag of any of those commands, e.g. `nextstrain build
+  --help-all`.
+  ([#289](https://github.com/nextstrain/cli/pull/289))
+
+* Environment variables are now passed to the Docker and AWS Batch runtimes via
+  more secure means when the container image in use is new enough to support it
+  (`nextstrain/base:build-20230613T204512Z` and newer).  This ensures the env
+  values aren't visible in the container's config (e.g. via `docker inspect`,
+  `aws batch describe-jobs`, the AWS web console).  If you're using an older
+  image, you can update it with `nextstrain update docker`.
+
+  For Docker, environment variables are written to an internal and temporary
+  envdir directory visible only to the current user which is deleted
+  immediately after use at container start.
+
+  For AWS Batch, environment variables are written to a ZIP archive on S3,
+  alongside but separate from the ZIP archive of the build dir.  This env
+  archive is deleted from S3 immediately after use at container start.
+
+  Both of these approaches minimize the amount of time environment variable
+  values exist outside of memory, persisted to storage (disk, S3).
+  ([#289](https://github.com/nextstrain/cli/pull/289))
+
 ## Bug fixes
 
 * `nextstrain view` now waits (up to 10s) for Auspice to start responding
