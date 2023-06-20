@@ -13,7 +13,7 @@ from .. import config, env, hostenv
 from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
 from ..types import Env, Options, RunnerModule
-from ..util import runner_name, runner_module, runner_help, warn
+from ..util import prose_list, runner_name, runner_module, runner_help, warn
 from ..volume import NamedVolume
 
 
@@ -157,7 +157,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
                   "May be specified more than once. "
                   "Overrides any variables of the same name set via --envdir. "
                   "When this option or --envdir is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
-                  f"The \"well-known\" variables are: {' '.join(hostenv.forwarded_names)}. "
+                  f"The \"well-known\" variables are {prose_list(hostenv.forwarded_names, 'and')}. "
                   "Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         action  = "append",

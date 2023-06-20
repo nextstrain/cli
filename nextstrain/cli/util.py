@@ -11,7 +11,7 @@ import site
 import subprocess
 import sys
 from functools import partial
-from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
+from typing import Any, Callable, Iterable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
 from packaging.version import parse as parse_version
 from pathlib import Path
@@ -610,3 +610,21 @@ def print_runner_tests(tests: RunnerTestResults):
             remove_prefix("  ", indent(description, "  "))
 
         print(status.get(result, str(result)) + ":", formatted_description)
+
+
+# Copied without modification from lib/id3c/api/utils/__init__.py in the ID3C
+# project¹, which is licensed under the MIT license.  See the LICENSE.id3c file
+# distributed alongside this project's own LICENSE file.
+#
+# ¹ <https://github.com/seattleflu/id3c/blob/fdc3a17a6dd711caa760a6d533aae2be166127fd/lib/id3c/api/utils/__init__.py#L8-L18>
+def prose_list(iterable: Iterable[str], conjunction: str = "or") -> str:
+    """
+    Construct a nice natural language list of items from the *iterable*.  The
+    default *conjunction* is "or".
+    """
+    values = list(iterable)
+
+    if len(values) > 2:
+        return ", ".join([*values[:-1], f"{conjunction} " + values[-1]])
+    else:
+        return f" {conjunction} ".join(values)
