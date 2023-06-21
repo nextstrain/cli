@@ -1,7 +1,7 @@
 import argparse
 import builtins
 from argparse import ArgumentParser
-from typing import cast, Mapping, List, Union, TYPE_CHECKING
+from typing import cast, List, Union, TYPE_CHECKING
 from . import (
     docker as __docker,
     conda as __conda,
@@ -9,10 +9,11 @@ from . import (
     ambient as __ambient,
     aws_batch as __aws_batch,
 )
-from .. import config
+from .. import config, env, hostenv
+from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
-from ..types import Options, RunnerModule
-from ..util import runner_name, runner_module, runner_help, warn
+from ..types import Env, Options, RunnerModule
+from ..util import prose_list, runner_name, runner_module, runner_help, warn
 from ..volume import NamedVolume
 
 
@@ -145,6 +146,39 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     (exec_cmd, *exec_args) = exec
 
     # Arguments for all runners
+    runtime = parser.add_argument_group(
+        "runtime options",
+        "Options shared by all runtimes.")
+
+    runtime.add_argument(
+        "--env",
+        metavar = "<name>[=<value>]",
+        help    = "Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. "
+                  "May be specified more than once. "
+                  "Overrides any variables of the same name set via --envdir. "
+                  "When this option or --envdir is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  f"The \"well-known\" variables are {prose_list(hostenv.forwarded_names, 'and')}. "
+                  "Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. "
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        action  = "append",
+        default = [])
+
+    runtime.add_argument(
+        "--envdir",
+        metavar = "<path>",
+        help    = "Set environment variables from the envdir at <path>. "
+                  "May be specified more than once. "
+                  "An envdir is a directory containing files describing environment variables. "
+                  "Each filename is used as the variable name. "
+                  "The first line of the contents of each file is used as the variable value. "
+                  "When this option or --env is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  "See the description of --env for more details. "
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
+        type    = DirectoryPath,
+        action  = "append",
+        default = [])
+
+    # Development arguments for all runners
     development = parser.add_argument_group(
         "development options",
         "These should generally be unnecessary unless you're developing Nextstrain.")
@@ -192,7 +226,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
         runner.register_arguments(parser)
 
 
-def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     """
     Inspect the given options object and call the selected runner's run()
     function with appropriate arguments.
@@ -228,6 +262,19 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Mapping = 
     # selected runner.
     if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
         opts.image = singularity.DEFAULT_IMAGE # type: ignore
+
+    # Add env from automatically forwarded vars xor from --envdir and --env
+    # without overriding values explicitly set by our commands' own internals
+    # (i.e. the callers of this function).
+    if opts.envdir or opts.env:
+        extra_env = {
+            **dict(env.from_dirs(opts.envdir)),
+            **dict(env.from_vars(opts.env)),
+            **extra_env }
+    else:
+        extra_env = {
+            **dict(hostenv.forwarded_values()),
+            **extra_env }
 
     return opts.__runner__.run(opts, argv, working_volume = working_volume, extra_env = extra_env, cpus = cpus, memory = memory)
 

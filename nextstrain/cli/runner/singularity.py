@@ -16,10 +16,10 @@ from packaging.version import Version, InvalidVersion
 from pathlib import Path
 from typing import Iterable, List, Optional
 from urllib.parse import urlsplit
-from .. import config, hostenv
+from .. import config
 from ..errors import UserError
 from ..paths import RUNTIMES
-from ..types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, colored, exec_or_return, split_image_name, warn
 from . import docker
 
@@ -150,7 +150,7 @@ def register_arguments(parser) -> None:
     pass
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     docker.assert_volumes_exist(opts.volumes)
 
     # We require docker:// qualified image names in this runtime internally,
@@ -177,15 +177,9 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         # prefixing with SINGULARITYENV_….¹
         #
         # ¹ <https://docs.sylabs.io/guides/3.0/user-guide/environment_and_metadata.html#environment>
-        #
-        # Pass through certain environment variables
-        **{f"SINGULARITYENV_{k}": os.environ[k]
-            for k in hostenv.forwarded_names
-             if k in os.environ},
-
-        # Plus any extra environment variables provided by us
         **{f"SINGULARITYENV_{k}": v
-            for k, v in extra_env.items()},
+            for k, v in extra_env.items()
+             if v is not None },
     }
 
     return exec_or_return([

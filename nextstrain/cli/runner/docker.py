@@ -7,12 +7,14 @@ import json
 import requests
 import shutil
 import subprocess
-from pathlib import PurePosixPath
+from enum import Enum
+from pathlib import Path, PurePosixPath
+from tempfile import TemporaryDirectory
 from textwrap import dedent
 from typing import Iterable, List
-from .. import hostenv, config
+from .. import config, env
 from ..errors import UserError
-from ..types import RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
+from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name
 from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
@@ -27,6 +29,16 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
              or "nextstrain/base"
 
 COMPONENTS = ["augur", "auspice", "fauna", "sacra"]
+
+
+class IMAGE_FEATURE(Enum):
+    # Auspice ≥1.35.2 necessitated tightly-coupled changes to the image (first
+    # present in this tag) and `nextstrain view` (see commit 2754026, first
+    # present in the 1.8.0 release).
+    compatible_auspice = "build-20190119T045444Z"
+
+    # /nextstrain/env.d support first present.
+    envd = "build-20230613T204512Z"
 
 
 def register_arguments(parser) -> None:
@@ -60,7 +72,7 @@ def register_arguments(parser) -> None:
         action  = "append")
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     assert_volumes_exist(opts.volumes)
 
     # Check if all our stdio fds (stdin = 0, stdout = 1, stderr = 2) are TTYs.
@@ -77,6 +89,28 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
     # module.
     uid = getattr(os, "getuid", lambda: None)()
     gid = getattr(os, "getgid", lambda: None)()
+
+    # If the image supports /nextstrain/env.d, then pass any env vars using it
+    # so values aren't visible in the container's config (e.g. visible via
+    # `docker inspect`).
+    if extra_env and image_supports(IMAGE_FEATURE.envd, opts.image):
+        # Most of the time this TemporaryDirectory's destructor won't run
+        # because we exec into another program.  That's desireable since
+        # ultimately the container, shortly after startup, needs to read the
+        # files in envd.  The container is configured to delete them when its
+        # done, thus leaving an empty directory.  We rely on the OS to
+        # periodically clean out TMP (e.g. at boot) to remove the empty
+        # directories.  However, if the exec fails, then the destructor *will*
+        # run, and we'll clean up the whole thing.
+        envd = TemporaryDirectory(prefix = "nextstrain-", suffix = "-env.d")
+        opts.volumes.append(NamedVolume("env.d", Path(envd.name)))
+
+        # Write out all env to the dir…
+        env.to_dir(Path(envd.name), extra_env)
+
+        # …then clear it from what we pass via the container config and replace
+        # it with a flag to delete the contents of the env.d after use.
+        extra_env = {"NEXTSTRAIN_DELETE_ENVD": "1"}
 
     return exec_or_return([
         "docker", "run",
@@ -113,11 +147,8 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
         # Change the default working directory if requested
         *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
 
-        # Pass through certain environment variables
-        *["--env=%s" % name for name in hostenv.forwarded_names],
-
-        # Plus any extra environment variables provided by us
-        *["--env=%s" % name for name in extra_env.keys()],
+        # Pass thru any extra environment variables provided by us (not via an env.d)
+        *["--env=%s" % name for name, value in extra_env.items() if value is not None],
 
         # Set resource limits if any
         *(["--cpus=%d" % cpus]
@@ -246,7 +277,7 @@ def test_setup() -> RunnerTestResults:
         return [(msg, status)]
 
     def test_image_version():
-        minimum_tag = "build-20190119T045444Z"
+        minimum_tag = IMAGE_FEATURE.compatible_auspice.value
 
         msg = 'image is new enough for this CLI version'
         status: RunnerTestResultStatus = ...
@@ -355,6 +386,20 @@ def _update(dry_run: bool = False) -> RunnerUpdateStatus:
             warn()
 
     return True
+
+
+def image_supports(feature: IMAGE_FEATURE, image: str = DEFAULT_IMAGE) -> bool:
+    """
+    Test if the given *image* supports a *feature*, i.e. by tag comparison
+    against the feature's first release.
+
+    If *image* is tagged ``latest``, either explicitly or implicity, it is
+    assumed to have support for all features.
+    """
+    repository, tag = split_image_name(image)
+
+    return tag == "latest" \
+        or (is_build_tag(tag) and tag >= feature.value)
 
 
 def is_build_tag(tag: str) -> bool:

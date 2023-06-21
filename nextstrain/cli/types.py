@@ -10,6 +10,21 @@ from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 from typing_extensions import Protocol
 from .volume import NamedVolume
 
+"""
+An immutable mapping of (*name*, *value*) pairs representing a set of
+additional environment variables to overlay on the current environment (e.g.
+when executing a subprocess).
+
+Each (*name*, *value*) pair represents a single environment variable.
+
+A *value* of ``None`` indicates the positive absence of *name* (e.g. it is to
+be removed if present).
+"""
+Env = Mapping['EnvName', 'EnvValue']
+EnvItem = Tuple['EnvName', 'EnvValue']
+EnvName = str
+EnvValue = Union[str, None]
+
 Options = argparse.Namespace
 
 RunnerSetupStatus = Optional[bool]
@@ -35,7 +50,7 @@ class RunnerModule(Protocol):
     def run(opts: Options,
             argv: List[str],
             working_volume: Optional[NamedVolume],
-            extra_env: Mapping,
+            extra_env: Env,
             cpus: Optional[int],
             memory: Optional[int]) -> int:
         ...

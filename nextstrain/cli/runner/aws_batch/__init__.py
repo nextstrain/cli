@@ -12,9 +12,10 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable
 from uuid import uuid4
-from ...types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
 from ... import config
+from .. import docker
 from . import jobs, s3
 
 
@@ -86,7 +87,7 @@ def register_arguments(parser) -> None:
         default = DEFAULT_MEMORY)
 
 
-def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, memory: int = None) -> int:
+def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     # Unlike other runners, the AWS Bach runner currently *requires* a working
     # dir.  This is ok as we only provide the AWS Batch runner for commands
     # which also require a working dir (e.g. build), whereas other runners also
@@ -130,6 +131,21 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
 
         print("uploaded:", s3.object_url(remote_workdir))
 
+        # If the image supports /nextstrain/env.d, then pass any env vars using
+        # it so values aren't visible in the job's config (i.e. visible via
+        # `aws batch describe-jobs` and the web console).
+        if extra_env and docker.image_supports(docker.IMAGE_FEATURE.envd, opts.image):
+            # Write out all env directly to a ZIP archive on S3…
+            envd = s3.upload_envd(extra_env, bucket, run_id)
+
+            print("uploaded:", s3.object_url(envd))
+
+            # …then clear the env we pass via the job config and replace it
+            # with the URL of the ZIP archive and a flag to delete the
+            # /nextstrain/env.d contents and ZIP archive after use.
+            extra_env = {
+                "NEXTSTRAIN_ENVD_URL": s3.object_url(envd),
+                "NEXTSTRAIN_DELETE_ENVD": "1" }
 
         # Submit job.
         print_stage("Submitting job")
@@ -156,7 +172,7 @@ def run(opts, argv, working_volume = None, extra_env = {}, cpus: int = None, mem
                 memory     = memory,
                 workdir    = remote_workdir,
                 exec       = argv,
-                env        = extra_env)
+                env        = { k: v for k, v in extra_env.items() if v is not None })
         except Exception as error:
             warn(error)
             warn("Job submission failed!")

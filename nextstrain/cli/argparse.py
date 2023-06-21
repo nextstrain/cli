@@ -4,6 +4,7 @@ Custom helpers for extending the behaviour of argparse standard library.
 import sys
 from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentTypeError, SUPPRESS
 from itertools import takewhile
+from pathlib import Path
 from textwrap import indent
 from types import SimpleNamespace
 from .rst import rst_to_text
@@ -194,3 +195,19 @@ def runner_module_argument(name: str) -> RunnerModule:
         return runner_module(name)
     except ValueError as err:
         raise ArgumentTypeError(*err.args) from err
+
+
+def DirectoryPath(value: str) -> Path:
+    """
+    Argument ``type`` function which enforces a path is a directory that
+    exists.
+
+    Raises :py:exc:`ArgumentTypeError` if not a directory, which lets
+    :py:mod:`argparse` emit a nice error message.
+    """
+    path = Path(value)
+
+    if not path.is_dir():
+        raise ArgumentTypeError(f"not a directory: {value}")
+
+    return path

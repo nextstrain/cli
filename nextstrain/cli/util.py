@@ -11,7 +11,7 @@ import site
 import subprocess
 import sys
 from functools import partial
-from typing import Any, Callable, Mapping, List, Optional, Sequence, Tuple, Union, overload
+from typing import Any, Callable, Iterable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from typing_extensions import Literal
 from packaging.version import parse as parse_version
 from pathlib import Path
@@ -275,14 +275,19 @@ def capture_output(argv, extra_env: Mapping = {}):
     When we bump our minimum Python version, we can remove this wrapper.
 
     If an *extra_env* mapping is passed, the provided keys and values are
-    overlayed onto the current environment.
+    overlayed onto the current environment.  Keys with a value of ``None`` are
+    removed from the current environment (i.e. like ``del os.environ[key]``).
     """
     debug(f"capture_output({argv!r}, {extra_env!r})")
 
     env = os.environ.copy()
 
     if extra_env:
-        env.update(extra_env)
+        for k, v in extra_env.items():
+            if v is None:
+                env.pop(k, None)
+            else:
+                env[k] = v
 
     result = subprocess.run(
         argv,
@@ -307,7 +312,8 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
     signals.
 
     If an *extra_env* mapping is passed, the provided keys and values are
-    overlayed onto the current environment.
+    overlayed onto the current environment.  Keys with a value of ``None`` are
+    removed from the current environment (i.e. like ``del os.environ[key]``).
 
     ¹ https://bugs.python.org/issue9148
     """
@@ -316,7 +322,11 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
     env = os.environ.copy()
 
     if extra_env:
-        env.update(extra_env)
+        for k, v in extra_env.items():
+            if v is None:
+                env.pop(k, None)
+            else:
+                env[k] = v
 
     # Use a POSIX exec(3) for file descriptor and signal handling…
     if os.name == "posix":
@@ -600,3 +610,21 @@ def print_runner_tests(tests: RunnerTestResults):
             remove_prefix("  ", indent(description, "  "))
 
         print(status.get(result, str(result)) + ":", formatted_description)
+
+
+# Copied without modification from lib/id3c/api/utils/__init__.py in the ID3C
+# project¹, which is licensed under the MIT license.  See the LICENSE.id3c file
+# distributed alongside this project's own LICENSE file.
+#
+# ¹ <https://github.com/seattleflu/id3c/blob/fdc3a17a6dd711caa760a6d533aae2be166127fd/lib/id3c/api/utils/__init__.py#L8-L18>
+def prose_list(iterable: Iterable[str], conjunction: str = "or") -> str:
+    """
+    Construct a nice natural language list of items from the *iterable*.  The
+    default *conjunction* is "or".
+    """
+    values = list(iterable)
+
+    if len(values) > 2:
+        return ", ".join([*values[:-1], f"{conjunction} " + values[-1]])
+    else:
+        return f" {conjunction} ".join(values)
