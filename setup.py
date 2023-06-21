@@ -91,7 +91,7 @@ setup(
         "importlib_resources >=5.3.0; python_version < '3.11'",
         "packaging",
         "pyjwt[crypto] >=2.0.0",
-        "pyparsing",
+        "pyparsing >=3.0.0",
         "requests",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
