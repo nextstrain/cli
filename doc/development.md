@@ -109,8 +109,8 @@ and [pyright][]:
 There are also many [editor integrations for mypy][], and Pyright is integrated
 into VS Code's Python support.
 
-The [`typing_extensions`][] module should be used for features added to the
-standard `typings` module after 3.6.
+The [`typing_extensions`][] module should be used for features not yet available
+in the the standard `typings` module of supported Python versions.
 
 We also use [Flake8][] for some static analysis checks focusing on runtime
 safety and correctness.  You can run them like this:
