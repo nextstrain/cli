@@ -144,6 +144,6 @@ Changes to source documentation files will be reflected automatically.
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [mypy]: http://mypy-lang.org/
 [pyright]: https://github.com/microsoft/pyright
-[editor integrations for mypy]: https://github.com/python/mypy#ide--linter-integrations
+[editor integrations for mypy]: https://github.com/python/mypy#integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
