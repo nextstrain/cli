@@ -7,6 +7,7 @@ import builtins
 import urllib.parse
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
+# TODO: Use typing.Protocol once Python 3.8 is the minimum supported version.
 from typing_extensions import Protocol
 from .volume import NamedVolume
 
