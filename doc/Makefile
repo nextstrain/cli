@@ -23,4 +23,4 @@ HOST ?= 127.0.0.1
 PORT ?= 8000
 
 livehtml:
-	sphinx-autobuild -b dirhtml "$(SOURCEDIR)" "$(BUILDDIR)/dirhtml" --host "$(HOST)" --port "$(PORT)" $(SPHINXOPTS) $(O)
+	sphinx-autobuild -b dirhtml "$(SOURCEDIR)" "$(BUILDDIR)/dirhtml" --host "$(HOST)" --port "$(PORT)" --watch ../nextstrain/cli $(SPHINXOPTS) $(O)
