@@ -52,11 +52,12 @@ from nextstrain.cli.argparse import HelpFormatter, walk_commands
 from nextstrain.cli.debug import debug
 
 
-# We don't generate docs for these.
+# We generate docs for these and they can be directly accessed, but they're
+# unlinked so we must note that to suppress warnings from Sphinx.
 hidden = {
-    ("nextstrain",),
-    ("nextstrain", "debugger"),
-    ("nextstrain", "init-shell"),
+    "nextstrain",
+    "nextstrain debugger",
+    "nextstrain init-shell",
 }
 
 
@@ -80,9 +81,6 @@ def main(*, command_given = None, check = False):
 
     for command, parser in walk_commands(make_parser()):
         if command_given and command != command_given:
-            continue
-
-        if command in hidden and command != command_given:
             continue
 
         page = command_page(command, parser)
@@ -134,6 +132,10 @@ def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[
     usage = parser.format_usage()
     description = cleandoc(parser.description or "")
     epilog = cleandoc(parser.epilog or "")
+
+    if program in hidden:
+        yield ":orphan:"
+        yield
 
     yield ".. default-role:: literal"
     yield
