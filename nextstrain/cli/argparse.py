@@ -225,5 +225,12 @@ def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = N
             for action in parser._actions
              if isinstance(action, _SubParsersAction))
 
+    visited = set()
+
     for subname, subparser in subparsers:
+        if subparser in visited:
+            continue
+
+        visited.add(subparser)
+
         yield from walk_commands(subparser, (*command, subname))
