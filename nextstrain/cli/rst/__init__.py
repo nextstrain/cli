@@ -22,6 +22,7 @@ from docutils.core import publish_string as convert_rst_to_string, publish_doctr
 from docutils.parsers.rst.roles import register_local_role
 from docutils.utils import unescape                         # type: ignore
 from ..__version__ import __version__ as cli_version
+from ..util import remove_suffix
 from .sphinx import TextWriter
 
 
@@ -189,7 +190,13 @@ def doc_url(target: str) -> str:
         # Oh well.
         return target
 
-    return project_url.rstrip("/") + "/" + path.lstrip("/") + suffix
+    if path.endswith("/index"):
+        # a/b/index → a/b/ (e.g. implicitly a/b/index.html)
+        path_url = remove_suffix("index", path)
+    else:
+        path_url = path + (suffix or "")
+
+    return project_url.rstrip("/") + "/" + path_url.lstrip("/")
 
 
 class Reader(docutils.readers.standalone.Reader):
