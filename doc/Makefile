@@ -22,5 +22,8 @@ help:
 HOST ?= 127.0.0.1
 PORT ?= 8000
 
+serve: dirhtml
+	cd "$(BUILDDIR)/dirhtml" && python3 -m http.server --bind "$(HOST)" "$(PORT)"
+
 livehtml:
 	sphinx-autobuild -b dirhtml "$(SOURCEDIR)" "$(BUILDDIR)/dirhtml" --host "$(HOST)" --port "$(PORT)" --watch ../nextstrain/cli $(SPHINXOPTS) $(O)
