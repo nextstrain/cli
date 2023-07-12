@@ -1,9 +1,52 @@
+.. default-role:: literal
+
+.. program:: nextstrain login
+
 ================
 nextstrain login
 ================
 
-.. argparse::
-    :module: nextstrain.cli
-    :func: make_parser
-    :prog: nextstrain
-    :path: login
+.. code-block:: none
+
+    usage: nextstrain login [-h] [--username <name>] [--no-prompt] [--renew]
+
+
+Log into Nextstrain.org and save credentials for later use.
+
+The first time you log in, you'll be prompted for your Nextstrain.org username
+and password.  After that, locally-saved authentication tokens will be used and
+automatically renewed as needed when you run other `nextstrain` commands
+requiring log in.  You can also re-run this `nextstrain login` command to force
+renewal if you want.  You'll only be prompted for your username and password if
+the locally-saved tokens are unable to be renewed or missing entirely.
+
+If you log out of Nextstrain.org on other devices/clients (like your web
+browser), you may be prompted to re-enter your username and password by this
+command sooner than usual.
+
+Your password itself is never saved locally.
+
+For automation purposes, you may opt to provide the username and password to
+use in the environment variables NEXTSTRAIN_USERNAME and NEXTSTRAIN_PASSWORD.
+
+optional arguments
+==================
+
+
+
+.. option:: -h, --help
+
+    show this help message and exit
+
+.. option:: --username <name>, -u <name>
+
+    The username to log in as.  If not provided, the NEXTSTRAIN_USERNAME environment variable will be used if available, otherwise you'll be prompted to enter your username.
+
+.. option:: --no-prompt
+
+    Never prompt for a username/password; succeed only if there are login credentials in the environment or existing valid/renewable tokens saved locally, otherwise error.  Useful for scripting.
+
+.. option:: --renew
+
+    Renew existing tokens, if possible.  Useful to refresh group membership information (for example) sooner than the tokens would normally be renewed.
+

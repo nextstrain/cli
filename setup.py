@@ -133,7 +133,6 @@ setup(
             "pytest-forked",
             "recommonmark",
             "sphinx>=3",
-            "sphinx-argparse ~=0.3",
             "sphinx-autobuild",
             "sphinx-markdown-tables !=0.0.16",
             "sphinx_rtd_theme",

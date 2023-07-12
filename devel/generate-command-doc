@@ -1,0 +1,192 @@
+#!/usr/bin/env python3
+"""
+Generate documentation pages for each Nextstrain CLI command.
+
+Uses the Sphinx ``program`` and ``option`` directives so they can be
+cross-referenced.  An alternative to using the ``autodoc`` or ``autoprogram``
+extensions which dynamically generate rST at Sphinx build time instead.
+
+To generate rST files for all commands::
+
+    ./devel/generate-command-doc
+
+Files are only written if their contents need updating.  The paths of the
+updated files are output to stderr.
+
+To instead output (to stdout) the rST for a single command::
+
+    ./devel/generate-command-doc nextstrain build
+
+This can be useful for development loops.
+"""
+import os
+from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
+from contextlib import contextmanager, redirect_stdout
+from hashlib import md5
+from inspect import cleandoc
+from pathlib import Path
+from sys import exit, stderr
+from tempfile import TemporaryDirectory
+from textwrap import dedent, indent
+from typing import Iterable, Tuple, Union
+
+doc = (Path(__file__).resolve().parent.parent / "doc/").relative_to(Path.cwd())
+tmp = TemporaryDirectory()
+
+# Force some environment vars before loading any Nextstrain CLI code which may
+# inspect them, for reproducible/stable output.
+os.environ.update({
+    # The argparse HelpFormatter cares about terminal size, but we don't want
+    # that to vary based on where we run this program.
+    "COLUMNS": "1000",
+
+    # Avoid the current user's personal configuration from affecting output.
+    "NEXTSTRAIN_HOME": tmp.name,
+
+    # Ensure we detect a browser for stable `nextstrain view` output.
+    "BROWSER": "/bin/true",
+})
+
+from nextstrain.cli import make_parser
+from nextstrain.cli.argparse import HelpFormatter, walk_commands
+from nextstrain.cli.debug import debug
+
+
+# We don't generate docs for these.
+hidden = {
+    ("nextstrain",),
+    ("nextstrain", "debugger"),
+    ("nextstrain", "init-shell"),
+}
+
+
+argparser = ArgumentParser(
+    prog            = "./devel/generate-command-doc",
+    usage           = "./devel/generate-command-doc [--check] [<command> […]]",
+    description     = __doc__,
+    formatter_class = HelpFormatter)
+
+argparser.add_argument("command_given", nargs = "*", metavar = "<command>", help = "The single command, given as multiple arguments, for which to generate rST.")
+argparser.add_argument("--check", action = "store_true", help = "Only check if any file contents have changed; do not update any files.  Exits 1 if there are changes, 0 if not.")
+
+
+def main(*, command_given = None, check = False):
+    if check and command_given:
+        print("error: --check is only supported when updating files for all commands", file = stderr)
+        return 1
+
+    check_failed = False
+    command_given = tuple(command_given)
+
+    for command, parser in walk_commands(make_parser()):
+        if command_given and command != command_given:
+            continue
+
+        if command in hidden and command != command_given:
+            continue
+
+        page = command_page(command, parser)
+        path = doc / f"{page}.rst"
+
+        debug(f"--> {' '.join(command)}")
+        debug(f"Generating rST…")
+
+        rst = generate_rst(command, parser)
+
+        if command_given:
+            print(rst)
+        else:
+            rst = rst.encode("utf-8")
+
+            old_md5 = md5(path.read_bytes()).hexdigest() if path.exists() else "0" * 32
+            new_md5 = md5(rst).hexdigest()
+
+            debug(f"Old MD5: {old_md5}")
+            debug(f"New MD5: {new_md5}")
+
+            if old_md5 != new_md5:
+                if check:
+                    check_failed = True
+                else:
+                    path.write_bytes(rst)
+                    debug(f"wrote {len(rst):,} bytes ({new_md5}) to {path}")
+                print(path, file = stderr)
+            else:
+                debug(f"{path} unchanged")
+
+    return 1 if check and check_failed else 0
+
+
+def command_page(command: Tuple[str, ...], parser: ArgumentParser) -> str:
+    return (
+          "commands/"
+        + "/".join(command[1:])
+        + ("/index" if parser._subparsers else ""))
+
+
+def generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> str:
+    return "\n".join(chunk or "" for chunk in _generate_rst(command, parser))
+
+
+def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[Union[str, None]]:
+    program = " ".join(command)
+    formatter = parser.formatter_class(program)
+    usage = parser.format_usage()
+    description = cleandoc(parser.description or "")
+    epilog = cleandoc(parser.epilog or "")
+
+    yield ".. default-role:: literal"
+    yield
+    yield f".. program:: {program}"
+    yield
+    yield "=" * len(program)
+    yield program
+    yield "=" * len(program)
+    yield
+    yield ".. code-block:: none"
+    yield
+    yield indent(usage, "    ")
+    yield
+    yield description
+    yield
+
+    for group in parser._action_groups:
+        if not group._group_actions:
+            continue
+
+        title = group.title or "options"
+        description = cleandoc(group.description or "")
+
+        yield title
+        yield "=" * len(title)
+        yield
+        yield description
+        yield
+
+        for action in group._group_actions:
+            if action.help is SUPPRESS:
+                continue
+
+            if isinstance(action, _SubParsersAction):
+                for choice in action._choices_actions:
+                    subcommand = choice.dest
+                    subparser = action.choices[subcommand]
+                    subpage = command_page((*command, subcommand), subparser)
+                    yield f".. option:: {subcommand}"
+                    yield
+                    yield indent(f"{choice.help}. See :doc:`/{subpage}`.", "    ")
+                    yield
+            else:
+                invocation = formatter._format_action_invocation(action)
+                description = (action.help or "") % {"default": action.default}
+
+                yield f".. option:: {invocation}"
+                yield
+                yield indent(description, "    ")
+                yield
+
+    yield epilog
+
+
+if __name__ == "__main__":
+    exit(main(**vars(argparser.parse_args())))

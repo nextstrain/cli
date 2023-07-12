@@ -37,7 +37,6 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx_markdown_tables',
-    'sphinxarg.ext',
     'nextstrain.sphinx.theme',
 ]
 
