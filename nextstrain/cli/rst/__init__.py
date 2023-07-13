@@ -50,7 +50,7 @@ POSTAMBLE = """
 """
 
 
-def rst_to_text(source: str) -> str:
+def rst_to_text(source: str, width: int = None) -> str:
     """
     Converts rST *source* to plain text.
 
@@ -91,7 +91,7 @@ def rst_to_text(source: str) -> str:
         return convert_rst(
             "\n".join([PREAMBLE, source, POSTAMBLE]),
             reader = Reader(),
-            writer = TextWriter(),
+            writer = TextWriter(width = width),
             settings_overrides = settings,
             enable_exit_status = STRICT)
     except:
