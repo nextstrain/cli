@@ -6,7 +6,7 @@ from subprocess import run
 
 
 
-commands = list(walk_commands(make_parser()))
+commands = list(command for command, parser in walk_commands(make_parser()))
 
 
 @pytest.mark.parametrize("command", commands, ids = lambda command: " ".join(command))

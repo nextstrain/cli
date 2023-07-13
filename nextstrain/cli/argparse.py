@@ -214,11 +214,11 @@ def DirectoryPath(value: str) -> Path:
     return path
 
 
-def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = None) -> Iterable[Tuple[str, ...]]:
+def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = None) -> Iterable[Tuple[Tuple[str, ...], ArgumentParser]]:
     if command is None:
         command = (parser.prog,)
 
-    yield command
+    yield command, parser
 
     subparsers = chain.from_iterable(
         action.choices.items()
