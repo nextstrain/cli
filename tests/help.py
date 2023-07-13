@@ -1,21 +1,9 @@
 import pytest
-import argparse
 import os
-from itertools import chain
 from nextstrain.cli import make_parser
+from nextstrain.cli.argparse import walk_commands
 from subprocess import run
 
-
-def walk_commands(command, parser):
-    yield command
-
-    subparsers = chain.from_iterable(
-        action.choices.items()
-            for action in parser._actions
-             if isinstance(action, argparse._SubParsersAction))
-
-    for subname, subparser in subparsers:
-        yield from walk_commands([*command, subname], subparser)
 
 
 commands = list(walk_commands(("nextstrain",), make_parser()))

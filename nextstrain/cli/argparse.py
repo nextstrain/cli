@@ -2,11 +2,12 @@
 Custom helpers for extending the behaviour of argparse standard library.
 """
 import sys
-from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentTypeError, SUPPRESS
-from itertools import takewhile
+from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError, SUPPRESS, _SubParsersAction # pyright: ignore[reportPrivateUsage]
+from itertools import chain, takewhile
 from pathlib import Path
 from textwrap import indent
 from types import SimpleNamespace
+from typing import Iterable, Tuple
 from .rst import rst_to_text
 from .types import RunnerModule
 from .util import format_usage, runner_module
@@ -211,3 +212,15 @@ def DirectoryPath(value: str) -> Path:
         raise ArgumentTypeError(f"not a directory: {value}")
 
     return path
+
+
+def walk_commands(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[Tuple[str, ...]]:
+    yield command
+
+    subparsers = chain.from_iterable(
+        action.choices.items()
+            for action in parser._actions
+             if isinstance(action, _SubParsersAction))
+
+    for subname, subparser in subparsers:
+        yield from walk_commands((*command, subname), subparser)
