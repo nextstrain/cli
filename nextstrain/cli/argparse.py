@@ -1,6 +1,7 @@
 """
 Custom helpers for extending the behaviour of argparse standard library.
 """
+import os
 import sys
 from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError, SUPPRESS, _SubParsersAction # pyright: ignore[reportPrivateUsage]
 from itertools import chain, takewhile
@@ -25,9 +26,25 @@ SKIP_AUTO_DEFAULT_IN_HELP = "%(default).0s"
 
 
 class HelpFormatter(ArgumentDefaultsHelpFormatter):
+    def __init__(self, prog, indent_increment = 2, max_help_position = 24, width = None):
+        # Ignore terminal size, unlike standard argparse, as the readability of
+        # paragraphs of text suffers at wide widths.  Instead, default to 78
+        # columns (80 wide - 2 column gutter), but let that be overridden by an
+        # explicit COLUMNS variable or reduced by a smaller actual terminal.
+        if width is None:
+            try:
+                width = int(os.environ["COLUMNS"])
+            except (KeyError, ValueError):
+                try:
+                    width = min(os.get_terminal_size().columns, 80) - 2
+                except (AttributeError, OSError):
+                    width = 80 - 2
+
+        super().__init__(prog, indent_increment, max_help_position, width)
+
     # Based on argparse.RawDescriptionHelpFormatter's implementation
     def _fill_text(self, text, width, prefix):
-        return indent(rst_to_text(text), prefix)
+        return indent(rst_to_text(text, width), prefix)
 
 
 def register_default_command(parser):
