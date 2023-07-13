@@ -40,7 +40,8 @@ REPORT_LEVEL = REPORT_LEVEL_WARNINGS if STRICT else REPORT_LEVEL_NONE
 ROLES_REGISTERED = False
 
 PREAMBLE = """
-.. default-role:: literal
+.. role:: command-invocation(literal)
+.. default-role:: command-invocation
 """
 
 POSTAMBLE = """
@@ -62,7 +63,8 @@ def rst_to_text(source: str) -> str:
 
     Sphinx directives, roles, etc. are not supported.
 
-    The default role is ``literal`` instead of ``title-reference``.
+    The default role is ``command-invocation`` (a ``literal`` subrole which
+    emits the text surrounded by backticks) instead of ``title-reference``.
 
     If conversion fails, *source* is returned.  Set
     :envvar:`NEXTSTRAIN_RST_STRICT` to enable strict conversion and raise

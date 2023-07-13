@@ -1153,10 +1153,12 @@ class TextTranslator(SphinxTranslator):
         self.add_text('*')
 
     def visit_literal(self, node: Element) -> None:
-        self.add_text('`')
+        if 'command-invocation' in node['classes']:
+            self.add_text('`')
 
     def depart_literal(self, node: Element) -> None:
-        self.add_text('`')
+        if 'command-invocation' in node['classes']:
+            self.add_text('`')
 
     def visit_subscript(self, node: Element) -> None:
         self.add_text('_')

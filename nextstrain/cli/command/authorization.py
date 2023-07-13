@@ -2,7 +2,7 @@
 Produce an Authorization header appropriate for nextstrain.org's web API.
 
 This is a development tool unnecessary for normal usage.  It's useful for
-directly making API requests to nextstrain.org with ``curl`` or similar
+directly making API requests to nextstrain.org with `curl` or similar
 commands.  For example::
 
     curl -si https://nextstrain.org/whoami \\

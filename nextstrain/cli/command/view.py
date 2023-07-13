@@ -36,7 +36,7 @@ subdirectories exist.  Otherwise, files will be served from the given directory
 
 If your pathogen build directory follows our conventional layout by containing
 an **auspice** directory (and optionally a **narratives** directory), then you
-can give ``nextstrain view`` the same path as you do ``nextstrain build``.
+can give `nextstrain view` the same path as you do `nextstrain build`.
 
 Note that by convention files named **README.md** or **group-overview.md** will
 be ignored for the purposes of finding available narratives.

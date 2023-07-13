@@ -21,7 +21,7 @@ Three runtimes currently support updates: Docker, Conda, and Singularity.
 Updates may take several minutes as new software versions are downloaded.
 
 This command also checks for newer versions of the Nextstrain CLI (the
-``nextstrain`` program) itself and will suggest upgrade instructions if an
+`nextstrain` program) itself and will suggest upgrade instructions if an
 upgrade is available.
 
 positional arguments
