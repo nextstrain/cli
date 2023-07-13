@@ -1,6 +1,10 @@
 .. default-role:: literal
 
+.. role:: command-reference(ref)
+
 .. program:: nextstrain remote
+
+.. _nextstrain remote:
 
 =================
 nextstrain remote

@@ -1,6 +1,10 @@
 .. default-role:: literal
 
+.. role:: command-reference(ref)
+
 .. program:: nextstrain check-setup
+
+.. _nextstrain check-setup:
 
 ======================
 nextstrain check-setup

@@ -28,7 +28,7 @@ which creates files for each dataset::
     sars-cov-2/ncov_open_africa_tip-frequencies.json
     …
 
-See `nextstrain remote --help` for more information on remote sources.
+See :command-reference:`nextstrain remote` for more information on remote sources.
 """
 
 import shlex

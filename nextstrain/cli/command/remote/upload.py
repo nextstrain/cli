@@ -16,7 +16,7 @@ If uploading multiple datasets or narratives, uploading to the top-level of a
 Nextstrain Group, or uploading to an S3 remote, then the local filenames are
 used in combination with any path prefix in the remote source URL.
 
-See `nextstrain remote --help` for more information on remote sources.
+See :command-reference:`nextstrain remote` for more information on remote sources.
 """
 
 from pathlib import Path

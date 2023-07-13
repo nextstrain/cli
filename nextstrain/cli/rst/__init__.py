@@ -41,6 +41,7 @@ ROLES_REGISTERED = False
 
 PREAMBLE = """
 .. role:: command-invocation(literal)
+.. role:: command-reference(literal)
 .. default-role:: command-invocation
 """
 

@@ -137,7 +137,11 @@ def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[
 
     yield ".. default-role:: literal"
     yield
+    yield ".. role:: command-reference(ref)"
+    yield
     yield f".. program:: {program}"
+    yield
+    yield f".. _{program}:"
     yield
     yield "=" * len(program)
     yield program

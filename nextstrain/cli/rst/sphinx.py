@@ -1155,10 +1155,14 @@ class TextTranslator(SphinxTranslator):
     def visit_literal(self, node: Element) -> None:
         if 'command-invocation' in node['classes']:
             self.add_text('`')
+        elif 'command-reference' in node['classes']:
+            self.add_text('`')
 
     def depart_literal(self, node: Element) -> None:
         if 'command-invocation' in node['classes']:
             self.add_text('`')
+        elif 'command-reference' in node['classes']:
+            self.add_text(' --help`')
 
     def visit_subscript(self, node: Element) -> None:
         self.add_text('_')

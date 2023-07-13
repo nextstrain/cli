@@ -1,6 +1,10 @@
 .. default-role:: literal
 
+.. role:: command-reference(ref)
+
 .. program:: nextstrain remote list
+
+.. _nextstrain remote list:
 
 ======================
 nextstrain remote list
@@ -23,7 +27,7 @@ or list the core seasonal influenza datasets::
 
     nextstrain remote list nextstrain.org/flu/seasonal
 
-See `nextstrain remote --help` for more information on remote sources.
+See :command-reference:`nextstrain remote` for more information on remote sources.
 
 positional arguments
 ====================

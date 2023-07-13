@@ -1,6 +1,10 @@
 .. default-role:: literal
 
+.. role:: command-reference(ref)
+
 .. program:: nextstrain remote delete
+
+.. _nextstrain remote delete:
 
 ========================
 nextstrain remote delete
@@ -24,7 +28,7 @@ at once, e.g. to delete all the "ncov/wa/…" datasets in the "blab" group::
 
     nextstrain remote delete --recursively nextstrain.org/groups/blab/ncov/wa
 
-See `nextstrain remote --help` for more information on remote sources.
+See :command-reference:`nextstrain remote` for more information on remote sources.
 
 positional arguments
 ====================

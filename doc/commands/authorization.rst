@@ -1,6 +1,10 @@
 .. default-role:: literal
 
+.. role:: command-reference(ref)
+
 .. program:: nextstrain authorization
+
+.. _nextstrain authorization:
 
 ========================
 nextstrain authorization
