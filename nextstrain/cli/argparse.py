@@ -7,7 +7,7 @@ from itertools import chain, takewhile
 from pathlib import Path
 from textwrap import indent
 from types import SimpleNamespace
-from typing import Iterable, Tuple
+from typing import Iterable, Optional, Tuple
 from .rst import rst_to_text
 from .types import RunnerModule
 from .util import format_usage, runner_module
@@ -214,7 +214,10 @@ def DirectoryPath(value: str) -> Path:
     return path
 
 
-def walk_commands(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[Tuple[str, ...]]:
+def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = None) -> Iterable[Tuple[str, ...]]:
+    if command is None:
+        command = (parser.prog,)
+
     yield command
 
     subparsers = chain.from_iterable(
@@ -223,4 +226,4 @@ def walk_commands(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[
              if isinstance(action, _SubParsersAction))
 
     for subname, subparser in subparsers:
-        yield from walk_commands((*command, subname), subparser)
+        yield from walk_commands(subparser, (*command, subname))

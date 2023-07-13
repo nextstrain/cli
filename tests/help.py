@@ -6,7 +6,7 @@ from subprocess import run
 
 
 
-commands = list(walk_commands(("nextstrain",), make_parser()))
+commands = list(walk_commands(make_parser()))
 
 
 @pytest.mark.parametrize("command", commands, ids = lambda command: " ".join(command))
