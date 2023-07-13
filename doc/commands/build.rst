@@ -23,7 +23,7 @@ snakemake.
 
 You need at least one runtime available to run a build.  You can test if the
 Docker, Conda, ambient, or AWS Batch runtimes are properly supported on your
-computer by running:
+computer by running::
 
     nextstrain check-setup
 
@@ -60,11 +60,11 @@ optional arguments
 
 .. option:: --detach
 
-    Run the build in the background, detached from your terminal.  Re-attach later using --attach.  Currently only supported when also using --aws-batch.
+    Run the build in the background, detached from your terminal.  Re-attach later using :option:`--attach`.  Currently only supported when also using :option:`--aws-batch`.
 
 .. option:: --attach <job-id>
 
-    Re-attach to a --detach'ed build to view output and download results.  Currently only supported when also using --aws-batch.
+    Re-attach to a :option:`--detach`'ed build to view output and download results.  Currently only supported when also using :option:`--aws-batch`.
 
 .. option:: --cpus <count>
 
@@ -76,28 +76,29 @@ optional arguments
 
 .. option:: --download <pattern>
 
-    Only download new or modified files matching <pattern> from the
+    Only download new or modified files matching ``<pattern>`` from the
     remote build.  Shell-style advanced globbing is supported, but be
     sure to escape wildcards or quote the whole pattern so your shell
     doesn't expand them.  May be passed more than once.  Currently only
-    supported when also using --aws-batch.  Default is to download
-    every new or modified file.
+    supported when also using :option:`--aws-batch`.  Default is to
+    download every new or modified file.
 
-    Besides basic glob features like single-part wildcards (*),
-    character classes ([…]), and brace expansion ({…, …}), several
-    advanced globbing features are also supported: multi-part wildcards
-    (**), extended globbing (@(…), +(…), etc.), and negation (!…).
+    Besides basic glob features like single-part wildcards (``*``),
+    character classes (``[…]``), and brace expansion (``{…, …}``),
+    several advanced globbing features are also supported: multi-part
+    wildcards (``**``), extended globbing (``@(…)``, ``+(…)``, etc.),
+    and negation (``!…``).
 
 
 
 
 .. option:: --no-download
 
-    Do not download any files from the remote build when it completes. Currently only supported when also using --aws-batch.
+    Do not download any files from the remote build when it completes. Currently only supported when also using :option:`--aws-batch`.
 
 .. option:: --no-logs
 
-    Do not show the log messages of the remote build. Currently only supported when also using --aws-batch. Default is to show all log messages, even when attaching to a completed build.
+    Do not show the log messages of the remote build. Currently only supported when also using :option:`--aws-batch`. Default is to show all log messages, even when attaching to a completed build.
 
 runtime selection options
 =========================
@@ -132,11 +133,11 @@ Options shared by all runtimes.
 
 .. option:: --env <name>[=<value>]
 
-    Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. May be specified more than once. Overrides any variables of the same name set via --envdir. When this option or --envdir is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are AUGUR_RECURSION_LIMIT, AUGUR_MINIFY_JSON, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, ID3C_URL, ID3C_USERNAME, ID3C_PASSWORD, RETHINK_HOST, and RETHINK_AUTH_KEY. Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. 
+    Set the environment variable ``<name>`` to the value in the current environment (i.e. pass it thru) or to the given ``<value>``. May be specified more than once. Overrides any variables of the same name set via :option:`--envdir`. When this option or :option:`--envdir` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are ``AUGUR_RECURSION_LIMIT``, ``AUGUR_MINIFY_JSON``, ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, ``AWS_SESSION_TOKEN``, ``ID3C_URL``, ``ID3C_USERNAME``, ``ID3C_PASSWORD``, ``RETHINK_HOST``, and ``RETHINK_AUTH_KEY``. Pass those variables explicitly via :option:`--env` or :option:`--envdir` if you need them in combination with other variables. 
 
 .. option:: --envdir <path>
 
-    Set environment variables from the envdir at <path>. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or --env is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of --env for more details. 
+    Set environment variables from the envdir at ``<path>``. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or :option:`--env` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of :option:`--env` for more details. 
 
 development options
 ===================

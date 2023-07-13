@@ -70,11 +70,11 @@ Options shared by all runtimes.
 
 .. option:: --env <name>[=<value>]
 
-    Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. May be specified more than once. Overrides any variables of the same name set via --envdir. When this option or --envdir is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are AUGUR_RECURSION_LIMIT, AUGUR_MINIFY_JSON, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, ID3C_URL, ID3C_USERNAME, ID3C_PASSWORD, RETHINK_HOST, and RETHINK_AUTH_KEY. Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. 
+    Set the environment variable ``<name>`` to the value in the current environment (i.e. pass it thru) or to the given ``<value>``. May be specified more than once. Overrides any variables of the same name set via :option:`--envdir`. When this option or :option:`--envdir` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are ``AUGUR_RECURSION_LIMIT``, ``AUGUR_MINIFY_JSON``, ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, ``AWS_SESSION_TOKEN``, ``ID3C_URL``, ``ID3C_USERNAME``, ``ID3C_PASSWORD``, ``RETHINK_HOST``, and ``RETHINK_AUTH_KEY``. Pass those variables explicitly via :option:`--env` or :option:`--envdir` if you need them in combination with other variables. 
 
 .. option:: --envdir <path>
 
-    Set environment variables from the envdir at <path>. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or --env is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of --env for more details. 
+    Set environment variables from the envdir at ``<path>``. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or :option:`--env` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of :option:`--env` for more details. 
 
 development options
 ===================

@@ -6,7 +6,7 @@ snakemake.
 
 You need at least one runtime available to run a build.  You can test if the
 Docker, Conda, ambient, or AWS Batch runtimes are properly supported on your
-computer by running:
+computer by running::
 
     nextstrain check-setup
 
@@ -38,14 +38,14 @@ def register_parser(subparser):
     parser.add_argument(
         "--detach",
         help   = "Run the build in the background, detached from your terminal.  "
-                 "Re-attach later using --attach.  "
-                 "Currently only supported when also using --aws-batch.",
+                 "Re-attach later using :option:`--attach`.  "
+                 "Currently only supported when also using :option:`--aws-batch`.",
         action = "store_true")
 
     parser.add_argument(
         "--attach",
-        help = "Re-attach to a --detach'ed build to view output and download results.  "
-               "Currently only supported when also using --aws-batch.",
+        help = "Re-attach to a :option:`--detach`'ed build to view output and download results.  "
+               "Currently only supported when also using :option:`--aws-batch`.",
         metavar = "<job-id>")
 
     parser.add_argument(
@@ -73,17 +73,18 @@ def register_parser(subparser):
         "--download",
         metavar = "<pattern>",
         help    = dedent(f"""\
-            Only download new or modified files matching <pattern> from the
+            Only download new or modified files matching ``<pattern>`` from the
             remote build.  Shell-style advanced globbing is supported, but be
             sure to escape wildcards or quote the whole pattern so your shell
             doesn't expand them.  May be passed more than once.  Currently only
-            supported when also using --aws-batch.  Default is to download
-            every new or modified file.
+            supported when also using :option:`--aws-batch`.  Default is to
+            download every new or modified file.
 
-            Besides basic glob features like single-part wildcards (*),
-            character classes ([…]), and brace expansion ({{…, …}}), several
-            advanced globbing features are also supported: multi-part wildcards
-            (**), extended globbing (@(…), +(…), etc.), and negation (!…).
+            Besides basic glob features like single-part wildcards (``*``),
+            character classes (``[…]``), and brace expansion (``{{…, …}}``),
+            several advanced globbing features are also supported: multi-part
+            wildcards (``**``), extended globbing (``@(…)``, ``+(…)``, etc.),
+            and negation (``!…``).
 
             {SKIP_AUTO_DEFAULT_IN_HELP}
             """),
@@ -93,7 +94,7 @@ def register_parser(subparser):
     parser.add_argument(
         "--no-download",
         help   = "Do not download any files from the remote build when it completes. "
-                 "Currently only supported when also using --aws-batch."
+                 "Currently only supported when also using :option:`--aws-batch`."
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         dest   = "download",
         action = "store_false")
@@ -108,7 +109,7 @@ def register_parser(subparser):
     parser.add_argument(
         "--no-logs",
         help   = "Do not show the log messages of the remote build. "
-                 "Currently only supported when also using --aws-batch. "
+                 "Currently only supported when also using :option:`--aws-batch`. "
                  "Default is to show all log messages, even when attaching to a completed build."
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         dest   = "logs",

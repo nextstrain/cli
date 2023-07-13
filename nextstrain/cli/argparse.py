@@ -46,6 +46,11 @@ class HelpFormatter(ArgumentDefaultsHelpFormatter):
     def _fill_text(self, text, width, prefix):
         return indent(rst_to_text(text, width), prefix)
 
+    # Based on argparse.RawTextHelpFormatter's implementation
+    def _split_lines(self, text, width):
+        # Render to rST here so rST gets control over wrapping/line breaks.
+        return rst_to_text(text, width).splitlines()
+
 
 def register_default_command(parser):
     """

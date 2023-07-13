@@ -2,12 +2,12 @@
 Visualizes a completed pathogen builds or narratives in Auspice, the Nextstrain
 visualization app.
 
-<path> may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
+:option:`<path>` may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
 Auspice and directly open the specified dataset or narrative in a browser.
 Adjacent datasets and/or narratives may also be viewable as an appropriate data
 directory for Auspice is automatically inferred from the file path.
 
-<path> may also be a directory with one of the following layouts::
+:option:`<path>` may also be a directory with one of the following layouts::
 
     <path>/
     ├── auspice/
@@ -30,9 +30,9 @@ directory for Auspice is automatically inferred from the file path.
     └── *.md
 
 Dataset and narrative files will be served, respectively, from **auspice**
-and/or **narratives** subdirectories under the given <path> if the
+and/or **narratives** subdirectories under the given :option:`<path>` if the
 subdirectories exist.  Otherwise, files will be served from the given directory
-<path> itself.
+:option:`<path>` itself.
 
 If your pathogen build directory follows our conventional layout by containing
 an **auspice** directory (and optionally a **narratives** directory), then you

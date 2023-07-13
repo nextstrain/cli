@@ -31,7 +31,8 @@ command sooner than usual.
 Your password itself is never saved locally.
 
 For automation purposes, you may opt to provide the username and password to
-use in the environment variables NEXTSTRAIN_USERNAME and NEXTSTRAIN_PASSWORD.
+use in the environment variables :envvar:`NEXTSTRAIN_USERNAME` and
+:envvar:`NEXTSTRAIN_PASSWORD`.
 
 optional arguments
 ==================
@@ -44,7 +45,7 @@ optional arguments
 
 .. option:: --username <name>, -u <name>
 
-    The username to log in as.  If not provided, the NEXTSTRAIN_USERNAME environment variable will be used if available, otherwise you'll be prompted to enter your username.
+    The username to log in as.  If not provided, the :envvar:`NEXTSTRAIN_USERNAME` environment variable will be used if available, otherwise you'll be prompted to enter your username.
 
 .. option:: --no-prompt
 

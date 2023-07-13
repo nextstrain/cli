@@ -55,11 +55,11 @@ positional arguments
 
 .. option:: <remote-url>
 
-    Remote source URL for a dataset or narrative.  A path prefix to scope/filter by if using --recursively.
+    Remote source URL for a dataset or narrative.  A path prefix to scope/filter by if using :option:`--recursively`.
 
 .. option:: <local-path>
 
-    Local directory to save files in.  May be a local filename to use if not using --recursively.  Defaults to current directory (".").
+    Local directory to save files in.  May be a local filename to use if not using :option:`--recursively`.  Defaults to current directory (".").
 
 optional arguments
 ==================

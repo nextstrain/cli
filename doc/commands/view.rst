@@ -19,12 +19,12 @@ nextstrain view
 Visualizes a completed pathogen builds or narratives in Auspice, the Nextstrain
 visualization app.
 
-<path> may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
+:option:`<path>` may be a `dataset (.json) file`_ or `narrative (.md) file`_ to start
 Auspice and directly open the specified dataset or narrative in a browser.
 Adjacent datasets and/or narratives may also be viewable as an appropriate data
 directory for Auspice is automatically inferred from the file path.
 
-<path> may also be a directory with one of the following layouts::
+:option:`<path>` may also be a directory with one of the following layouts::
 
     <path>/
     ├── auspice/
@@ -47,9 +47,9 @@ directory for Auspice is automatically inferred from the file path.
     └── *.md
 
 Dataset and narrative files will be served, respectively, from **auspice**
-and/or **narratives** subdirectories under the given <path> if the
+and/or **narratives** subdirectories under the given :option:`<path>` if the
 subdirectories exist.  Otherwise, files will be served from the given directory
-<path> itself.
+:option:`<path>` itself.
 
 If your pathogen build directory follows our conventional layout by containing
 an **auspice** directory (and optionally a **narratives** directory), then you
@@ -132,11 +132,11 @@ Options shared by all runtimes.
 
 .. option:: --env <name>[=<value>]
 
-    Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. May be specified more than once. Overrides any variables of the same name set via --envdir. When this option or --envdir is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are AUGUR_RECURSION_LIMIT, AUGUR_MINIFY_JSON, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN, ID3C_URL, ID3C_USERNAME, ID3C_PASSWORD, RETHINK_HOST, and RETHINK_AUTH_KEY. Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. 
+    Set the environment variable ``<name>`` to the value in the current environment (i.e. pass it thru) or to the given ``<value>``. May be specified more than once. Overrides any variables of the same name set via :option:`--envdir`. When this option or :option:`--envdir` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. The "well-known" variables are ``AUGUR_RECURSION_LIMIT``, ``AUGUR_MINIFY_JSON``, ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, ``AWS_SESSION_TOKEN``, ``ID3C_URL``, ``ID3C_USERNAME``, ``ID3C_PASSWORD``, ``RETHINK_HOST``, and ``RETHINK_AUTH_KEY``. Pass those variables explicitly via :option:`--env` or :option:`--envdir` if you need them in combination with other variables. 
 
 .. option:: --envdir <path>
 
-    Set environment variables from the envdir at <path>. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or --env is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of --env for more details. 
+    Set environment variables from the envdir at ``<path>``. May be specified more than once. An envdir is a directory containing files describing environment variables. Each filename is used as the variable name. The first line of the contents of each file is used as the variable value. When this option or :option:`--env` is given, the default behaviour of automatically passing thru several "well-known" variables is disabled. See the description of :option:`--env` for more details. 
 
 development options
 ===================

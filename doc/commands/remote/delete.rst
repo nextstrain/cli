@@ -23,7 +23,7 @@ dataset in the Nextstrain Group "blab"::
 
     nextstrain remote delete nextstrain.org/groups/blab/beta-cov
 
-The --recursively option allows for deleting multiple datasets or narratives
+The :option:`--recursively` option allows for deleting multiple datasets or narratives
 at once, e.g. to delete all the "ncov/wa/…" datasets in the "blab" group::
 
     nextstrain remote delete --recursively nextstrain.org/groups/blab/ncov/wa
@@ -37,7 +37,7 @@ positional arguments
 
 .. option:: <remote-url>
 
-    Remote source URL for a dataset or narrative.  A path prefix to scope/filter by if using --recursively.
+    Remote source URL for a dataset or narrative.  A path prefix to scope/filter by if using :option:`--recursively`.
 
 optional arguments
 ==================
