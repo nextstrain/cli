@@ -22,10 +22,11 @@ This can be useful for development loops.
 import os
 from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
 from contextlib import contextmanager, redirect_stdout
+from difflib import diff_bytes, unified_diff
 from hashlib import md5
 from inspect import cleandoc
 from pathlib import Path
-from sys import exit, stderr
+from sys import exit, stdout, stderr
 from tempfile import TemporaryDirectory
 from textwrap import dedent, indent
 from typing import Iterable, Tuple, Union
@@ -69,11 +70,16 @@ argparser = ArgumentParser(
 
 argparser.add_argument("command_given", nargs = "*", metavar = "<command>", help = "The single command, given as multiple arguments, for which to generate rST.")
 argparser.add_argument("--check", action = "store_true", help = "Only check if any file contents have changed; do not update any files.  Exits 1 if there are changes, 0 if not.")
+argparser.add_argument("--diff", action = "store_true", help = "Show a diff for files that change (or would change, if --check is also specified).")
 
 
-def main(*, command_given = None, check = False):
+def main(*, command_given = None, check = False, diff = False):
     if check and command_given:
         print("error: --check is only supported when updating files for all commands", file = stderr)
+        return 1
+
+    if diff and command_given:
+        print("error: --diff is only supported when updating files for all commands", file = stderr)
         return 1
 
     check_failed = False
@@ -94,10 +100,11 @@ def main(*, command_given = None, check = False):
         if command_given:
             print(rst)
         else:
-            rst = rst.encode("utf-8")
+            new_rst = rst.encode("utf-8")
+            old_rst = path.read_bytes() if path.exists() else None
 
-            old_md5 = md5(path.read_bytes()).hexdigest() if path.exists() else "0" * 32
-            new_md5 = md5(rst).hexdigest()
+            new_md5 = md5(new_rst).hexdigest()
+            old_md5 = md5(old_rst).hexdigest() if old_rst is not None else "0" * 32
 
             debug(f"Old MD5: {old_md5}")
             debug(f"New MD5: {new_md5}")
@@ -106,9 +113,20 @@ def main(*, command_given = None, check = False):
                 if check:
                     check_failed = True
                 else:
-                    path.write_bytes(rst)
-                    debug(f"wrote {len(rst):,} bytes ({new_md5}) to {path}")
+                    path.write_bytes(new_rst)
+                    debug(f"wrote {len(new_rst):,} bytes ({new_md5}) to {path}")
                 print(path, file = stderr)
+
+                if diff:
+                    stdout.writelines(
+                        unified_diff(
+                            old_rst.decode("utf-8").splitlines(keepends = True) if old_rst is not None else [],
+                            new_rst.decode("utf-8").splitlines(keepends = True),
+                            str(path),
+                            str(path),
+                            old_md5,
+                            new_md5))
+
             else:
                 debug(f"{path} unchanged")
 
