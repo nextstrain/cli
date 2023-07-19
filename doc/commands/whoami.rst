@@ -22,8 +22,8 @@ logged-in user are shown.
 
 Exits with an error if no one is logged in.
 
-optional arguments
-==================
+options
+=======
 
 
 

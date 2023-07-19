@@ -37,8 +37,8 @@ positional arguments
 
     The Nextstrain runtime to check. One of {docker, conda, singularity, ambient, aws-batch}. (default: docker)
 
-optional arguments
-==================
+options
+=======
 
 
 

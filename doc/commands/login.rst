@@ -34,8 +34,8 @@ For automation purposes, you may opt to provide the username and password to
 use in the environment variables :envvar:`NEXTSTRAIN_USERNAME` and
 :envvar:`NEXTSTRAIN_PASSWORD`.
 
-optional arguments
-==================
+options
+=======
 
 
 

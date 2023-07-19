@@ -27,8 +27,8 @@ commands.  For example::
 
 Exits with an error if no one is logged in.
 
-optional arguments
-==================
+options
+=======
 
 
 

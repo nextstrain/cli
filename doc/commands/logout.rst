@@ -23,8 +23,8 @@ outside of the `nextstrain` command, they will remain valid until they expire.
 Other devices/clients (like your web browser) are not logged out of
 Nextstrain.org.
 
-optional arguments
-==================
+options
+=======
 
 
 

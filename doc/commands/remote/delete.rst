@@ -39,8 +39,8 @@ positional arguments
 
     Remote source URL for a dataset or narrative.  A path prefix to scope/filter by if using :option:`--recursively`.
 
-optional arguments
-==================
+options
+=======
 
 
 

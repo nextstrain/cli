@@ -17,8 +17,8 @@ nextstrain version
 
 Prints the version of the Nextstrain CLI.
 
-optional arguments
-==================
+options
+=======
 
 
 

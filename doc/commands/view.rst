@@ -70,8 +70,8 @@ positional arguments
 
     Path to a directory containing dataset JSON and/or narrative Markdown files for Auspice, or a directory containing an auspice/ and/or narratives/ directory, or a specific dataset JSON or narrative Markdown file.
 
-optional arguments
-==================
+options
+=======
 
 
 

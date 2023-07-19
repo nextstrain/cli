@@ -49,7 +49,7 @@ os.environ.update({
 })
 
 from nextstrain.cli import make_parser
-from nextstrain.cli.argparse import HelpFormatter, walk_commands
+from nextstrain.cli.argparse import HelpFormatter, walk_commands, OPTIONS_TITLE
 from nextstrain.cli.debug import debug
 
 
@@ -178,7 +178,7 @@ def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[
         if not group._group_actions:
             continue
 
-        title = group.title or "options"
+        title = group.title if group.title and group.title != OPTIONS_TITLE else "options"
         description = cleandoc(group.description or "")
 
         yield title

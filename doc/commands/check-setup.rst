@@ -58,8 +58,8 @@ positional arguments
 
     The Nextstrain runtimes to check. (default: docker, conda, singularity, ambient, aws-batch)
 
-optional arguments
-==================
+options
+=======
 
 
 

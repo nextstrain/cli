@@ -61,8 +61,8 @@ positional arguments
 
     Local directory to save files in.  May be a local filename to use if not using :option:`--recursively`.  Defaults to current directory (".").
 
-optional arguments
-==================
+options
+=======
 
 
 

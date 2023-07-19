@@ -37,8 +37,8 @@ positional arguments
 
     Shell that's being initialized (e.g. bash, zsh, etc.); currently we always emit POSIX shell syntax but this may change in the future.
 
-optional arguments
-==================
+options
+=======
 
 
 

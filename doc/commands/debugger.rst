@@ -21,8 +21,8 @@ Launch pdb from within the Nextstrain CLI process.
 
 This is a development and troubleshooting tool unnecessary for normal usage.
 
-optional arguments
-==================
+options
+=======
 
 
 

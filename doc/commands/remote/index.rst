@@ -36,8 +36,8 @@ pages:
 For more information on dataset (Auspice JSON) and narrative (Markdown) files,
 see :doc:`docs:reference/data-formats`.
 
-optional arguments
-==================
+options
+=======
 
 
 

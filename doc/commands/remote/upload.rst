@@ -48,8 +48,8 @@ positional arguments
 
     Files to upload.  Typically dataset and sidecar files (Auspice JSON files) and/or narrative files (Markdown files).
 
-optional arguments
-==================
+options
+=======
 
 
 

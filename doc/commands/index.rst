@@ -26,8 +26,8 @@ and Auspice across computing platforms such as Docker, Conda, and AWS Batch.
 Run `nextstrain <command> --help` for usage information about each command.
 See <:doc:`/index`> for more documentation.
 
-optional arguments
-==================
+options
+=======
 
 
 

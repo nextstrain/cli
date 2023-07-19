@@ -33,8 +33,8 @@ positional arguments
 
     The Nextstrain runtime to set up. One of {docker, conda, singularity, ambient, aws-batch}.
 
-optional arguments
-==================
+options
+=======
 
 
 

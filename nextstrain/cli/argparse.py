@@ -14,6 +14,12 @@ from .types import RunnerModule
 from .util import format_usage, runner_module
 
 
+# The standard argument group title for non-positional arguments.  See
+# <https://github.com/python/cpython/pull/23858> and
+# <https://bugs.python.org/issue9694>.
+OPTIONS_TITLE = "options" if sys.version_info >= (3, 10) else "optional arguments"
+
+
 # Include this in an argument help string to suppress the automatic appending
 # of the default value by argparse.ArgumentDefaultsHelpFormatter.  This works
 # because the automatic appending is conditional on the presence of %(default),
@@ -141,10 +147,6 @@ class ShowBriefHelp(Action):
         Truncate the full help after the standard "options" (or "optional
         arguments") listing and before any custom argument groups.
         """
-        # See <https://github.com/python/cpython/pull/23858>
-        # and <https://bugs.python.org/issue9694>.
-        heading = "options:\n" if sys.version_info >= (3, 10) else "optional arguments:\n"
-
         seen_optional_arguments_heading = False
 
         def before_extra_argument_groups(line):
@@ -156,7 +158,7 @@ class ShowBriefHelp(Action):
             nonlocal seen_optional_arguments_heading
 
             if not seen_optional_arguments_heading:
-                if line == heading:
+                if line == f"{OPTIONS_TITLE}:\n":
                     seen_optional_arguments_heading = True
 
             return not seen_optional_arguments_heading \
