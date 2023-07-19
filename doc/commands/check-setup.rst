@@ -12,7 +12,8 @@ nextstrain check-setup
 
 .. code-block:: none
 
-    usage: nextstrain check-setup [-h] [--set-default] [<runtime> [<runtime> ...]]
+    usage: nextstrain check-setup [--set-default] [<runtime> [<runtime> ...]]
+           nextstrain check-setup --help
 
 
 Checks for supported runtimes.
