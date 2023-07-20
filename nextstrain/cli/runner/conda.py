@@ -6,7 +6,7 @@ Environment variables
 =====================
 
 .. warning::
-    For development only.  You don't need to set this during normal operation.
+    For development only.  You don't need to set these during normal operation.
 
 .. envvar:: NEXTSTRAIN_CONDA_CHANNEL
 

@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Documentation
+
+* The command-line `--help` output for commands and the corresponding
+  documentation pages on the web are more integrated and improved in various
+  small ways.  In particular, command options are more cross-referencable and
+  directly linkable and the wrap-width of `--help` output is more consistent
+  and reliably readable.
+  ([#299](https://github.com/nextstrain/cli/pull/299))
+
 
 # 7.1.0 (22 June 2023)
 

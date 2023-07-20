@@ -46,6 +46,10 @@ __doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runne
 
 
 def register_parser(subparser):
+    """
+    %(prog)s [--set-default] [<runtime> [<runtime> ...]]
+    %(prog)s --help
+    """
     parser = subparser.add_parser("check-setup", help = "Check runtime setups")
 
     parser.add_argument(

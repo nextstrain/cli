@@ -19,9 +19,12 @@ import docutils.transforms
 import os
 import re
 from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree   # type: ignore
+from docutils.parsers.rst import Directive
+from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import register_local_role
 from docutils.utils import unescape                         # type: ignore
 from ..__version__ import __version__ as cli_version
+from ..util import remove_suffix
 from .sphinx import TextWriter
 
 
@@ -37,10 +40,16 @@ REPORT_LEVEL_WARNINGS = 2
 REPORT_LEVEL_NONE = 5
 REPORT_LEVEL = REPORT_LEVEL_WARNINGS if STRICT else REPORT_LEVEL_NONE
 
-ROLES_REGISTERED = False
+REGISTERED = False
 
+# Some of these custom roles are identified by name and specially-processed in
+# our sphinx.TextWriter, e.g. see visit_literal() and visit_Text().
 PREAMBLE = """
-.. default-role:: literal
+.. role:: command-invocation(literal)
+.. role:: command-reference(literal)
+.. role:: option(literal)
+.. role:: envvar(literal)
+.. default-role:: command-invocation
 """
 
 POSTAMBLE = """
@@ -48,7 +57,7 @@ POSTAMBLE = """
 """
 
 
-def rst_to_text(source: str) -> str:
+def rst_to_text(source: str, width: int = None) -> str:
     """
     Converts rST *source* to plain text.
 
@@ -62,16 +71,18 @@ def rst_to_text(source: str) -> str:
 
     Sphinx directives, roles, etc. are not supported.
 
-    The default role is ``literal`` instead of ``title-reference``.
+    The default role is ``command-invocation`` (a ``literal`` subrole which
+    emits the text surrounded by backticks) instead of ``title-reference``.
 
     If conversion fails, *source* is returned.  Set
     :envvar:`NEXTSTRAIN_RST_STRICT` to enable strict conversion and raise
     exceptions for failures.
     """
-    global ROLES_REGISTERED
-    if not ROLES_REGISTERED:
+    global REGISTERED
+    if not REGISTERED:
+        register_directive("envvar", EnvVar)
         register_local_role("doc", doc_reference_role)
-        ROLES_REGISTERED = True
+        REGISTERED = True
 
     settings = {
         # Use Unicode strings for I/O, not encoded bytes.
@@ -88,7 +99,7 @@ def rst_to_text(source: str) -> str:
         return convert_rst(
             "\n".join([PREAMBLE, source, POSTAMBLE]),
             reader = Reader(),
-            writer = TextWriter(),
+            writer = TextWriter(width = width),
             settings_overrides = settings,
             enable_exit_status = STRICT)
     except:
@@ -114,6 +125,32 @@ def convert_rst(source: str, *, reader, writer, settings_overrides: dict, enable
         writer = writer,
         settings_overrides = settings_overrides,
         enable_exit_status = enable_exit_status)
+
+
+# See docutils.parsers.rst.Directive and docutils.parsers.rst.directives and
+# submodules for this API and examples.
+class EnvVar(Directive):
+    required_arguments = 1
+    has_content = True
+
+    def run(self):
+        # XXX TODO: Inspect self.state.parent (or similar) and add more items
+        # to that if we're adjacent to a previous envvar directive's list?  Or
+        # maybe it's better to use a docutils Transform to combine them
+        # afterwards?  But either way, it doesn't really matter for our
+        # sphinx.TextWriter, so punting on that.
+        #   -trs, 20 July 2023
+        dl = docutils.nodes.definition_list(rawtext = self.block_text)
+        li = docutils.nodes.definition_list_item()
+        dt = docutils.nodes.term(text = self.arguments[0])
+        dd = docutils.nodes.definition(rawtext = "\n".join(self.content))
+
+        dl += li
+        li += [dt, dd]
+
+        self.state.nested_parse(self.content, self.content_offset, dd)
+
+        return [dl]
 
 
 # See docutils.parsers.rst.roles for this API and examples.
@@ -184,7 +221,13 @@ def doc_url(target: str) -> str:
         # Oh well.
         return target
 
-    return project_url.rstrip("/") + "/" + path.lstrip("/") + suffix
+    if path.endswith("/index"):
+        # a/b/index → a/b/ (e.g. implicitly a/b/index.html)
+        path_url = remove_suffix("index", path)
+    else:
+        path_url = path + (suffix or "")
+
+    return project_url.rstrip("/") + "/" + path_url.lstrip("/")
 
 
 class Reader(docutils.readers.standalone.Reader):

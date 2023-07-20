@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""
+Generate documentation pages for each Nextstrain CLI command.
+
+Uses the Sphinx ``program`` and ``option`` directives so they can be
+cross-referenced.  An alternative to using the ``autodoc`` or ``autoprogram``
+extensions which dynamically generate rST at Sphinx build time instead.
+
+To generate rST files for all commands::
+
+    ./devel/generate-command-doc
+
+Files are only written if their contents need updating.  The paths of the
+updated files are output to stderr.
+
+To instead output (to stdout) the rST for a single command::
+
+    ./devel/generate-command-doc nextstrain build
+
+This can be useful for development loops.
+"""
+import os
+from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
+from contextlib import contextmanager, redirect_stdout
+from difflib import diff_bytes, unified_diff
+from hashlib import md5
+from inspect import cleandoc
+from pathlib import Path
+from sys import exit, stdout, stderr
+from tempfile import TemporaryDirectory
+from textwrap import dedent, indent
+from typing import Iterable, Tuple, Union
+
+doc = (Path(__file__).resolve().parent.parent / "doc/").relative_to(Path.cwd())
+tmp = TemporaryDirectory()
+
+# Force some environment vars before loading any Nextstrain CLI code which may
+# inspect them, for reproducible/stable output.
+os.environ.update({
+    # The argparse HelpFormatter cares about terminal size, but we don't want
+    # that to vary based on where we run this program.
+    "COLUMNS": "1000",
+
+    # Avoid the current user's personal configuration from affecting output.
+    "NEXTSTRAIN_HOME": tmp.name,
+
+    # Ensure we detect a browser for stable `nextstrain view` output.
+    "BROWSER": "/bin/true",
+})
+
+from nextstrain.cli import make_parser
+from nextstrain.cli.argparse import HelpFormatter, walk_commands, OPTIONS_TITLE
+from nextstrain.cli.debug import debug
+
+
+# We generate docs for these and they can be directly accessed, but they're
+# unlinked so we must note that to suppress warnings from Sphinx.
+hidden = {
+    "nextstrain",
+    "nextstrain debugger",
+    "nextstrain init-shell",
+}
+
+
+argparser = ArgumentParser(
+    prog            = "./devel/generate-command-doc",
+    usage           = "./devel/generate-command-doc [--check] [<command> […]]",
+    description     = __doc__,
+    formatter_class = HelpFormatter)
+
+argparser.add_argument("command_given", nargs = "*", metavar = "<command>", help = "The single command, given as multiple arguments, for which to generate rST.")
+argparser.add_argument("--check", action = "store_true", help = "Only check if any file contents have changed; do not update any files.  Exits 1 if there are changes, 0 if not.")
+argparser.add_argument("--diff", action = "store_true", help = "Show a diff for files that change (or would change, if --check is also specified).")
+
+
+def main(*, command_given = None, check = False, diff = False):
+    if check and command_given:
+        print("error: --check is only supported when updating files for all commands", file = stderr)
+        return 1
+
+    if diff and command_given:
+        print("error: --diff is only supported when updating files for all commands", file = stderr)
+        return 1
+
+    check_failed = False
+    command_given = tuple(command_given)
+
+    for command, parser in walk_commands(make_parser()):
+        if command_given and command != command_given:
+            continue
+
+        page = command_page(command, parser)
+        path = doc / f"{page}.rst"
+
+        debug(f"--> {' '.join(command)}")
+        debug(f"Generating rST…")
+
+        rst = generate_rst(command, parser)
+
+        if command_given:
+            print(rst)
+        else:
+            new_rst = rst.encode("utf-8")
+            old_rst = path.read_bytes() if path.exists() else None
+
+            new_md5 = md5(new_rst).hexdigest()
+            old_md5 = md5(old_rst).hexdigest() if old_rst is not None else "0" * 32
+
+            debug(f"Old MD5: {old_md5}")
+            debug(f"New MD5: {new_md5}")
+
+            if old_md5 != new_md5:
+                if check:
+                    check_failed = True
+                else:
+                    path.write_bytes(new_rst)
+                    debug(f"wrote {len(new_rst):,} bytes ({new_md5}) to {path}")
+                print(path, file = stderr)
+
+                if diff:
+                    stdout.writelines(
+                        unified_diff(
+                            old_rst.decode("utf-8").splitlines(keepends = True) if old_rst is not None else [],
+                            new_rst.decode("utf-8").splitlines(keepends = True),
+                            str(path),
+                            str(path),
+                            old_md5,
+                            new_md5))
+
+            else:
+                debug(f"{path} unchanged")
+
+    return 1 if check and check_failed else 0
+
+
+def command_page(command: Tuple[str, ...], parser: ArgumentParser) -> str:
+    return (
+          "commands/"
+        + "/".join(command[1:])
+        + ("/index" if parser._subparsers else ""))
+
+
+def generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> str:
+    return "\n".join(chunk or "" for chunk in _generate_rst(command, parser))
+
+
+def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[Union[str, None]]:
+    program = " ".join(command)
+    formatter = parser.formatter_class(program)
+    usage = parser.format_usage()
+    description = cleandoc(parser.description or "")
+    epilog = cleandoc(parser.epilog or "")
+
+    if program in hidden:
+        yield ":orphan:"
+        yield
+
+    yield ".. default-role:: literal"
+    yield
+    yield ".. role:: command-reference(ref)"
+    yield
+    yield f".. program:: {program}"
+    yield
+    yield f".. _{program}:"
+    yield
+    yield "=" * len(program)
+    yield program
+    yield "=" * len(program)
+    yield
+    yield ".. code-block:: none"
+    yield
+    yield indent(usage, "    ")
+    yield
+    yield description
+    yield
+
+    for group in parser._action_groups:
+        if not group._group_actions:
+            continue
+
+        title = group.title if group.title and group.title != OPTIONS_TITLE else "options"
+        description = cleandoc(group.description or "")
+
+        yield title
+        yield "=" * len(title)
+        yield
+        yield description
+        yield
+
+        for action in group._group_actions:
+            if action.help is SUPPRESS:
+                continue
+
+            if isinstance(action, _SubParsersAction):
+                for choice in action._choices_actions:
+                    subcommand = choice.dest
+                    subparser = action.choices[subcommand]
+                    subpage = command_page((*command, subcommand), subparser)
+                    yield f".. option:: {subcommand}"
+                    yield
+                    yield indent(f"{choice.help}. See :doc:`/{subpage}`.", "    ")
+                    yield
+            else:
+                invocation = formatter._format_action_invocation(action)
+                description = (action.help or "") % {"default": action.default}
+
+                yield f".. option:: {invocation}"
+                yield
+                yield indent(description, "    ")
+                yield
+
+    yield epilog
+
+
+if __name__ == "__main__":
+    exit(main(**vars(argparser.parse_args())))

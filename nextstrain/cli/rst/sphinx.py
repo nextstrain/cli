@@ -19,6 +19,10 @@ from docutils.nodes import Element, Node, Text
 from docutils.utils import column_width
 
 
+MAXWIDTH = 80
+STDINDENT = 4
+
+
 # Stubs taking the place of a full Sphinx builder with config and what not.
 # The builder in Sphinx is a global context object ("god object") which isn't
 # very amenable to extraction.
@@ -26,6 +30,7 @@ class TextConfig:
     text_sectionchars = '*=-~"+`'
     text_add_secnumbers = False   # Sphinx default is True, but we don't want 'em.
     text_secnumber_suffix = ". "  # referenced but not used because above is False.
+    text_max_width = MAXWIDTH
 
 class TextBuilder:
     config = TextConfig()
@@ -413,10 +418,6 @@ class TextWrapper(textwrap.TextWrapper):
             cur_line.append(reversed_chunks.pop())
 
 
-MAXWIDTH = 80
-STDINDENT = 4
-
-
 def my_wrap(text: str, width: int = MAXWIDTH, **kwargs: Any) -> List[str]:
     w = TextWrapper(width=width, **kwargs)
     return w.wrap(text)
@@ -429,9 +430,11 @@ class TextWriter(writers.Writer):
 
     output: str = None
 
-    def __init__(self, builder: "TextBuilder" = None) -> None:
+    def __init__(self, builder: "TextBuilder" = None, width: int = None) -> None:
         super().__init__()
         self.builder = builder or TextBuilder()
+        if width:
+            self.builder.config.text_max_width = width
 
     def translate(self) -> None:
         visitor = TextTranslator(self.document, self.builder)
@@ -449,6 +452,7 @@ class TextTranslator(SphinxTranslator):
         self.sectionchars = self.config.text_sectionchars
         self.add_secnumbers = self.config.text_add_secnumbers
         self.secnumber_suffix = self.config.text_secnumber_suffix
+        self.max_width = self.config.text_max_width
         self.states: List[List[Tuple[int, Union[str, List[str]]]]] = [[]]
         self.stateindent = [0]
         self.list_counter: List[int] = []
@@ -474,7 +478,7 @@ class TextTranslator(SphinxTranslator):
             if not toformat:
                 return
             if wrap:
-                res = my_wrap(''.join(toformat), width=MAXWIDTH - maxindent)
+                res = my_wrap(''.join(toformat), width=self.max_width - maxindent)
             else:
                 res = ''.join(toformat).splitlines()
             if end:
@@ -843,7 +847,7 @@ class TextTranslator(SphinxTranslator):
     def visit_transition(self, node: Element) -> None:
         indent = sum(self.stateindent)
         self.new_state(0)
-        self.add_text('=' * (MAXWIDTH - indent))
+        self.add_text('=' * (self.max_width - indent))
         self.end_state()
         raise nodes.SkipNode
 
@@ -887,9 +891,10 @@ class TextTranslator(SphinxTranslator):
 
     def visit_definition_list_item(self, node: Element) -> None:
         self._classifier_count_in_li = len(list(node.traverse(nodes.classifier)))
+        self.new_state(2)
 
     def depart_definition_list_item(self, node: Element) -> None:
-        pass
+        self.end_state()
 
     def visit_term(self, node: Element) -> None:
         self.new_state(0)
@@ -981,7 +986,7 @@ class TextTranslator(SphinxTranslator):
         indent = sum(self.stateindent) + len(label)
         if (len(self.states[-1]) == 1 and
                 self.states[-1][0][0] == 0 and
-                MAXWIDTH - indent >= sum(len(s) for s in self.states[-1][0][1])):
+                self.max_width - indent >= sum(len(s) for s in self.states[-1][0][1])):
             # short text: append text after admonition label
             self.stateindent[-1] += len(label)
             self.end_state(first=label + ': ')
@@ -1153,10 +1158,16 @@ class TextTranslator(SphinxTranslator):
         self.add_text('*')
 
     def visit_literal(self, node: Element) -> None:
-        self.add_text('`')
+        if 'command-invocation' in node['classes']:
+            self.add_text('`')
+        elif 'command-reference' in node['classes']:
+            self.add_text('`')
 
     def depart_literal(self, node: Element) -> None:
-        self.add_text('`')
+        if 'command-invocation' in node['classes']:
+            self.add_text('`')
+        elif 'command-reference' in node['classes']:
+            self.add_text(' --help`')
 
     def visit_subscript(self, node: Element) -> None:
         self.add_text('_')

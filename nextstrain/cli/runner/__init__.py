@@ -153,12 +153,12 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     runtime.add_argument(
         "--env",
         metavar = "<name>[=<value>]",
-        help    = "Set the environment variable <name> to the value in the current environment (i.e. pass it thru) or to the given <value>. "
+        help    = "Set the environment variable ``<name>`` to the value in the current environment (i.e. pass it thru) or to the given ``<value>``. "
                   "May be specified more than once. "
-                  "Overrides any variables of the same name set via --envdir. "
-                  "When this option or --envdir is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
-                  f"The \"well-known\" variables are {prose_list(hostenv.forwarded_names, 'and')}. "
-                  "Pass those variables explicitly via --env or --envdir if you need them in combination with other variables. "
+                  "Overrides any variables of the same name set via :option:`--envdir`. "
+                  "When this option or :option:`--envdir` is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  f"The \"well-known\" variables are {prose_list([f'``{x}``' for x in hostenv.forwarded_names], 'and')}. "
+                  "Pass those variables explicitly via :option:`--env` or :option:`--envdir` if you need them in combination with other variables. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         action  = "append",
         default = [])
@@ -166,13 +166,13 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     runtime.add_argument(
         "--envdir",
         metavar = "<path>",
-        help    = "Set environment variables from the envdir at <path>. "
+        help    = "Set environment variables from the envdir at ``<path>``. "
                   "May be specified more than once. "
                   "An envdir is a directory containing files describing environment variables. "
                   "Each filename is used as the variable name. "
                   "The first line of the contents of each file is used as the variable value. "
-                  "When this option or --env is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
-                  "See the description of --env for more details. "
+                  "When this option or :option:`--env` is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  "See the description of :option:`--env` for more details. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         type    = DirectoryPath,
         action  = "append",

@@ -13,12 +13,10 @@ browser), you may be prompted to re-enter your username and password by this
 command sooner than usual.
 
 Your password itself is never saved locally.
-
-For automation purposes, you may opt to provide the username and password to
-use in the environment variables NEXTSTRAIN_USERNAME and NEXTSTRAIN_PASSWORD.
 """
 from functools import partial
 from getpass import getpass
+from inspect import cleandoc
 from os import environ
 from ..authn import current_user, login, renew
 from ..errors import UserError
@@ -33,7 +31,7 @@ def register_parser(subparser):
     parser.add_argument(
         "--username", "-u",
         metavar = "<name>",
-        help    = "The username to log in as.  If not provided, the NEXTSTRAIN_USERNAME"
+        help    = "The username to log in as.  If not provided, the :envvar:`NEXTSTRAIN_USERNAME`"
                   " environment variable will be used if available, otherwise you'll be"
                   " prompted to enter your username.",
         default = environ.get("NEXTSTRAIN_USERNAME"))
@@ -52,6 +50,21 @@ def register_parser(subparser):
                   " Useful to refresh group membership information (for example) sooner"
                   " than the tokens would normally be renewed.",
         action  = "store_true")
+
+    parser.epilog = cleandoc("""
+        For automation purposes, you may opt to provide environment variables instead
+        of interactive input and/or command-line options:
+
+        .. envvar:: NEXTSTRAIN_USERNAME
+
+            Username on nextstrain.org.  Ignored if :option:`--username` is also
+            provided.
+
+        .. envvar:: NEXTSTRAIN_PASSWORD
+
+            Password for nextstrain.org user.  Required if :option:`--no-prompt` is
+            used without existing valid/renewable tokens.
+        """)
 
     return parser
 

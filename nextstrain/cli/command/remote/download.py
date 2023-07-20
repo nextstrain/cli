@@ -28,7 +28,7 @@ which creates files for each dataset::
     sars-cov-2/ncov_open_africa_tip-frequencies.json
     …
 
-See `nextstrain remote --help` for more information on remote sources.
+See :command-reference:`nextstrain remote` for more information on remote sources.
 """
 
 import shlex
@@ -49,13 +49,13 @@ def register_parser(subparser):
     parser.add_argument(
         "remote_path",
         help    = "Remote source URL for a dataset or narrative.  "
-                  "A path prefix to scope/filter by if using --recursively.",
+                  "A path prefix to scope/filter by if using :option:`--recursively`.",
         metavar = "<remote-url>")
 
     parser.add_argument(
         "local_path",
         help    = "Local directory to save files in.  "
-                  "May be a local filename to use if not using --recursively.  "
+                  "May be a local filename to use if not using :option:`--recursively`.  "
                   'Defaults to current directory ("%(default)s").',
         metavar = "<local-path>",
         type    = Path,

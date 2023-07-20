@@ -1,15 +1,23 @@
 """
 Custom helpers for extending the behaviour of argparse standard library.
 """
+import os
 import sys
-from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentTypeError, SUPPRESS
-from itertools import takewhile
+from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError, SUPPRESS, _SubParsersAction # pyright: ignore[reportPrivateUsage]
+from itertools import chain, takewhile
 from pathlib import Path
 from textwrap import indent
 from types import SimpleNamespace
+from typing import Iterable, Optional, Tuple
 from .rst import rst_to_text
 from .types import RunnerModule
 from .util import format_usage, runner_module
+
+
+# The standard argument group title for non-positional arguments.  See
+# <https://github.com/python/cpython/pull/23858> and
+# <https://bugs.python.org/issue9694>.
+OPTIONS_TITLE = "options" if sys.version_info >= (3, 10) else "optional arguments"
 
 
 # Include this in an argument help string to suppress the automatic appending
@@ -24,9 +32,30 @@ SKIP_AUTO_DEFAULT_IN_HELP = "%(default).0s"
 
 
 class HelpFormatter(ArgumentDefaultsHelpFormatter):
+    def __init__(self, prog, indent_increment = 2, max_help_position = 24, width = None):
+        # Ignore terminal size, unlike standard argparse, as the readability of
+        # paragraphs of text suffers at wide widths.  Instead, default to 78
+        # columns (80 wide - 2 column gutter), but let that be overridden by an
+        # explicit COLUMNS variable or reduced by a smaller actual terminal.
+        if width is None:
+            try:
+                width = int(os.environ["COLUMNS"])
+            except (KeyError, ValueError):
+                try:
+                    width = min(os.get_terminal_size().columns, 80) - 2
+                except (AttributeError, OSError):
+                    width = 80 - 2
+
+        super().__init__(prog, indent_increment, max_help_position, width)
+
     # Based on argparse.RawDescriptionHelpFormatter's implementation
     def _fill_text(self, text, width, prefix):
-        return indent(rst_to_text(text), prefix)
+        return indent(rst_to_text(text, width), prefix)
+
+    # Based on argparse.RawTextHelpFormatter's implementation
+    def _split_lines(self, text, width):
+        # Render to rST here so rST gets control over wrapping/line breaks.
+        return rst_to_text(text, width).splitlines()
 
 
 def register_default_command(parser):
@@ -118,10 +147,6 @@ class ShowBriefHelp(Action):
         Truncate the full help after the standard "options" (or "optional
         arguments") listing and before any custom argument groups.
         """
-        # See <https://github.com/python/cpython/pull/23858>
-        # and <https://bugs.python.org/issue9694>.
-        heading = "options:\n" if sys.version_info >= (3, 10) else "optional arguments:\n"
-
         seen_optional_arguments_heading = False
 
         def before_extra_argument_groups(line):
@@ -133,7 +158,7 @@ class ShowBriefHelp(Action):
             nonlocal seen_optional_arguments_heading
 
             if not seen_optional_arguments_heading:
-                if line == heading:
+                if line == f"{OPTIONS_TITLE}:\n":
                     seen_optional_arguments_heading = True
 
             return not seen_optional_arguments_heading \
@@ -211,3 +236,25 @@ def DirectoryPath(value: str) -> Path:
         raise ArgumentTypeError(f"not a directory: {value}")
 
     return path
+
+
+def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = None) -> Iterable[Tuple[Tuple[str, ...], ArgumentParser]]:
+    if command is None:
+        command = (parser.prog,)
+
+    yield command, parser
+
+    subparsers = chain.from_iterable(
+        action.choices.items()
+            for action in parser._actions
+             if isinstance(action, _SubParsersAction))
+
+    visited = set()
+
+    for subname, subparser in subparsers:
+        if subparser in visited:
+            continue
+
+        visited.add(subparser)
+
+        yield from walk_commands(subparser, (*command, subname))
