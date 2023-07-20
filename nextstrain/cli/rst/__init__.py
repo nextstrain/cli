@@ -19,6 +19,8 @@ import docutils.transforms
 import os
 import re
 from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree   # type: ignore
+from docutils.parsers.rst import Directive
+from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import register_local_role
 from docutils.utils import unescape                         # type: ignore
 from ..__version__ import __version__ as cli_version
@@ -38,8 +40,10 @@ REPORT_LEVEL_WARNINGS = 2
 REPORT_LEVEL_NONE = 5
 REPORT_LEVEL = REPORT_LEVEL_WARNINGS if STRICT else REPORT_LEVEL_NONE
 
-ROLES_REGISTERED = False
+REGISTERED = False
 
+# Some of these custom roles are identified by name and specially-processed in
+# our sphinx.TextWriter, e.g. see visit_literal() and visit_Text().
 PREAMBLE = """
 .. role:: command-invocation(literal)
 .. role:: command-reference(literal)
@@ -74,10 +78,11 @@ def rst_to_text(source: str, width: int = None) -> str:
     :envvar:`NEXTSTRAIN_RST_STRICT` to enable strict conversion and raise
     exceptions for failures.
     """
-    global ROLES_REGISTERED
-    if not ROLES_REGISTERED:
+    global REGISTERED
+    if not REGISTERED:
+        register_directive("envvar", EnvVar)
         register_local_role("doc", doc_reference_role)
-        ROLES_REGISTERED = True
+        REGISTERED = True
 
     settings = {
         # Use Unicode strings for I/O, not encoded bytes.
@@ -120,6 +125,32 @@ def convert_rst(source: str, *, reader, writer, settings_overrides: dict, enable
         writer = writer,
         settings_overrides = settings_overrides,
         enable_exit_status = enable_exit_status)
+
+
+# See docutils.parsers.rst.Directive and docutils.parsers.rst.directives and
+# submodules for this API and examples.
+class EnvVar(Directive):
+    required_arguments = 1
+    has_content = True
+
+    def run(self):
+        # XXX TODO: Inspect self.state.parent (or similar) and add more items
+        # to that if we're adjacent to a previous envvar directive's list?  Or
+        # maybe it's better to use a docutils Transform to combine them
+        # afterwards?  But either way, it doesn't really matter for our
+        # sphinx.TextWriter, so punting on that.
+        #   -trs, 20 July 2023
+        dl = docutils.nodes.definition_list(rawtext = self.block_text)
+        li = docutils.nodes.definition_list_item()
+        dt = docutils.nodes.term(text = self.arguments[0])
+        dd = docutils.nodes.definition(rawtext = "\n".join(self.content))
+
+        dl += li
+        li += [dt, dd]
+
+        self.state.nested_parse(self.content, self.content_offset, dd)
+
+        return [dl]
 
 
 # See docutils.parsers.rst.roles for this API and examples.
