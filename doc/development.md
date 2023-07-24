@@ -133,6 +133,20 @@ To locally build the HTML version of the documentation (i.e. what's served at
 This will start a server on <http://localhost:8000> which you can browse.
 Changes to source documentation files will be reflected automatically.
 
+The rST source documentation files for the individual `nextstrain` commands are
+generated from the Python source files and checked into version control.
+Changes should be kept in sync by regenerating with:
+
+    $ ./devel/generate-command-doc
+
+This will emit the file paths it updates, if any.  This also happens
+automatically as part of the documentation build process to ensure the built
+docs always reflect the current source.   Tests run in CI ensure the generated
+files are current and don't vary based on ambient environmental factors.
+
+The `devel/generate-command-doc` program also has `--diff` and `--check` modes
+which may be helpful during development; see `--help` for details.
+
 
 [Semantic Versioning rules]: https://semver.org
 [nextstrain.org server]: https://github.com/nextstrain/nextstrain.org
