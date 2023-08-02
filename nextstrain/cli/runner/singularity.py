@@ -40,6 +40,24 @@ for more information on the fork.
 .. _Apptainer's announcement: https://apptainer.org/news/community-announcement-20211130
 
 
+.. _singularity-config:
+
+Config file variables
+=====================
+
+Defaults for the corresponding command line options, specified in the
+:doc:`config file </config/file>`.
+
+.. glossary::
+
+    :index:`singularity.image <configuration variable; singularity.image>`
+        Default for ``--image`` when using the Singularity runtime, e.g.
+        ``docker://nextstrain/base:build-20230525T143814Z``.
+
+        Typically set initially by ``nextstrain setup`` and subsequently by
+        ``nextstrain update``.
+
+
 .. _singularity-env:
 
 Environment variables
@@ -49,7 +67,7 @@ Environment variables
     For development only.  You don't need to set these during normal operation.
 
 Defaults for the corresponding command line options, potentially overriding
-defaults set by config file variables.
+defaults set by `config file variables`_.
 
 .. envvar:: NEXTSTRAIN_SINGULARITY_IMAGE
 

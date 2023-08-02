@@ -22,13 +22,39 @@ The initial setup is quite a bit more involved than most runtimes, but
 Once you've set up AWS, proceed with ``nextstrain setup aws-batch``.
 
 
+.. _aws-batch-config:
+
+Config file variables
+=====================
+
+Defaults for the corresponding command line options, specified in the
+:doc:`config file </config/file>`.
+
+.. glossary::
+
+    :index:`aws-batch.job <configuration variable; aws-batch.job>`
+        Default for ``--aws-batch-job``.
+
+    :index:`aws-batch.queue <configuration variable; aws-batch.queue>`
+        Default for ``--aws-batch-queue``.
+
+    :index:`aws-batch.s3-bucket <configuration variable; aws-batch.s3-bucket>`
+        Default for ``--aws-batch-bucket``.
+
+    :index:`aws-batch.cpus <configuration variable; aws-batch.cpus>`
+        Default for ``--aws-batch-cpus``.
+
+    :index:`aws-batch.memory <configuration variable; aws-batch.memory>`
+        Default for ``--aws-batch-memory``.
+
+
 .. _aws-batch-env:
 
 Environment variables
 =====================
 
 Defaults for the corresponding command line options, potentially overriding
-defaults set by config file variables.
+defaults set by `config file variables`_.
 
 .. envvar:: NEXTSTRAIN_AWS_BATCH_JOB
 

@@ -76,6 +76,13 @@ Table of Contents
     Ambient <runtimes/ambient>
 
 .. toctree::
+    :caption: Configuration
+    :titlesonly:
+
+    Config file <config/file>
+    Paths <config/paths>
+
+.. toctree::
     :caption: Development
     :titlesonly:
 
