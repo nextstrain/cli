@@ -4,7 +4,8 @@ Upgrading
 
 This page describes how to upgrade the Nextstrain CLI--the ``nextstrain``
 command--itself, without also upgrading the entire Nextstrain
-:term:`docs:runtime`.
+:term:`docs:runtime`.  (To upgrade your Nextstrain runtime, use the
+:doc:`/commands/update` command.)
 
 The way to upgrade depends on what kind of Nextstrain CLI installation you have
 (i.e. how it was first installed), so running ``nextstrain check-setup``:
