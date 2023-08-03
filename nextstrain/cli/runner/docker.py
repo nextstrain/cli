@@ -31,6 +31,12 @@ On Windows, install `Docker Desktop`_ with its support for a WSL2 backend.
 
 Once you've installed Docker, proceed with ``nextstrain setup docker``.
 
+This will download compressed image layers totaling about 750 MB in size which
+expand to a final on-disk size of about 2 GB.  Transient disk usage during this
+process peaks at about 3 GB.  These numbers are current as of August 2023, as
+observed on Linux.  Numbers will vary over time, with a tendency to slowly
+increase, and vary slightly by OS.
+
 .. _Docker Desktop: https://www.docker.com/products/docker-desktop
 
 

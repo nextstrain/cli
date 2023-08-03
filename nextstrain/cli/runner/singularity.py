@@ -25,6 +25,12 @@ Run ``nextstrain setup singularity`` to get started.
 Singularity version 3.0.0 or newer is required, but we recommend at least
 version 3.10.0 or newer when possible.
 
+This will download image layers totaling about 750 MB in size which are
+converted to a final on-disk image of about 650 MB.  Transient disk usage
+during this process peaks at about 2 GB.  These numbers are current as of
+August 2023, as observed on Linux.  Numbers will vary over time, with a
+tendency to slowly increase, and vary slightly by OS.
+
 Note that the Singularity project forked into two separate projects in late
 2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux
 Foundation`_.  Either fork should work with Nextstrain CLI, as both projects

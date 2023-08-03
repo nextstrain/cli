@@ -17,6 +17,12 @@ Setup
 
 On macOS and Linux, run ``nextstrain setup conda`` to get started.
 
+This will download compressed packages totaling about 450 MB in size which
+expand to a final on-disk size of about 2 GB.  Transient disk usage during this
+process peaks at about 3 GB.  These numbers are current as of August 2023, as
+observed on Linux.  Numbers will vary over time, with a tendency to slowly
+increase, and vary slightly by OS.
+
 This runtime is not directly supported on Windows, but you can use `WSL2
 <https://docs.microsoft.com/en-us/windows/wsl/wsl2-index>`__ to "switch" to
 Linux and run the above setup command.
