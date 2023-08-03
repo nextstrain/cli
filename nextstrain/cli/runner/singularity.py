@@ -373,6 +373,24 @@ def _update(dry_run: bool = False) -> RunnerUpdateStatus:
         # default going forward.
         config.set("singularity", "image", latest_image)
 
+    # Clean up unnecessary caches
+    print()
+    print(colored("bold", "Cleaning up…"))
+    print()
+
+    if not dry_run:
+        argv = ("singularity", "cache", "clean", "--type=all", "--force")
+        env = {
+            **os.environ.copy(),
+            **SINGULARITY_CONFIG_ENV,
+        }
+
+        try:
+            subprocess.run(argv, env = env, check = True)
+        except (OSError, subprocess.CalledProcessError) as err:
+            warn(f"Error running {argv!r}: {err}")
+            warn(f"Continuing anyway.")
+
     # Prune any old images to avoid leaving lots of hidden disk use around.
     print()
     print(colored("bold", "Pruning old images…"))
