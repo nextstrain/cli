@@ -15,6 +15,12 @@ development source code and as such may not be routinely kept up to date.
 
 ## Bug fixes
 
+* The Conda runtime now uses Micromamba 1.1.0 (upgraded from 1.0.0) to manage
+  the runtime environment.  The newer version has improved error handling in
+  edge cases where the previous version silently failed when used during
+  `nextstrain update`.
+  ([#301](https://github.com/nextstrain/cli/pull/301))
+
 * The Singularity runtime now cleans up unnecessary caches during `nextstrain
   update` and `nextstrain setup`.  This reduces the storage space required by
   the runtime and prevents it from growing unbounded over time.  However, this
