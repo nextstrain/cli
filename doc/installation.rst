@@ -106,156 +106,29 @@ The version you get will probably be different than the one shown in the
 example above.
 
 
-Runtimes
-========
+A Nextstrain runtime
+====================
 
-.. XXX TODO: Move this heading and subheadings (with modification) to their own
-   top-level doc section (e.g. like Remotes).
-     -trs, 12 Jan 2023
+If you intend to run commands like :doc:`/commands/build` and
+:doc:`/commands/view`, then you'll need to set up at least one :term:`runtime`.
+See the :doc:`runtimes overview </runtimes/index>` for a comparison of the
+options and brief set up instructions for each.  Runtime set up typically
+concludes by running:
 
-The Nextstrain CLI provides a consistent interface and computing environment
-for running and visualizing Nextstrain pathogen builds across several different
-computing platforms, such as
-:ref:`installation/docker`,
-:ref:`installation/conda`,
-:ref:`installation/singularity`, and
-:ref:`installation/aws-batch`.
+.. code-block:: bash
 
-We call the provided computing environments the :term:`Nextstrain runtimes
-<docs:runtime>`.  Each runtime provides specific versions of Nextstrain's
-software components, like `Augur <https://github.com/nextstrain/augur>`__ and
-`Auspice <https://github.com/nextstrain/auspice>`__.
+    nextstrain setup <runtime>
 
-At least one of these runtimes must be setup in order for many of
-``nextstrain``'s subcommands to work, such as ``nextstrain build`` and
-``nextstrain view``.
-
-The default runtime is Docker, using the `nextstrain/base`_ container image.
-Containers provide a tremendous amount of benefit for scientific workflows by
-isolating dependencies and increasing reproducibility. However, they're not
-always appropriate, so a Conda runtime, Singularity runtime, and "ambient"
-runtime are also supported.  The installation and setup of supported runtimes
-is described below.
-
-.. _nextstrain/base: https://github.com/nextstrain/docker-base
-
-.. _installation/docker:
-
-Docker
-------
-
-`Docker <https://docker.com>`__ is a very popular container system
-freely-available for all platforms. When you use Docker with the Nextstrain
-CLI, you don't need to install any other Nextstrain software dependencies as
-validated versions are already bundled into a container image by the Nextstrain
-team.
-
-On macOS, download and install `Docker Desktop`_, also known previously as
-"Docker for Mac".
-
-On Linux, install Docker with the standard package manager. For example, on
-Ubuntu, you can install Docker with ``sudo apt install docker.io``.
-
-On Windows, install `Docker Desktop`_ with its support for a WSL2 backend.
-
-Once you've installed Docker, proceed with :ref:`checking your setup
-<installation/check-setup>`.
-
-.. _Docker Desktop: https://www.docker.com/products/docker-desktop
-
-.. _installation/conda:
-
-Conda
------
-
-`Conda <https://docs.conda.io/en/latest/miniconda.html>`__ is a very popular
-packaging system freely-available for all platforms. When you use Nextstrain
-CLI's built-in Conda support, you don't need to install any other Nextstrain
-software dependencies yourself as they're automatically managed in an isolated
-location (isolated even from other Conda environments you may manage yourself).
-
-On macOS and Linux, run ``nextstrain setup conda`` to get started.
-
-This runtime is not directly supported on Windows, but you can use `WSL2
-<https://docs.microsoft.com/en-us/windows/wsl/wsl2-index>`__ to "switch" to
-Linux and run the above setup command.
-
-.. _installation/singularity:
-
-Singularity
------------
-
-Singularity is a container system freely-available for Linux platforms.  It is
-commonly available on institutional HPC systems as an alternative to Docker,
-which is often not supported on such systems.  When you use Singularity with
-the Nextstrain CLI, you don't need to install any other Nextstrain software
-dependencies as validated versions are already bundled into a container image
-by the Nextstrain team.
-
-Run ``nextstrain setup singularity`` to get started.
-Singularity version 3.0.0 or newer is required, but we recommend at least
-version 3.10.0 or newer when possible.
-
-Note that the Singularity project forked into two separate projects in late
-2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux
-Foundation`_.  Either fork should work with Nextstrain CLI, as both projects
-still provide very similar interfaces and functionality via the ``singularity``
-command.  You can read `Sylab's announcement`_ and `Apptainer's announcement`_
-for more information on the fork.
-
-.. _SingularityCE: https://sylabs.io/singularity/
-.. _Sylabs: https://sylabs.io/
-.. _Apptainer: https://apptainer.org
-.. _Linux Foundation: https://www.linuxfoundation.org/
-.. _Sylab's announcement: https://sylabs.io/2022/06/singularityce-is-singularity/
-.. _Apptainer's announcement: https://apptainer.org/news/community-announcement-20211130
-
-Ambient
--------
-
-The "ambient" runtime allows you to use the Nextstrain CLI with your own ambient
-setup, for when you cannot or do not want to have Nextstrain CLI manage its own
-runtime.
-
-However, you will need to make sure all of the Nextstrain software dependencies
-are available locally or "ambiently" on your computer. A common way to do this
-is by manually using `Conda <https://docs.conda.io/en/latest/miniconda.html>`__
-to manage your own environment that includes the required software, however
-you're responsible for making sure the correct software is installed and kept
-up-to-date. It is also possible to install the required Nextstrain software
-`Augur <https://github.com/nextstrain/augur>`__ and `Auspice
-<https://github.com/nextstrain/auspice>`__ and their dependencies manually,
-although this is not recommended.
-
-Once you've installed dependencies, proceed with :ref:`checking your setup
-<installation/check-setup>`.
-
-.. _installation/aws-batch:
-
-AWS Batch
----------
-
-`AWS Batch <https://aws.amazon.com/batch/>`__ is an advanced computing
-platform which allows you to launch and monitor Nextstrain builds in the
-cloud from the comfort of your own computer. The same image used by the local
-Docker runtime is used by AWS Batch, making your builds more reproducible, and
-builds have access to computers with very large CPU and memory allocations if
-necessary.
-
-The initial setup is quite a bit more involved, but :doc:`detailed instructions
-<aws-batch>` are available.
-
-Once you've setup AWS, proceed with :ref:`checking your setup
-<installation/check-setup>`.
 
 .. _installation/check-setup:
 
 Checking your setup
 ===================
 
-After installation and setup, run ``nextstrain check-setup --set-default`` to
-ensure everything works and automatically pick an appropriate default runtime
-based on what's available. You should see output similar to the following:
+After installation and runtime set up, run ``nextstrain check-setup
+--set-default`` to ensure everything works and automatically pick an
+appropriate default runtime based on what's available. You should see output
+similar to the following:
 
 .. code-block:: console
 

@@ -1,5 +1,36 @@
 """
-Run commands in the ambient environment, outside of any container image.
+Run commands in the ambient environment, outside of any container image or managed environment.
+
+The "ambient" runtime allows you to use the Nextstrain CLI with your own ambient
+setup, for when you cannot or do not want to have Nextstrain CLI manage its own
+runtime.
+
+.. versionadded:: 1.5.0
+.. versionchanged:: 5.0.0
+    Renamed from "native" to "ambient".
+
+
+.. _ambient-setup:
+
+Setup
+=====
+
+You will need to make sure all of the Nextstrain software dependencies
+are available locally or "ambiently" on your computer.
+
+A common way to do this is by manually using `Conda
+<https://docs.conda.io/en/latest/miniconda.html>`__ to manage your own
+environment that includes the required software, however you're responsible for
+making sure the correct software is installed and kept up-to-date. Our
+:doc:`general Nextstrain installation page <docs:install>` describes more
+comprehensively how to do this.
+
+It is also possible to install the required Nextstrain software `Augur
+<https://github.com/nextstrain/augur>`__ and `Auspice
+<https://github.com/nextstrain/auspice>`__ and their dependencies manually,
+although this is not recommended.
+
+Once you've installed dependencies, proceed with ``nextstrain setup ambient``.
 """
 
 import os

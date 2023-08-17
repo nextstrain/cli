@@ -1,5 +1,80 @@
 """
 Run commands remotely on AWS Batch inside the Nextstrain container image.
+
+`AWS Batch <https://aws.amazon.com/batch/>`__ is an advanced computing
+platform which allows you to launch and monitor Nextstrain builds in the
+cloud from the comfort of your own computer. The same image used by the local
+Docker runtime is used by AWS Batch, making your builds more reproducible, and
+builds have access to computers with very large CPU and memory allocations if
+necessary.
+
+.. versionadded:: 1.7.0
+
+
+.. _aws-batch-setup:
+
+Setup
+=====
+
+The initial setup is quite a bit more involved than most runtimes, but
+:doc:`detailed instructions </aws-batch>` are available.
+
+Once you've set up AWS, proceed with ``nextstrain setup aws-batch``.
+
+
+.. _aws-batch-config:
+
+Config file variables
+=====================
+
+Defaults for the corresponding command line options, specified in the
+:doc:`config file </config/file>`.
+
+.. glossary::
+
+    :index:`aws-batch.job <configuration variable; aws-batch.job>`
+        Default for ``--aws-batch-job``.
+
+    :index:`aws-batch.queue <configuration variable; aws-batch.queue>`
+        Default for ``--aws-batch-queue``.
+
+    :index:`aws-batch.s3-bucket <configuration variable; aws-batch.s3-bucket>`
+        Default for ``--aws-batch-bucket``.
+
+    :index:`aws-batch.cpus <configuration variable; aws-batch.cpus>`
+        Default for ``--aws-batch-cpus``.
+
+    :index:`aws-batch.memory <configuration variable; aws-batch.memory>`
+        Default for ``--aws-batch-memory``.
+
+
+.. _aws-batch-env:
+
+Environment variables
+=====================
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by `config file variables`_.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_JOB
+
+    Default for ``--aws-batch-job``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_QUEUE
+
+    Default for ``--aws-batch-queue``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_S3_BUCKET
+
+    Default for ``--aws-batch-bucket``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_CPUS
+
+    Default for ``--aws-batch-cpus``.
+
+.. envvar:: NEXTSTRAIN_AWS_BATCH_MEMORY
+
+    Default for ``--aws-batch-memory``.
 """
 
 import os

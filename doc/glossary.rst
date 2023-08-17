@@ -36,17 +36,4 @@ documentation.
         environment) in which Nextstrain CLI expects to find and execute other
         Nextstrain programs.
 
-        Current runtimes:
-
-          - Docker with the `nextstrain/base image <https://hub.docker.com/r/nextstrain/base>`_
-          - Conda with the `nextstrain-base meta-package <https://anaconda.org/nextstrain/nextstrain-base>`__
-          - Ambient
-          - AWS Batch with the `nextstrain/base image`_
-  
-        Each runtime provides specific versions of Nextstrain's software
-        components, like Augur and Auspice.
-
-        Runtimes are managed (maintained, tested, versioned, released) by the
-        Nextstrain team, except for the ambient runtime.  The ambient runtime
-        is special in that it's whatever computing environment in which
-        Nextstrain CLI itself is running (i.e. managed by the user).
+        See the :doc:`runtimes overview </runtimes/index>`.

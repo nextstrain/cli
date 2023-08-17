@@ -1,5 +1,9 @@
 """
 Filesystem paths.
+
+Documented manually in :file:`doc/config/paths.rst` because the autodoc
+directives make it too difficult to produce reasonable output for this module.
+(Granted, it's a bit of an off-label use.)
 """
 import os
 from pathlib import Path

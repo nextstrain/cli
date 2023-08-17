@@ -11,10 +11,10 @@ The Nextstrain CLI is a program called ``nextstrain``.  It aims to provide a
 consistent way to run and visualize pathogen builds and access Nextstrain
 components like :doc:`Augur <augur:index>` and :doc:`Auspice <auspice:index>`
 computing platforms, such as
-:ref:`installation/docker`,
-:ref:`installation/conda`,
-:ref:`installation/singularity`, and
-:ref:`installation/aws-batch`.
+:doc:`/runtimes/docker`,
+:doc:`/runtimes/conda`,
+:doc:`/runtimes/singularity`, and
+:doc:`/runtimes/aws-batch`.
 
 .. note::
     If you're unfamiliar with Nextstrain builds, you may want to follow our
@@ -63,6 +63,24 @@ Table of Contents
 
     nextstrain.org <remotes/nextstrain.org>
     Amazon S3 <remotes/s3>
+
+.. toctree::
+    :caption: Runtimes
+    :titlesonly:
+
+    Overview <runtimes/index>
+    Docker <runtimes/docker>
+    Conda <runtimes/conda>
+    Singularity <runtimes/singularity>
+    AWS Batch <runtimes/aws-batch>
+    Ambient <runtimes/ambient>
+
+.. toctree::
+    :caption: Configuration
+    :titlesonly:
+
+    Config file <config/file>
+    Paths <config/paths>
 
 .. toctree::
     :caption: Development

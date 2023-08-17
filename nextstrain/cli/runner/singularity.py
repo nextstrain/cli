@@ -1,9 +1,83 @@
 """
 Run commands inside a container image using Singularity.
 
-Uses the images built for the Docker runtime by automatically converting them
-to local Singularity images.  Local images are stored as files named
+Singularity is a container system freely-available for Linux platforms.  It is
+commonly available on institutional HPC systems as an alternative to Docker,
+which is often not supported on such systems.  When you use Singularity with
+the Nextstrain CLI, you don't need to install any other Nextstrain software
+dependencies as validated versions are already bundled into a container image
+by the Nextstrain team.
+
+The Singularity runtime uses the same images built for the Docker runtime by
+automatically converting them to local Singularity images.  Local images are
+stored as files named
 :file:`~/.nextstrain/runtimes/singularity/images/{repository}/{tag}.sif`.
+
+.. versionadded:: 6.1.0
+
+
+.. _singularity-setup:
+
+Setup
+=====
+
+Run ``nextstrain setup singularity`` to get started.
+Singularity version 3.0.0 or newer is required, but we recommend at least
+version 3.10.0 or newer when possible.
+
+This will download image layers totaling about 750 MB in size which are
+converted to a final on-disk image of about 650 MB.  Transient disk usage
+during this process peaks at about 2 GB.  These numbers are current as of
+August 2023, as observed on Linux.  Numbers will vary over time, with a
+tendency to slowly increase, and vary slightly by OS.
+
+Note that the Singularity project forked into two separate projects in late
+2021: `SingularityCE`_ under `Sylabs`_ and `Apptainer`_ under the `Linux
+Foundation`_.  Either fork should work with Nextstrain CLI, as both projects
+still provide very similar interfaces and functionality via the ``singularity``
+command.  You can read `Sylab's announcement`_ and `Apptainer's announcement`_
+for more information on the fork.
+
+.. _SingularityCE: https://sylabs.io/singularity/
+.. _Sylabs: https://sylabs.io/
+.. _Apptainer: https://apptainer.org
+.. _Linux Foundation: https://www.linuxfoundation.org/
+.. _Sylab's announcement: https://sylabs.io/2022/06/singularityce-is-singularity/
+.. _Apptainer's announcement: https://apptainer.org/news/community-announcement-20211130
+
+
+.. _singularity-config:
+
+Config file variables
+=====================
+
+Defaults for the corresponding command line options, specified in the
+:doc:`config file </config/file>`.
+
+.. glossary::
+
+    :index:`singularity.image <configuration variable; singularity.image>`
+        Default for ``--image`` when using the Singularity runtime, e.g.
+        ``docker://nextstrain/base:build-20230525T143814Z``.
+
+        Typically set initially by ``nextstrain setup`` and subsequently by
+        ``nextstrain update``.
+
+
+.. _singularity-env:
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set these during normal operation.
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by `config file variables`_.
+
+.. envvar:: NEXTSTRAIN_SINGULARITY_IMAGE
+
+    Default for ``--image`` when using the Singularity runtime.
 """
 
 import itertools
@@ -304,6 +378,24 @@ def _update(dry_run: bool = False) -> RunnerUpdateStatus:
         # Update the config file to point to the new image so we use it by
         # default going forward.
         config.set("singularity", "image", latest_image)
+
+    # Clean up unnecessary caches
+    print()
+    print(colored("bold", "Cleaning up…"))
+    print()
+
+    if not dry_run:
+        argv = ("singularity", "cache", "clean", "--type=all", "--force")
+        env = {
+            **os.environ.copy(),
+            **SINGULARITY_CONFIG_ENV,
+        }
+
+        try:
+            subprocess.run(argv, env = env, check = True)
+        except (OSError, subprocess.CalledProcessError) as err:
+            warn(f"Error running {argv!r}: {err}")
+            warn(f"Continuing anyway.")
 
     # Prune any old images to avoid leaving lots of hidden disk use around.
     print()

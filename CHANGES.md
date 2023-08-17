@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* The Singularity runtime now cleans up unnecessary caches during `nextstrain
+  update` and `nextstrain setup`.  This reduces the storage space required by
+  the runtime and prevents it from growing unbounded over time.  However, this
+  also results in increases in network transfer during `nextstrain update`.  We
+  may mitigate the additional transfer in the future.
+  ([#303][])
+
 ## Documentation
 
 * The command-line `--help` output for commands and the corresponding
@@ -21,6 +30,21 @@ development source code and as such may not be routinely kept up to date.
   directly linkable and the wrap-width of `--help` output is more consistent
   and reliably readable.
   ([#299](https://github.com/nextstrain/cli/pull/299))
+
+* We've added a large section of new and expanded [documentation on
+  runtimes](https://docs.nextstrain.org/projects/cli/page/runtimes/), both in
+  general and for each individual runtime.
+  ([#303][])
+
+* We've added and expanded documentation about configuration, including the
+  [config file](https://docs.nextstrain.org/projects/cli/page/config/file/) and
+  the [paths](https://docs.nextstrain.org/projects/cli/page/config/paths/) used
+  by Nextstrain CLI.  Documentation in general now includes more about the
+  environment variables that can be used to configure Nextstrain CLI.
+  ([#303][])
+
+
+[#303]: https://github.com/nextstrain/cli/pull/303
 
 
 # 7.1.0 (22 June 2023)

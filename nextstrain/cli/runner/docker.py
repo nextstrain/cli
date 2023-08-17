@@ -1,5 +1,77 @@
 """
 Run commands inside a container image using Docker.
+
+`Docker <https://docker.com>`__ is a very popular container system
+freely-available for all platforms. When you use Docker with the Nextstrain
+CLI, you don't need to install any other Nextstrain software dependencies as
+validated versions are already bundled into a container image
+(`nextstrain/base`_) by the Nextstrain team.
+
+
+.. _nextstrain/base: https://github.com/nextstrain/docker-base
+
+
+.. _docker-setup:
+
+Setup
+=====
+
+.. hint::
+   This is a reference page with brief pointers for set up.  For a more
+   comprehensive installation guide, please see `our general Nextstrain
+   installation page <https://docs.nextstrain.org/page/install.html>`__.
+
+On macOS, download and install `Docker Desktop`_, also known previously as
+"Docker for Mac".
+
+On Linux, install Docker with the standard package manager. For example, on
+Ubuntu, you can install Docker with ``sudo apt install docker.io``.
+
+On Windows, install `Docker Desktop`_ with its support for a WSL2 backend.
+
+Once you've installed Docker, proceed with ``nextstrain setup docker``.
+
+This will download compressed image layers totaling about 750 MB in size which
+expand to a final on-disk size of about 2 GB.  Transient disk usage during this
+process peaks at about 3 GB.  These numbers are current as of August 2023, as
+observed on Linux.  Numbers will vary over time, with a tendency to slowly
+increase, and vary slightly by OS.
+
+.. _Docker Desktop: https://www.docker.com/products/docker-desktop
+
+
+.. _docker-config:
+
+Config file variables
+=====================
+
+Defaults for the corresponding command line options, specified in the
+:doc:`config file </config/file>`.
+
+.. glossary::
+
+    :index:`docker.image <configuration variable; docker.image>`
+        Default for ``--image`` when using the Docker runtime, e.g.
+        ``nextstrain/base:build-20230623T174208Z``.
+
+        Typically set initially by ``nextstrain setup`` and subsequently by
+        ``nextstrain update``.
+
+
+.. _docker-env:
+
+Environment variables
+=====================
+
+.. warning::
+    For development only.  You don't need to set these during normal operation.
+
+Defaults for the corresponding command line options, potentially overriding
+defaults set by `config file variables`_.
+
+.. envvar:: NEXTSTRAIN_DOCKER_IMAGE
+
+    Default for ``--image`` when using the Docker runtime.
 """
 
 import os
