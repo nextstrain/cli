@@ -83,7 +83,9 @@ Compatibility
 
 Switching runtimes or updating the version of a runtime may result in different
 versions of Nextstrain components like Augur and Auspice as well as other
-programs, and thus different behaviour.
+programs, and thus different behaviour.  Use the :doc:`/commands/version`
+command's :option:`--verbose <nextstrain version --verbose>` option to report
+detailed version information about all available runtimes.
 
 Exact behavioural compatibility is not guaranteed between different runtimes
 (e.g. between the Docker vs. Conda runtimes) or between versions of the same
