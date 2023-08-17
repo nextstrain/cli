@@ -1,6 +1,6 @@
 ,Isolation level,Containerized?,Locality,External dependencies
-Docker,great (3),yes,local or remote,``docker`` command
-Conda,some (1),no,local,none
-Singularity,good (2),yes,local,``singularity`` command
-Ambient,none (0),no,local,many
-AWS Batch,great (3),yes,remote,AWS account with Batch set up
+:doc:`/runtimes/docker`,great (3),yes,local or remote,``docker`` command
+:doc:`/runtimes/conda`,some (1),no,local,none
+:doc:`/runtimes/singularity`,good (2),yes,local,``singularity`` command
+:doc:`/runtimes/ambient`,none (0),no,local,many
+:doc:`/runtimes/aws-batch`,great (3),yes,remote,AWS account with Batch set up
