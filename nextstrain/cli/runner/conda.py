@@ -4,8 +4,13 @@ Run commands with access to a fully-managed Conda environment.
 `Conda <https://docs.conda.io/en/latest/miniconda.html>`__ is a very popular
 packaging system freely-available for all platforms. When you use Nextstrain
 CLI's built-in Conda support, you don't need to install any other Nextstrain
-software dependencies yourself as they're automatically managed in an isolated
-location (isolated even from other Conda environments you may manage yourself).
+software dependencies yourself as validated versions are already bundled into a
+package (`nextstrain-base`_) by the Nextstrain team and automatically managed
+in an isolated location (isolated even from other Conda environments you may
+manage yourself).
+
+.. _nextstrain-base: https://github.com/nextstrain/conda-base
+
 
 .. versionadded:: 5.0.0
 
