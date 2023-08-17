@@ -16,12 +16,17 @@ Setup
 =====
 
 You will need to make sure all of the Nextstrain software dependencies
-are available locally or "ambiently" on your computer. A common way to do this
-is by manually using `Conda <https://docs.conda.io/en/latest/miniconda.html>`__
-to manage your own environment that includes the required software, however
-you're responsible for making sure the correct software is installed and kept
-up-to-date. It is also possible to install the required Nextstrain software
-`Augur <https://github.com/nextstrain/augur>`__ and `Auspice
+are available locally or "ambiently" on your computer.
+
+A common way to do this is by manually using `Conda
+<https://docs.conda.io/en/latest/miniconda.html>`__ to manage your own
+environment that includes the required software, however you're responsible for
+making sure the correct software is installed and kept up-to-date. Our
+:doc:`general Nextstrain installation page <docs:install>` describes more
+comprehensively how to do this.
+
+It is also possible to install the required Nextstrain software `Augur
+<https://github.com/nextstrain/augur>`__ and `Auspice
 <https://github.com/nextstrain/auspice>`__ and their dependencies manually,
 although this is not recommended.
 
