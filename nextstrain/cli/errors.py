@@ -18,3 +18,9 @@ class UserError(NextstrainCliError):
         formatted_message = dedent(message.lstrip("\n").rstrip()).format(*args, **kwargs)
 
         super().__init__("Error: " + formatted_message)
+
+class UsageError(UserError):
+    """
+    Prints brief command usage before the error message.
+    """
+    pass

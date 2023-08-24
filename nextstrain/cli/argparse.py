@@ -78,7 +78,18 @@ def register_commands(parser, commands):
 
     for cmd in commands:
         subparser = cmd.register_parser(subparsers)
-        subparser.set_defaults( __command__ = cmd )
+
+        # No need to worry about reference cycles of subparser to itself.
+        # CPython's GC uses automatic reference counting complemented with
+        # traversal-based reachability detection that can handle cycles.¹
+        # Other implementations may not, but we largely don't care about those,
+        # and taking a big step back, our processes here just don't live long
+        # enough for the cycle to be a memory issue (plus it's just one cycle,
+        # not recreated over and over again in a hot loop).
+        #   -trs, 24 August 2023
+        #
+        # ¹ <https://docs.python.org/3.11/reference/datamodel.html#index-2>
+        subparser.set_defaults( __command__ = cmd, __parser__ = subparser )
 
         # Ensure all subparsers format like the top-level parser
         subparser.formatter_class = parser.formatter_class
