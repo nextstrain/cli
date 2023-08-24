@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* build: Providing a path to a pathogen build directory is no longer required
+  when the AWS Batch runtime is in use (e.g. with `--aws-batch`) and both the
+  `--attach` and `--no-download` options are given.  This allows usages which
+  just want to check job status or logs to stop providing a meaningless/unused
+  directory.
+  ([#305](https://github.com/nextstrain/cli/pull/305))
+
 
 # 7.2.0 (17 August 2023)
 
