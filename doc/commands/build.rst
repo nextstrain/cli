@@ -39,7 +39,7 @@ positional arguments
 
 .. option:: <directory>
 
-    Path to pathogen build directory
+    Path to pathogen build directory.  Required, except when the AWS Batch runtime is in use and both --attach and --no-download are given.  
 
 .. option:: ...
 

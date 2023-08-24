@@ -34,7 +34,7 @@ def store_volume(volume_name):
         def __call__(self, parser, namespace, values, option_strings = None):
             # Add the new volume to the list of volumes
             volumes    = getattr(namespace, "volumes", [])
-            new_volume = NamedVolume(volume_name, Path(values))
+            new_volume = NamedVolume(volume_name, Path(values)) if values else None
             setattr(namespace, "volumes", [*volumes, new_volume])
 
             # Allow the new volume to be found by name on the opts object
