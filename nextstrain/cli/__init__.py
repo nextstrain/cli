@@ -19,7 +19,7 @@ from types    import SimpleNamespace
 from .argparse    import HelpFormatter, register_commands, register_default_command
 from .command     import build, view, deploy, remote, shell, update, setup, check_setup, login, logout, whoami, version, init_shell, authorization, debugger
 from .debug       import DEBUGGING
-from .errors      import NextstrainCliError
+from .errors      import NextstrainCliError, UsageError
 from .util        import warn
 from .__version__ import __version__ # noqa: F401 (for re-export)
 
@@ -36,11 +36,18 @@ def run(args):
         return opts.__command__.run(opts)
 
     except NextstrainCliError as error:
+        exit_status = 1
+
         if DEBUGGING:
             traceback.print_exc()
         else:
+            if isinstance(error, UsageError):
+                warn(opts.__parser__.format_usage())
+                exit_status = 2
+
             warn(error)
-        return 1
+
+        return exit_status
 
     except AssertionError:
         traceback.print_exc()

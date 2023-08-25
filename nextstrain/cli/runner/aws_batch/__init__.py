@@ -85,7 +85,7 @@ from pathlib import Path
 from sys import exit
 from textwrap import dedent
 from time import sleep, time
-from typing import Iterable
+from typing import Iterable, Optional
 from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, warn
@@ -164,13 +164,13 @@ def register_arguments(parser) -> None:
 
 def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
     # Unlike other runners, the AWS Bach runner currently *requires* a working
-    # dir.  This is ok as we only provide the AWS Batch runner for commands
-    # which also require a working dir (e.g. build), whereas other runners also
-    # work with commands that don't.
-    #   -trs, 28 Feb 2022
-    assert working_volume is not None
+    # dir in most usages.  This is ok as we only provide the AWS Batch runner
+    # for commands which also require a working dir (e.g. build), whereas other
+    # runners also work with commands that don't.
+    #   -trs, 28 Feb 2022 (updated 24 August 2023)
+    assert working_volume is not None or (opts.attach and not opts.download)
 
-    local_workdir = working_volume.src.resolve(strict = True)
+    local_workdir = working_volume.src.resolve(strict = True) if working_volume else None
 
     if opts.attach:
         print_stage("Attaching to Nextstrain AWS Batch Job ID:", opts.attach)
@@ -191,6 +191,8 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         print_stage("Job is %s" % job.status)
     else:
+        assert local_workdir is not None
+
         # Generate our own unique run id since we can't know the AWS Batch job id
         # until we submit it.  This run id is used for workdir and run results
         # storage on S3, in a bucket accessible to both Batch jobs and CLI users.
@@ -357,6 +359,8 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
     # Download results if we didn't stop the job early.
     if opts.download and not stop_sent and not job.stopped:
+        assert local_workdir is not None
+
         patterns = opts.download if isinstance(opts.download, list) else None
 
         if patterns:
@@ -378,7 +382,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     )
 
 
-def detach(job: jobs.JobState, local_workdir: Path) -> int:
+def detach(job: jobs.JobState, local_workdir: Optional[Path]) -> int:
     """
     Detach from the specified *job* and print a message about how to re-attach
     (using the *local_workdir*).
@@ -393,7 +397,7 @@ def detach(job: jobs.JobState, local_workdir: Path) -> int:
         "--attach", shlex.quote(job.id),
 
         # Preserve the local workdir, which has been resolved to an absolute path
-        shlex.quote(str(local_workdir))
+        shlex.quote(str(local_workdir) if local_workdir else ".")
     ])
 
     print(dedent("""

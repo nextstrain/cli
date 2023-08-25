@@ -20,6 +20,7 @@ import re
 from textwrap import dedent
 from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
+from ..errors import UsageError, UserError
 from ..util import byte_quantity, warn
 from ..volume import store_volume
 
@@ -118,9 +119,12 @@ def register_parser(subparser):
     # Positional parameters
     parser.add_argument(
         "directory",
-        help    = "Path to pathogen build directory",
+        help    = "Path to pathogen build directory.  "
+                  "Required, except when the AWS Batch runtime is in use and both --attach and --no-download are given.  "
+                  f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar = "<directory>",
-        action  = store_volume("build"))
+        action  = store_volume("build"),
+        nargs   = "?")
 
     # Register runner flags and arguments
     runner.register_runners(parser, exec = ["snakemake", "--printshellcmds", ...])
@@ -129,8 +133,25 @@ def register_parser(subparser):
 
 
 def run(opts):
+    # We must check this before the conditions under which opts.build is
+    # optional because otherwise we could pass a missing build dir to a runner
+    # which ignores opts.attach.
+    if (opts.attach or opts.detach) and opts.__runner__ is not runner.aws_batch:
+        raise UserError(f"""
+            The --attach/--detach options are only supported when using the AWS
+            Batch runtime.  Did you forget to specify --aws-batch?
+            """)
+
     # Ensure our build dir exists
-    if not opts.build.src.is_dir():
+    if opts.build is None:
+        if opts.attach and not opts.download:
+            # Don't require a build directory with --attach + --no-download.
+            # User just wants to check status and/or logs.
+            pass
+        else:
+            raise UsageError("Path to a pathogen build <directory> is required.")
+
+    elif not opts.build.src.is_dir():
         warn("Error: Build path \"%s\" does not exist or is not a directory." % opts.build.src)
 
         if not opts.build.src.is_absolute():
