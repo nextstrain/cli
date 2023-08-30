@@ -4,6 +4,7 @@ Type definitions for internal use.
 
 import argparse
 import builtins
+import sys
 import urllib.parse
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
@@ -11,6 +12,12 @@ from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import Protocol, TypeAlias
 from .volume import NamedVolume
+
+# Re-export EllipsisType so we can paper over its absence from older Pythons
+if sys.version_info >= (3, 10):
+    from types import EllipsisType
+else:
+    EllipsisType: TypeAlias = 'builtins.ellipsis'
 
 """
 An immutable mapping of (*name*, *value*) pairs representing a set of
@@ -33,7 +40,7 @@ RunnerSetupStatus = Optional[bool]
 
 RunnerTestResults = List['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
-RunnerTestResultStatus: TypeAlias = Union[bool, None, 'builtins.ellipsis']
+RunnerTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
 
 RunnerUpdateStatus = Optional[bool]
 
