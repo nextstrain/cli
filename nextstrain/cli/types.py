@@ -8,7 +8,8 @@ import urllib.parse
 from pathlib import Path
 from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
 # TODO: Use typing.Protocol once Python 3.8 is the minimum supported version.
-from typing_extensions import Protocol
+# TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
+from typing_extensions import Protocol, TypeAlias
 from .volume import NamedVolume
 
 """
@@ -32,7 +33,7 @@ RunnerSetupStatus = Optional[bool]
 
 RunnerTestResults = List['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
-RunnerTestResultStatus = Union[bool, None, 'builtins.ellipsis']
+RunnerTestResultStatus: TypeAlias = Union[bool, None, 'builtins.ellipsis']
 
 RunnerUpdateStatus = Optional[bool]
 
