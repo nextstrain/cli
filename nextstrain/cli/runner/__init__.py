@@ -1,7 +1,8 @@
 import argparse
-import builtins
 from argparse import ArgumentParser
 from typing import cast, List, Union, TYPE_CHECKING
+# TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
+from typing_extensions import TypeAlias
 from . import (
     docker as __docker,
     conda as __conda,
@@ -12,7 +13,7 @@ from . import (
 from .. import config, env, hostenv
 from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
-from ..types import Env, Options, RunnerModule
+from ..types import EllipsisType, Env, Options, RunnerModule
 from ..util import prose_list, runner_name, runner_module, runner_help, warn
 from ..volume import NamedVolume
 
@@ -70,7 +71,7 @@ if configured_runner:
             % (configured_runner, runner_name(default_runner)))
 
 
-RunnerExec = List[Union[str, 'builtins.ellipsis']]
+RunnerExec: TypeAlias = List[Union[str, EllipsisType]]
 
 
 def register_runners(parser:  ArgumentParser,
