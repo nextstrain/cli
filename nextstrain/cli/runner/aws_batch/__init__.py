@@ -82,7 +82,7 @@ import shlex
 from datetime import datetime
 from pathlib import Path
 from signal import signal, Signals, SIGINT
-from sys import exit
+from sys import exit, stdin
 from textwrap import dedent
 from time import sleep, time
 from typing import Iterable, Optional
@@ -289,15 +289,26 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         print_stage("Watching job status")
 
-        if SIGTSTP:
-            control_hints = """
-                Press Control-C twice within %d seconds to cancel this job,
-                      Control-Z to detach from it.
-                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+        if stdin.isatty():
+            if SIGTSTP:
+                control_hints = """
+                    Press Control-C twice within %d seconds to cancel this job,
+                          Control-Z to detach from it.
+                    """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+            else:
+                control_hints = """
+                    Press Control-C twice within %d seconds to cancel this job.
+                    """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
         else:
-            control_hints = """
-                Press Control-C twice within %d seconds to cancel this job.
-                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+            if SIGTSTP:
+                control_hints = """
+                    Send SIGINT to cancel this job,
+                         SIGTSTP to detach from it.
+                    """
+            else:
+                control_hints = """
+                    Send SIGINT to cancel this job.
+                    """
 
         print(dedent(control_hints))
 
@@ -374,8 +385,8 @@ def interrupt(job: jobs.JobState) -> bool:
 
     Prints status messages about what's going on.
 
-    This function must be invoked at least twice within the
-    ``CTRL_C_CONFIRMATION_TIMEOUT`` to actually cancel the job.
+    If a TTY is attached to stdin, this function must be invoked at least twice
+    within the ``CTRL_C_CONFIRMATION_TIMEOUT`` to actually cancel the job.
 
     Returns ``True`` if the process should exit immediately, i.e. not wait for
     the job to exit first.  Otherwise, returns ``False``.
@@ -391,7 +402,7 @@ def interrupt(job: jobs.JobState) -> bool:
 
     now = int(time())
 
-    if now - interrupt_called > CTRL_C_CONFIRMATION_TIMEOUT:
+    if stdin.isatty() and now - interrupt_called > CTRL_C_CONFIRMATION_TIMEOUT:
         interrupt_called = now
         print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
     else:
@@ -399,7 +410,10 @@ def interrupt(job: jobs.JobState) -> bool:
         job.stop()
 
         print_stage("Waiting for job to stop…")
-        print("(Press Control-C one more time if you don't want to wait.)")
+        if stdin.isatty():
+            print("(Press Control-C one more time if you don't want to wait.)")
+        else:
+            print("(Send SIGINT one more time if you don't want to wait.)")
 
     return False
 
