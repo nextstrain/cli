@@ -39,7 +39,7 @@ positional arguments
 
 .. option:: <directory>
 
-    Path to pathogen build directory.  Required, except when the AWS Batch runtime is in use and both --attach and --no-download are given.  
+    Path to pathogen build directory.  Required, except when the AWS Batch runtime is in use and --attach and either --no-download or --cancel are given.  
 
 .. option:: ...
 
@@ -69,6 +69,10 @@ options
 .. option:: --attach <job-id>
 
     Re-attach to a :option:`--detach`'ed build to view output and download results.  Currently only supported when also using :option:`--aws-batch`.
+
+.. option:: --cancel
+
+    Immediately cancel (interrupt/stop) the :option:`--attach`'ed build.  Currently only supported when also using :option:`--aws-batch`.
 
 .. option:: --cpus <count>
 

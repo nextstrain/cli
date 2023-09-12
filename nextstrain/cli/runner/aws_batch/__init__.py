@@ -168,7 +168,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # for commands which also require a working dir (e.g. build), whereas other
     # runners also work with commands that don't.
     #   -trs, 28 Feb 2022 (updated 24 August 2023)
-    assert working_volume is not None or (opts.attach and not opts.download)
+    assert working_volume is not None or (opts.attach and (not opts.download or opts.cancel))
 
     local_workdir = working_volume.src.resolve(strict = True) if working_volume else None
 
@@ -262,8 +262,13 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
             return detach(job, local_workdir)
 
 
-    # Don't setup signal handlers for jobs that are already complete.
-    if not job.is_complete:
+    if opts.cancel:
+        interrupt(job, confirm = False)
+
+
+    # Don't setup signal handlers for jobs that are already complete or we're
+    # stopping (cancelling).
+    if not job.is_complete and not job.stop_sent:
         # Set up signal handler for SIGTSTP ("stop typed at terminal", e.g.
         # Ctrl-Z) and SIGHUP ("hangup detected on controlling terminal, or
         # death of controlling process").  Only Unix systems support these,
@@ -421,15 +426,16 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
 interrupt_called = 0
 
-def interrupt(job: jobs.JobState) -> bool:
+def interrupt(job: jobs.JobState, confirm: bool = stdin.isatty()) -> bool:
     """
     Request interruption (cancellation) of the specified *job* and wait for it
     to exit.
 
     Prints status messages about what's going on.
 
-    If a TTY is attached to stdin, this function must be invoked at least twice
-    within the ``CTRL_C_CONFIRMATION_TIMEOUT`` to actually cancel the job.
+    If *confirm* is ``True``, by default when a TTY is attached to stdin, then
+    this function must be invoked at least twice within the
+    ``CTRL_C_CONFIRMATION_TIMEOUT`` to actually cancel the job.
 
     Returns ``True`` if the process should exit immediately, i.e. not wait for
     the job to exit first.  Otherwise, returns ``False``.
@@ -445,18 +451,22 @@ def interrupt(job: jobs.JobState) -> bool:
 
     now = int(time())
 
-    if stdin.isatty() and now - interrupt_called > CTRL_C_CONFIRMATION_TIMEOUT:
+    if confirm and now - interrupt_called > CTRL_C_CONFIRMATION_TIMEOUT:
         interrupt_called = now
-        print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
+
+        if stdin.isatty():
+            print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
+        else:
+            print_stage("Send SIGINT again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
     else:
         print_stage("Canceling job…")
         job.stop()
 
         print_stage("Waiting for job to stop…")
         if stdin.isatty():
-            print("(Press Control-C one more time if you don't want to wait.)")
+            print(f"(Press Control-C {'one more time ' if confirm else ''}if you don't want to wait.)")
         else:
-            print("(Send SIGINT one more time if you don't want to wait.)")
+            print(f"(Send SIGINT {'one more time ' if confirm else ''}if you don't want to wait.)")
 
     return False
 
