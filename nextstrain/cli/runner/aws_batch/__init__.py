@@ -79,9 +79,9 @@ defaults set by `config file variables`_.
 
 import os
 import shlex
-import signal
 from datetime import datetime
 from pathlib import Path
+from signal import signal, Signals
 from sys import exit
 from textwrap import dedent
 from time import sleep, time
@@ -266,12 +266,12 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     if not job.is_complete:
         # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
         # we guard this non-essential feature.
-        SIGTSTP = getattr(signal, "SIGTSTP", None)
+        SIGTSTP = getattr(Signals, "SIGTSTP", None)
 
         if SIGTSTP:
             def handler(sig, frame):
                 exit(detach(job, local_workdir))
-            signal.signal(SIGTSTP, handler)
+            signal(SIGTSTP, handler)
 
 
         print_stage("Watching job status")
