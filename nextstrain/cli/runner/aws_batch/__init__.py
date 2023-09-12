@@ -264,15 +264,28 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
     # Don't setup signal handlers for jobs that are already complete.
     if not job.is_complete:
-        # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
-        # we guard this non-essential feature.
+        # Set up signal handler for SIGTSTP ("stop typed at terminal", e.g.
+        # Ctrl-Z) and SIGHUP ("hangup detected on controlling terminal, or
+        # death of controlling process").  Only Unix systems support these,
+        # so we guard this non-essential feature.
+        #
+        # We leave SIGSTOP (non-TTY-generated stop signal) alone so standard
+        # Unix process control with SIGSTOP and SIGCONT still works as usual.
+        # Besides, SIGSTOP is not catchable!
+        #
+        # If modifying these, consider (re-)reading signal(7) first for
+        # context.
+        #   -trs, 29 August 2023
         SIGTSTP = getattr(Signals, "SIGTSTP", None)
+        SIGHUP  = getattr(Signals, "SIGHUP", None)
 
         def detach_signaled(sig, frame):
             exit(detach(job, local_workdir))
 
         if SIGTSTP:
             signal(SIGTSTP, detach_signaled)
+        if SIGHUP:
+            signal(SIGHUP, detach_signaled)
 
 
         # Set up signal handler for SIGINT ("interrupt from keyboard", e.g.
@@ -299,6 +312,10 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                     control_hints = """
                         Press Control-C or Control-Z to detach from this job.
                         """
+                elif SIGHUP:
+                    control_hints = """
+                        Press Control-C or send SIGHUP to detach from this job.
+                        """
                 else:
                     control_hints = """
                         Press Control-C to detach from this job.
@@ -309,21 +326,27 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                         Press Control-C twice within %d seconds to cancel this job,
                               Control-Z to detach from it.
                         """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+                elif SIGHUP:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job.
+                         Send SIGHUP to detach from it.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
                 else:
                     control_hints = """
                         Press Control-C twice within %d seconds to cancel this job.
                         """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
         else:
             if opts.detach_on_interrupt:
-                sigs = prose_list(sig.name for sig in [SIGINT, SIGTSTP] if sig)
+                sigs = prose_list(sig.name for sig in [SIGINT, SIGHUP, SIGTSTP] if sig)
                 control_hints = f"""
                     Send {sigs} to detach from this job.
                     """
             else:
-                if SIGTSTP:
-                    control_hints = """
+                if SIGHUP or SIGTSTP:
+                    sigs = prose_list(sig.name for sig in [SIGHUP, SIGTSTP] if sig)
+                    control_hints = f"""
                         Send SIGINT to cancel this job,
-                             SIGTSTP to detach from it.
+                             {sigs} to detach from it.
                         """
                 else:
                     control_hints = """
