@@ -88,7 +88,7 @@ from time import sleep, time
 from typing import Iterable, Optional
 from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ...util import colored, warn
+from ...util import colored, prose_list, warn
 from ... import config
 from .. import docker
 from . import jobs, s3
@@ -268,10 +268,11 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         # we guard this non-essential feature.
         SIGTSTP = getattr(Signals, "SIGTSTP", None)
 
+        def detach_signaled(sig, frame):
+            exit(detach(job, local_workdir))
+
         if SIGTSTP:
-            def handler(sig, frame):
-                exit(detach(job, local_workdir))
-            signal(SIGTSTP, handler)
+            signal(SIGTSTP, detach_signaled)
 
 
         # Set up signal handler for SIGINT ("interrupt from keyboard", e.g.
@@ -280,35 +281,54 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         # We leave SIGTERM alone to allow `kill`'s default signal and other
         # standard Unix process control to work as usual.
         #   -trs, 29 August 2023
-        def interrupt_signaled(sig, frame):
-            if interrupt(job):
-                exit(128 + SIGINT)
+        if opts.detach_on_interrupt:
+            signal(SIGINT, detach_signaled)
+        else:
+            def interrupt_signaled(sig, frame):
+                if interrupt(job):
+                    exit(128 + SIGINT)
 
-        signal(SIGINT, interrupt_signaled)
+            signal(SIGINT, interrupt_signaled)
 
 
         print_stage("Watching job status")
 
         if stdin.isatty():
-            if SIGTSTP:
-                control_hints = """
-                    Press Control-C twice within %d seconds to cancel this job,
-                          Control-Z to detach from it.
-                    """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+            if opts.detach_on_interrupt:
+                if SIGTSTP:
+                    control_hints = """
+                        Press Control-C or Control-Z to detach from this job.
+                        """
+                else:
+                    control_hints = """
+                        Press Control-C to detach from this job.
+                        """
             else:
-                control_hints = """
-                    Press Control-C twice within %d seconds to cancel this job.
-                    """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+                if SIGTSTP:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job,
+                              Control-Z to detach from it.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+                else:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
         else:
-            if SIGTSTP:
-                control_hints = """
-                    Send SIGINT to cancel this job,
-                         SIGTSTP to detach from it.
+            if opts.detach_on_interrupt:
+                sigs = prose_list(sig.name for sig in [SIGINT, SIGTSTP] if sig)
+                control_hints = f"""
+                    Send {sigs} to detach from this job.
                     """
             else:
-                control_hints = """
-                    Send SIGINT to cancel this job.
-                    """
+                if SIGTSTP:
+                    control_hints = """
+                        Send SIGINT to cancel this job,
+                             SIGTSTP to detach from it.
+                        """
+                else:
+                    control_hints = """
+                        Send SIGINT to cancel this job.
+                        """
 
         print(dedent(control_hints))
 

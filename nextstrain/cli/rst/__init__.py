@@ -49,6 +49,7 @@ PREAMBLE = """
 .. role:: command-reference(literal)
 .. role:: option(literal)
 .. role:: envvar(literal)
+.. role:: kbd(literal)
 .. default-role:: command-invocation
 """
 
