@@ -247,23 +247,30 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    # Conda packages to install.
+    # We accept a package match spec, which one to three space-separated parts.¹
+    # If we got a spec, then we use it as-is.
     #
-    # HEY YOU: If you add/remove packages here, make sure to account for how
-    # update() should make the same changes to existing envs.
-    #   -trs, 1 Sept 2022
-    packages = (
-        NEXTSTRAIN_BASE,
-    )
+    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
+    #
+    if " " in NEXTSTRAIN_BASE.strip():
+        install_spec = NEXTSTRAIN_BASE
+    else:
+        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
+
+        if latest_version:
+            install_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
+        else:
+            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
+
+            install_spec = NEXTSTRAIN_BASE
 
     # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
-    for pkg in packages:
-        print(f"  - {pkg}")
+    print(f"  - {install_spec}")
 
     if not dry_run:
         try:
-            micromamba("create", *packages)
+            micromamba("create", install_spec)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
