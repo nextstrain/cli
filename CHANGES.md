@@ -28,6 +28,9 @@ development source code and as such may not be routinely kept up to date.
   view`.  They provide defaults when `--host` and/or `--port` aren't provided.
   ([#310](https://github.com/nextstrain/cli/pull/310))
 
+* Updated fsspec and s3fs dependencies to avoid version 2023.9.1, since they
+  caused `nextstrain build --aws-batch` invocations to fail.
+  ([#313](https://github.com/nextstrain/cli/pull/313))
 
 # 7.2.0 (17 August 2023)
 
