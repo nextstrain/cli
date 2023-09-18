@@ -49,6 +49,7 @@ from multiprocessing import Process, ProcessError
 import re
 import requests
 import webbrowser
+from inspect import cleandoc
 from os import environ
 from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
@@ -59,6 +60,11 @@ from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_H
 from ..runner import docker, ambient, conda, singularity
 from ..util import colored, remove_suffix, warn
 from ..volume import NamedVolume
+
+
+# Respect defaults for HOST and PORT set in the environment
+HOST = environ.get("HOST") or "127.0.0.1"
+PORT = environ.get("PORT") or "4000"
 
 
 # Avoid text-mode browsers
@@ -111,15 +117,17 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--host",
-        help    = "Listen on the given hostname or IP address instead of the default %(default)s",
+        help    = "Listen on the given hostname or IP address instead of the default %(default)s.  "
+                  "You may also set the :envvar:`HOST` environment variable to change the default.",
         metavar = "<ip/hostname>",
-        default = "127.0.0.1")
+        default = HOST)
 
     parser.add_argument(
         "--port",
-        help    = "Listen on the given port instead of the default port %(default)s",
+        help    = "Listen on the given port instead of the default port %(default)s.  "
+                  "You may also set the :envvar:`PORT` environment variable to change the default.",
         metavar = "<number>",
-        default = 4000)
+        default = PORT)
 
     # Positional parameters
     parser.add_argument(
@@ -138,6 +146,21 @@ def register_parser(subparser):
         parser,
         exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
         runners = [docker, ambient, conda, singularity])
+
+    parser.epilog = cleandoc("""
+        In some contexts, it may be preferable to provide environment variables
+        instead of command-line options:
+
+        .. envvar:: HOST
+
+            Hostname or IP address on which to listen by default.  Ignored if
+            :option:`--host` or :option:`--allow-remote-access` is provided.
+
+        .. envvar:: PORT
+
+            Port on which to listen by default.  Ignored if :option:`--port` is
+            provided.
+        """)
 
     return parser
 

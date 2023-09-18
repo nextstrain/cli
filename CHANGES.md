@@ -22,6 +22,12 @@ development source code and as such may not be routinely kept up to date.
   directory.
   ([#305](https://github.com/nextstrain/cli/pull/305))
 
+## Bug fixes
+
+* The `HOST` and `PORT` environment variables are now respected by `nextstrain
+  view`.  They provide defaults when `--host` and/or `--port` aren't provided.
+  ([#310](https://github.com/nextstrain/cli/pull/310))
+
 
 # 7.2.0 (17 August 2023)
 

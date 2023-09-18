@@ -97,11 +97,11 @@ options
 
 .. option:: --host <ip/hostname>
 
-    Listen on the given hostname or IP address instead of the default 127.0.0.1
+    Listen on the given hostname or IP address instead of the default 127.0.0.1.  You may also set the :envvar:`HOST` environment variable to change the default.
 
 .. option:: --port <number>
 
-    Listen on the given port instead of the default port 4000
+    Listen on the given port instead of the default port 4000.  You may also set the :envvar:`PORT` environment variable to change the default.
 
 runtime selection options
 =========================
@@ -176,3 +176,15 @@ development options for --docker
 
     Additional arguments to pass to `docker run`
 
+In some contexts, it may be preferable to provide environment variables
+instead of command-line options:
+
+.. envvar:: HOST
+
+    Hostname or IP address on which to listen by default.  Ignored if
+    :option:`--host` or :option:`--allow-remote-access` is provided.
+
+.. envvar:: PORT
+
+    Port on which to listen by default.  Ignored if :option:`--port` is
+    provided.
