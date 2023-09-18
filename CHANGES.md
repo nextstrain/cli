@@ -22,6 +22,14 @@ development source code and as such may not be routinely kept up to date.
   directory.
   ([#305](https://github.com/nextstrain/cli/pull/305))
 
+* The initial setup of the Conda runtime, i.e. with `nextstrain setup conda`,
+  now explicitly installs the latest available runtime package version.  This
+  was the implicit intent and expectation, but, for various Conda packaging
+  reasons, it was (silently) not always the result.  Now an error will occur if
+  the latest version is not installable.  This matches the existing behaviour
+  when updating the Conda runtime, i.e. with `nextstrain update conda`.
+  ([#312](https://github.com/nextstrain/cli/pull/312))
+
 ## Bug fixes
 
 * The `HOST` and `PORT` environment variables are now respected by `nextstrain
