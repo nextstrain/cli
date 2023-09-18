@@ -119,8 +119,12 @@ setup(
         # <https://github.com/nextstrain/cli/issues/133> for more background.
         #
         # What a mess.
-        "fsspec",
-        "s3fs[boto3] >=2021.04.0",
+        #
+        # Avoiding 2023.9.1 due to change in `auto_mkdir` parameter in
+        # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the
+        # error described in https://github.com/fsspec/s3fs/issues/790
+        "fsspec !=2023.9.1",
+        "s3fs[boto3] >=2021.04.0, !=2023.9.1",
     ],
 
     extras_require = {
