@@ -7,11 +7,10 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 7.3.0.post1 (19 September 2023)
 
 _See also changes in 7.3.0 which was an unreleased version._
 
@@ -1186,12 +1185,12 @@ The circumstances and implications of each are described below.
 * `update` will no longer overwrite a `docker.image` config setting when the
   current/default value includes an explicit `latest` tag.  This change makes
   it possible to track the "latest" Docker runtime image by manually setting
-  
+
   ```ini
   [docker]
   image = nextstrain/base:latest
   ```
-  
+
   in _~/.nextstrain/config_.
   ([#163](https://github.com/nextstrain/cli/pull/163))
 
