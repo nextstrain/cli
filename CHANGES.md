@@ -13,11 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+_See also changes in 7.3.0 which was an unreleased version._
+
 ## Development
 
 * Update CI to test against the SingularityCE 3.x series only ([#314](https://github.com/nextstrain/cli/pull/314))
 
 # 7.3.0 (19 September 2023)
+
+_Unreleased due to [test failures](https://github.com/nextstrain/cli/actions/runs/6238951959). Changes first released as part of 7.3.0.post1._
 
 ## Improvements
 
