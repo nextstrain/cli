@@ -84,11 +84,14 @@ runs:
         pushd "$(mktemp -d)"
         export "$(grep UBUNTU_CODENAME /etc/os-release)"
 
-        # Download latest SingularityCE .deb for this version of Ubuntu
+        # Download latest SingularityCE 3.x series .deb for this version of Ubuntu
+        #
+        # XXX TODO: Start testing the SingularityCE 4.x series.
+        #   -trs, 19 Sept 2023
         url="$(
           curl -fsSL --proto '=https' -H "Authorization: Bearer $GITHUB_TOKEN" \
-            https://api.github.com/repos/sylabs/singularity/releases/latest \
-              | jq -r '.assets | map(select(.name | endswith("\(env.UBUNTU_CODENAME)_amd64.deb"))) | .[0].browser_download_url')"
+            "https://api.github.com/repos/sylabs/singularity/releases?per_page=100" \
+              | jq -r 'map(select(.tag_name | startswith("v3."))) | .[0].assets | map(select(.name | endswith("\(env.UBUNTU_CODENAME)_amd64.deb"))) | .[0].browser_download_url')"
 
         curl -fsSL --proto '=https' "$url" > singularity.deb
 
