@@ -61,7 +61,7 @@ with the same, e.g.:
     export NEXTSTRAIN_DOT_ORG=http://localhost:5000
     export NEXTSTRAIN_COGNITO_USER_POOL_ID="$(jq -r .COGNITO_USER_POOL_ID ../nextstrain.org/env/testing/config.json)"
     export NEXTSTRAIN_COGNITO_CLI_CLIENT_ID="$(jq -r .COGNITO_CLI_CLIENT_ID ../nextstrain.org/env/testing/config.json)"
-    
+
     nextstrain login
     nextstrain whoami
     nextstrain remote ls groups/test-private
@@ -77,6 +77,21 @@ When a release tag is pushed, the [CI workflow][] builds [source
 distributions][] and [built distributions][] (wheels), tests them, and if tests
 pass, uploads them to [the nextstrain-cli project on
 PyPi](https://pypi.org/project/nextstrain-cli).
+
+### Update Bioconda Recipe
+
+If there are changes to the Python version or dependency list in `setup.py`, then
+create a PR in [bioconda-recipes][] translating the changes in `setup.py` to
+[Conda package match specifications][].
+Follow instructions at [nextstrain/bioconda-recipes/README.md][].
+
+### Release CI Failures
+
+When CI for release fails due to transient errors (like transient DNS/network issues),
+it can be recovered by retrying the GitHub Action workflow run.
+However, when CI fails due to non-transient errors that require code change,
+the recovery method is to cut a new release (e.g. 7.3.0.post1 if all that was
+made was non-packaged changes, or 7.3.1 etc if we also make other changes at the same time).
 
 ## Tests
 
@@ -161,3 +176,6 @@ which may be helpful during development; see `--help` for details.
 [editor integrations for mypy]: https://github.com/python/mypy#integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
+[bioconda-recipes]: https://github.com/bioconda/bioconda-recipes
+[Conda package match specifications]: https://docs.conda.io/projects/conda-build/en/stable/resources/package-spec.html#package-match-specifications
+[nextstrain/bioconda-recipes/README.md]: https://github.com/nextstrain/bioconda-recipes/blob/readme/README.md
