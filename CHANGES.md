@@ -13,6 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* Update CI to test against the SingularityCE 3.x series only ([#314](https://github.com/nextstrain/cli/pull/314))
 
 # 7.3.0 (19 September 2023)
 
