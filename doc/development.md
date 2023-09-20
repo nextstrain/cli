@@ -80,11 +80,32 @@ PyPi](https://pypi.org/project/nextstrain-cli).
 
 ### Recovering from release CI failures
 
-When CI for release fails due to transient errors (like transient DNS/network issues),
-it can be recovered by retrying the GitHub Action workflow run.
-However, when CI fails due to non-transient errors that require code change,
-the recovery method is to cut a new release (e.g. 7.3.0.post1 if all that was
-made was non-packaged changes, or 7.3.1 etc if we also make other changes at the same time).
+When CI for a release fails due to transient errors (like DNS or other network
+issues), it can be recovered by retrying the GitHub Action workflow run.
+
+However, when CI for a release fails due to non-transient errors that require a
+code change, the recovery method is to cut a new release.  If only non-packaged
+changes were made (e.g. fixes to the CI process itself but not in
+`nextstrain`), then bump the version to a [post-release version][] (e.g.
+`X.Y.Z.postN`).  Otherwise, use an appropriate semantic version bump.  Update
+the changelog to note the unreleased version as such and that the new version
+contains all the changes from the unreleased version.  You can compare to
+previous unreleased versions for wording.
+
+Two examples of recovering from a failed release:
+
+  * The release of
+    [7.3.0](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#730-19-september-2023)
+    failed due to issues with CI.
+    [CI was fixed](https://github.com/nextstrain/cli/pull/314) and
+    [7.3.0.post1](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#730post1-19-september-2023)
+    was released.
+
+  * The release of
+    [6.0.1](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#601-3-january-2023)
+    failed and required changes to packaged code.
+    [6.0.2](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#602-3-january-2023)
+    was released with the fix.
 
 ### Updating the Bioconda recipe
 
@@ -176,6 +197,7 @@ which may be helpful during development; see `--help` for details.
 [editor integrations for mypy]: https://github.com/python/mypy#integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
+[post-release version]: https://peps.python.org/pep-0440/#post-releases
 [bioconda-recipes]: https://github.com/bioconda/bioconda-recipes
 [Conda package match specifications]: https://docs.conda.io/projects/conda-build/en/stable/resources/package-spec.html#package-match-specifications
 [nextstrain/bioconda-recipes/README.md]: https://github.com/nextstrain/bioconda-recipes/blob/readme/README.md
