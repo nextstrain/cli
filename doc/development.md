@@ -61,7 +61,7 @@ with the same, e.g.:
     export NEXTSTRAIN_DOT_ORG=http://localhost:5000
     export NEXTSTRAIN_COGNITO_USER_POOL_ID="$(jq -r .COGNITO_USER_POOL_ID ../nextstrain.org/env/testing/config.json)"
     export NEXTSTRAIN_COGNITO_CLI_CLIENT_ID="$(jq -r .COGNITO_CLI_CLIENT_ID ../nextstrain.org/env/testing/config.json)"
-    
+
     nextstrain login
     nextstrain whoami
     nextstrain remote ls groups/test-private
@@ -77,6 +77,50 @@ When a release tag is pushed, the [CI workflow][] builds [source
 distributions][] and [built distributions][] (wheels), tests them, and if tests
 pass, uploads them to [the nextstrain-cli project on
 PyPi](https://pypi.org/project/nextstrain-cli).
+
+### Recovering from release CI failures
+
+When CI for a release fails due to transient errors (like DNS or other network
+issues), it can be recovered by retrying the GitHub Action workflow run.
+
+However, when CI for a release fails due to non-transient errors that require a
+code change, the recovery method is to cut a new release.  If only non-packaged
+changes were made (e.g. fixes to the CI process itself but not in
+`nextstrain`), then bump the version to a [post-release version][] (e.g.
+`X.Y.Z.postN`).  Otherwise, use an appropriate semantic version bump.  Update
+the changelog to note the unreleased version as such and that the new version
+contains all the changes from the unreleased version.  You can compare to
+previous unreleased versions for wording.
+
+Two examples of recovering from a failed release:
+
+  * The release of
+    [7.3.0](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#730-19-september-2023)
+    failed due to issues with CI.
+    [CI was fixed](https://github.com/nextstrain/cli/pull/314) and
+    [7.3.0.post1](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#730post1-19-september-2023)
+    was released.
+
+  * The release of
+    [6.0.1](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#601-3-january-2023)
+    failed and required changes to packaged code.
+    [6.0.2](https://github.com/nextstrain/cli/blob/7ba087b4/CHANGES.md#602-3-january-2023)
+    was released with the fix.
+
+### Updating the Bioconda recipe
+
+Typically the [autobump PR][] created by BiocondaBot when it notices the PyPI
+release will be sufficient.  Look it over and comment:
+
+> @BiocondaBot please add label
+
+to get it reviewed and merged.
+
+However, if there are changes to the minimum Python version or dependency list in `setup.py`, then
+create a PR in [bioconda-recipes][] translating the changes in `setup.py` to
+[Conda package match specifications][].
+Follow instructions at [nextstrain/bioconda-recipes/README.md][].
+You'll need to ask that the [autobump PR][] is closed in favor of your own PR.
 
 ## Tests
 
@@ -161,3 +205,8 @@ which may be helpful during development; see `--help` for details.
 [editor integrations for mypy]: https://github.com/python/mypy#integrations
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
+[post-release version]: https://peps.python.org/pep-0440/#post-releases
+[autobump PR]: https://github.com/bioconda/bioconda-recipes/pulls?q=is%3Apr+author%3Abiocondabot+nextstrain-cli
+[bioconda-recipes]: https://github.com/bioconda/bioconda-recipes
+[Conda package match specifications]: https://docs.conda.io/projects/conda-build/en/stable/resources/package-spec.html#package-match-specifications
+[nextstrain/bioconda-recipes/README.md]: https://github.com/nextstrain/bioconda-recipes/blob/readme/README.md
