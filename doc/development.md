@@ -78,7 +78,7 @@ distributions][] and [built distributions][] (wheels), tests them, and if tests
 pass, uploads them to [the nextstrain-cli project on
 PyPi](https://pypi.org/project/nextstrain-cli).
 
-### Release CI Failures
+### Recovering from release CI failures
 
 When CI for release fails due to transient errors (like transient DNS/network issues),
 it can be recovered by retrying the GitHub Action workflow run.
@@ -86,7 +86,7 @@ However, when CI fails due to non-transient errors that require code change,
 the recovery method is to cut a new release (e.g. 7.3.0.post1 if all that was
 made was non-packaged changes, or 7.3.1 etc if we also make other changes at the same time).
 
-### Update Bioconda Recipe
+### Updating the Bioconda recipe
 
 If there are changes to the Python version or dependency list in `setup.py`, then
 create a PR in [bioconda-recipes][] translating the changes in `setup.py` to
