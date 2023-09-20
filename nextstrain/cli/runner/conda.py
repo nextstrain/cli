@@ -108,6 +108,37 @@ NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
 NEXTSTRAIN_BASE = os.environ.get("NEXTSTRAIN_CONDA_BASE_PACKAGE") \
                or "nextstrain-base"
 
+PYTHONUSERBASE = RUNTIME_ROOT / "python-user-base"
+
+# Construct a PATH with our runtime prefix which provides some, but not total,
+# isolation from the rest of the system.
+PATH = os.pathsep.join(map(str, [
+    # Programs installed by this runtime.
+    PREFIX_BIN,
+
+    # Python's idea of a default path for the system, which currently under
+    # CPython is either "/bin:/usr/bin" on POSIX systems or ".;C:\\bin" on
+    # Windows.  This will ensure basic system commands like `ls` are
+    # available, although it will also "leak" any user-installed programs
+    # there.
+    os.defpath,
+]))
+
+EXEC_ENV = {
+    "PATH": PATH,
+
+    # Avoid letting user-set custom Python installs and module search paths
+    # from outside the runtime leak inside.
+    "PYTHONHOME": None,
+    "PYTHONPATH": None,
+
+    # Avoid letting the user site directory leak into the runtime, c.f.
+    # <https://docs.python.org/3/library/site.html> and
+    # <https://docs.python.org/3/using/cmdline.html#envvar-PYTHONNOUSERSITE>.
+    "PYTHONUSERBASE": str(PYTHONUSERBASE),
+    "PYTHONNOUSERSITE": "1",
+}
+
 
 def register_arguments(parser) -> None:
     """
@@ -136,36 +167,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # DLL searching).
     #   -trs, 13 Jan 2023
 
-    extra_env = {
-        **extra_env,
-        "PATH": path_with_prefix(),
-    }
-
-    return exec_or_return(argv, extra_env)
-
-
-def path_with_prefix() -> str:
-    """
-    Constructs a ``PATH`` with our runtime prefix.
-
-    The returned ``PATH`` consists of the:
-
-      1. Runtime prefix
-      2. :py:attr:`os.defpath`
-
-    which provides some, but not total, isolation from the rest of the system.
-    """
-    return os.pathsep.join(map(str, [
-        # Programs installed by this runtime.
-        PREFIX_BIN,
-
-        # Python's idea of a default path for the system, which currently under
-        # CPython is either "/bin:/usr/bin" on POSIX systems or ".;C:\\bin" on
-        # Windows.  This will ensure basic system commands like `ls` are
-        # available, although it will also "leak" any user-installed programs
-        # there.
-        os.defpath,
-    ]))
+    return exec_or_return(argv, {**extra_env, **EXEC_ENV})
 
 
 def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
@@ -395,7 +397,7 @@ def test_setup() -> RunnerTestResults:
         # ".exe" extension on Windows, which is why we don't just naively test
         # for existence ourselves.  File extensions are also why we don't test
         # equality below instead check containment in PREFIX_BIN.
-        found = shutil.which(cmd, path = path_with_prefix())
+        found = shutil.which(cmd, path = PATH)
 
         if not found:
             return False
@@ -412,7 +414,7 @@ def test_setup() -> RunnerTestResults:
 
     def runnable(*argv) -> bool:
         try:
-            capture_output(argv, extra_env = {"PATH": path_with_prefix()})
+            capture_output(argv, extra_env = EXEC_ENV)
             return True
         except (OSError, subprocess.CalledProcessError):
             return False

@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* We've plugged some isolation leaks in the Conda runtime where the
+  [Python user site directory](https://docs.python.org/3/library/site.html),
+  e.g. `~/.local/lib/pythonX.Y/site-packages`, as well as the
+  [`PYTHONPATH` and `PYTHONHOME` environment variables](https://docs.python.org/3/using/cmdline.html#environment-variables)
+  could influence and break the runtime.
+  ([#311](https://github.com/nextstrain/cli/pull/311))
+
 
 # 7.3.0.post1 (19 September 2023)
 
@@ -21,6 +30,7 @@ _See also changes in 7.3.0 which was an unreleased version._
 ## Development
 
 * Update CI to test against the SingularityCE 3.x series only ([#314](https://github.com/nextstrain/cli/pull/314))
+
 
 # 7.3.0 (19 September 2023)
 
