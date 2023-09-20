@@ -109,10 +109,18 @@ Two examples of recovering from a failed release:
 
 ### Updating the Bioconda recipe
 
-If there are changes to the Python version or dependency list in `setup.py`, then
+Typically the [autobump PR][] created by BiocondaBot when it notices the PyPI
+release will be sufficient.  Look it over and comment:
+
+> @BiocondaBot please add label
+
+to get it reviewed and merged.
+
+However, if there are changes to the minimum Python version or dependency list in `setup.py`, then
 create a PR in [bioconda-recipes][] translating the changes in `setup.py` to
 [Conda package match specifications][].
 Follow instructions at [nextstrain/bioconda-recipes/README.md][].
+You'll need to ask that the [autobump PR][] is closed in favor of your own PR.
 
 ## Tests
 
@@ -198,6 +206,7 @@ which may be helpful during development; see `--help` for details.
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
 [post-release version]: https://peps.python.org/pep-0440/#post-releases
+[autobump PR]: https://github.com/bioconda/bioconda-recipes/pulls?q=is%3Apr+author%3Abiocondabot+nextstrain-cli
 [bioconda-recipes]: https://github.com/bioconda/bioconda-recipes
 [Conda package match specifications]: https://docs.conda.io/projects/conda-build/en/stable/resources/package-spec.html#package-match-specifications
 [nextstrain/bioconda-recipes/README.md]: https://github.com/nextstrain/bioconda-recipes/blob/readme/README.md
