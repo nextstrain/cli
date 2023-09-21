@@ -44,10 +44,23 @@ def register_parser(subparser):
         action = "store_true")
 
     parser.add_argument(
+        "--detach-on-interrupt",
+        help   = "Detach from the build when an interrupt (e.g. :kbd:`Control-C` or ``SIGINT``) is received.  "
+                 "Interrupts normally cancel the build (when sent twice if stdin is a terminal, once otherwise).  "
+                 "Currently only supported when also using :option:`--aws-batch`.",
+        action = "store_true")
+
+    parser.add_argument(
         "--attach",
         help = "Re-attach to a :option:`--detach`'ed build to view output and download results.  "
                "Currently only supported when also using :option:`--aws-batch`.",
         metavar = "<job-id>")
+
+    parser.add_argument(
+        "--cancel",
+        help = "Immediately cancel (interrupt/stop) the :option:`--attach`'ed build.  "
+               "Currently only supported when also using :option:`--aws-batch`.",
+        action = "store_true")
 
     parser.add_argument(
         "--cpus",
@@ -120,7 +133,7 @@ def register_parser(subparser):
     parser.add_argument(
         "directory",
         help    = "Path to pathogen build directory.  "
-                  "Required, except when the AWS Batch runtime is in use and both --attach and --no-download are given.  "
+                  "Required, except when the AWS Batch runtime is in use and --attach and either --no-download or --cancel are given.  "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar = "<directory>",
         action  = store_volume("build"),
@@ -136,17 +149,20 @@ def run(opts):
     # We must check this before the conditions under which opts.build is
     # optional because otherwise we could pass a missing build dir to a runner
     # which ignores opts.attach.
-    if (opts.attach or opts.detach) and opts.__runner__ is not runner.aws_batch:
+    if (opts.attach or opts.detach or opts.detach_on_interrupt or opts.cancel) and opts.__runner__ is not runner.aws_batch:
         raise UserError(f"""
-            The --attach/--detach options are only supported when using the AWS
-            Batch runtime.  Did you forget to specify --aws-batch?
+            The --attach, --detach, --detach-on-interrupt, and --cancel options
+            are only supported when using the AWS Batch runtime.
+
+            Did you forget to specify --aws-batch?
             """)
 
     # Ensure our build dir exists
     if opts.build is None:
-        if opts.attach and not opts.download:
-            # Don't require a build directory with --attach + --no-download.
-            # User just wants to check status and/or logs.
+        if opts.attach and (not opts.download or opts.cancel):
+            # Don't require a build directory with --attach + --no-download
+            # or --attach + --cancel.  User just wants to check status/logs or
+            # stop the job.
             pass
         else:
             raise UsageError("Path to a pathogen build <directory> is required.")

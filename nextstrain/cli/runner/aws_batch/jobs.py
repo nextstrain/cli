@@ -32,6 +32,7 @@ class JobState:
         self.id              = job_id
         self.state           = {}
         self.previous_status = None
+        self.stop_sent       = False
         self._client         = aws.client_with_default_region("batch")
 
     def update(self) -> None:
@@ -141,6 +142,7 @@ class JobState:
         Stop the job, regardless of if it has started yet or not.
         """
         self._client.terminate_job(jobId = self.id, reason = self.STOP_REASON)
+        self.stop_sent = True
 
     @property
     def stopped(self) -> bool:

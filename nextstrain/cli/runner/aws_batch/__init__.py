@@ -79,16 +79,16 @@ defaults set by `config file variables`_.
 
 import os
 import shlex
-import signal
 from datetime import datetime
 from pathlib import Path
-from sys import exit
+from signal import signal, Signals, SIGINT
+from sys import exit, stdin
 from textwrap import dedent
 from time import sleep, time
 from typing import Iterable, Optional
 from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ...util import colored, warn
+from ...util import colored, prose_list, warn
 from ... import config
 from .. import docker
 from . import jobs, s3
@@ -168,7 +168,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # for commands which also require a working dir (e.g. build), whereas other
     # runners also work with commands that don't.
     #   -trs, 28 Feb 2022 (updated 24 August 2023)
-    assert working_volume is not None or (opts.attach and not opts.download)
+    assert working_volume is not None or (opts.attach and (not opts.download or opts.cancel))
 
     local_workdir = working_volume.src.resolve(strict = True) if working_volume else None
 
@@ -262,103 +262,145 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
             return detach(job, local_workdir)
 
 
-    # Don't setup signal handlers for jobs that are already complete.
-    if not job.is_complete:
-        # Setup signal handler for Ctrl-Z.  Only Unix systems support SIGTSTP, so
-        # we guard this non-essential feature.
-        SIGTSTP = getattr(signal, "SIGTSTP", None)
+    if opts.cancel:
+        interrupt(job, confirm = False)
+
+
+    # Don't setup signal handlers for jobs that are already complete or we're
+    # stopping (cancelling).
+    if not job.is_complete and not job.stop_sent:
+        # Set up signal handler for SIGTSTP ("stop typed at terminal", e.g.
+        # Ctrl-Z) and SIGHUP ("hangup detected on controlling terminal, or
+        # death of controlling process").  Only Unix systems support these,
+        # so we guard this non-essential feature.
+        #
+        # We leave SIGSTOP (non-TTY-generated stop signal) alone so standard
+        # Unix process control with SIGSTOP and SIGCONT still works as usual.
+        # Besides, SIGSTOP is not catchable!
+        #
+        # If modifying these, consider (re-)reading signal(7) first for
+        # context.
+        #   -trs, 29 August 2023
+        SIGTSTP = getattr(Signals, "SIGTSTP", None)
+        SIGHUP  = getattr(Signals, "SIGHUP", None)
+
+        def detach_signaled(sig, frame):
+            exit(detach(job, local_workdir))
 
         if SIGTSTP:
-            def handler(sig, frame):
-                exit(detach(job, local_workdir))
-            signal.signal(SIGTSTP, handler)
+            signal(SIGTSTP, detach_signaled)
+        if SIGHUP:
+            signal(SIGHUP, detach_signaled)
+
+
+        # Set up signal handler for SIGINT ("interrupt from keyboard", e.g.
+        # Ctrl-C).
+        #
+        # We leave SIGTERM alone to allow `kill`'s default signal and other
+        # standard Unix process control to work as usual.
+        #   -trs, 29 August 2023
+        if opts.detach_on_interrupt:
+            signal(SIGINT, detach_signaled)
+        else:
+            def interrupt_signaled(sig, frame):
+                if interrupt(job):
+                    exit(128 + SIGINT)
+
+            signal(SIGINT, interrupt_signaled)
 
 
         print_stage("Watching job status")
 
-        if SIGTSTP:
-            control_hints = """
-                Press Control-C twice within %d seconds to cancel this job,
-                      Control-Z to detach from it.
-                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+        if stdin.isatty():
+            if opts.detach_on_interrupt:
+                if SIGTSTP:
+                    control_hints = """
+                        Press Control-C or Control-Z to detach from this job.
+                        """
+                elif SIGHUP:
+                    control_hints = """
+                        Press Control-C or send SIGHUP to detach from this job.
+                        """
+                else:
+                    control_hints = """
+                        Press Control-C to detach from this job.
+                        """
+            else:
+                if SIGTSTP:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job,
+                              Control-Z to detach from it.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+                elif SIGHUP:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job.
+                         Send SIGHUP to detach from it.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+                else:
+                    control_hints = """
+                        Press Control-C twice within %d seconds to cancel this job.
+                        """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
         else:
-            control_hints = """
-                Press Control-C twice within %d seconds to cancel this job.
-                """ % (CTRL_C_CONFIRMATION_TIMEOUT,)
+            if opts.detach_on_interrupt:
+                sigs = prose_list(sig.name for sig in [SIGINT, SIGHUP, SIGTSTP] if sig)
+                control_hints = f"""
+                    Send {sigs} to detach from this job.
+                    """
+            else:
+                if SIGHUP or SIGTSTP:
+                    sigs = prose_list(sig.name for sig in [SIGHUP, SIGTSTP] if sig)
+                    control_hints = f"""
+                        Send SIGINT to cancel this job,
+                             {sigs} to detach from it.
+                        """
+                else:
+                    control_hints = """
+                        Send SIGINT to cancel this job.
+                        """
 
         print(dedent(control_hints))
 
 
     # Watch job status and tail logs.
     log_watcher = None
-    stop_sent = False
-    ctrl_c_time = 0
 
     while True:
-        # This try/except won't catch KeyboardInterrupts which happen in the
-        # narrow window of time between the job submission above and this loop
-        # (or between iterations of the loop).  Handling those extreme edge
-        # cases will make this whole run() function much less clear, and I
-        # don't think its worth it for what's ultimately a convenience feature.
-        #   -trs, 12 Oct 2018
-        try:
-            job.update()
+        job.update()
 
-            # Inform the user of intermediate status changes.  Final status changes
-            # are messaged separately below.
-            if job.status_changed and not job.is_complete:
-                print_stage("Job now %s" % job.status)
+        # Inform the user of intermediate status changes.  Final status changes
+        # are messaged separately below.
+        if job.status_changed and not job.is_complete:
+            print_stage("Job now %s" % job.status)
 
-            if job.is_running and not log_watcher:
-                # Transitioned from waiting → running, so kick off the log watcher.
-                if opts.logs:
-                    log_watcher = job.log_watcher(consumer = print_job_log)
-                    log_watcher.start()
+        if job.is_running and not log_watcher:
+            # Transitioned from waiting → running, so kick off the log watcher.
+            if opts.logs:
+                log_watcher = job.log_watcher(consumer = print_job_log)
+                log_watcher.start()
 
-            elif job.is_complete:
-                if log_watcher:
-                    if log_watcher.is_alive():
-                        log_watcher.stop()
-                    log_watcher.join()
-                else:
-                    # The watcher never started, so we probably missed the
-                    # transition to running.  Display the whole log now!
-                    if opts.logs:
-                        for entry in job.log_entries():
-                            print_job_log(entry)
-
-                print_stage(
-                    "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
-                    "(%s)" % job.status_reason)
-                break
-
-            # Only check status every 6s (10 times per minute).
-            sleep(6)
-
-        except KeyboardInterrupt as interrupt:
-            print()
-
-            # Don't try to cancel a job that's already complete.
-            if not job.is_complete and not stop_sent:
-                now = int(time())
-
-                if now - ctrl_c_time > CTRL_C_CONFIRMATION_TIMEOUT:
-                    ctrl_c_time = now
-                    print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
-                else:
-                    print_stage("Canceling job…")
-                    job.stop()
-
-                    stop_sent = True
-
-                    print_stage("Waiting for job to stop…")
-                    print("(Press Control-C one more time if you don't want to wait.)")
+        elif job.is_complete:
+            if log_watcher:
+                if log_watcher.is_alive():
+                    log_watcher.stop()
+                log_watcher.join()
             else:
-                raise interrupt from None
+                # The watcher never started, so we probably missed the
+                # transition to running.  Display the whole log now!
+                if opts.logs:
+                    for entry in job.log_entries():
+                        print_job_log(entry)
+
+            print_stage(
+                "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
+                "(%s)" % job.status_reason)
+            break
+
+        # Only check status every 6s (10 times per minute).
+        sleep(6)
 
 
     # Download results if we didn't stop the job early.
-    if opts.download and not stop_sent and not job.stopped:
+    if opts.download and not job.stop_sent and not job.stopped:
         assert local_workdir is not None
 
         patterns = opts.download if isinstance(opts.download, list) else None
@@ -380,6 +422,53 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                     1 if job.is_failed             else
                     0
     )
+
+
+interrupt_called = 0
+
+def interrupt(job: jobs.JobState, confirm: bool = stdin.isatty()) -> bool:
+    """
+    Request interruption (cancellation) of the specified *job* and wait for it
+    to exit.
+
+    Prints status messages about what's going on.
+
+    If *confirm* is ``True``, by default when a TTY is attached to stdin, then
+    this function must be invoked at least twice within the
+    ``CTRL_C_CONFIRMATION_TIMEOUT`` to actually cancel the job.
+
+    Returns ``True`` if the process should exit immediately, i.e. not wait for
+    the job to exit first.  Otherwise, returns ``False``.
+    """
+    global interrupt_called
+
+    print()
+
+    # Exit immediately the job is already complete or has already been stopped
+    # (e.g. by a previous double Ctrl-C).
+    if job.is_complete or job.stop_sent:
+        return True
+
+    now = int(time())
+
+    if confirm and now - interrupt_called > CTRL_C_CONFIRMATION_TIMEOUT:
+        interrupt_called = now
+
+        if stdin.isatty():
+            print_stage("Press Control-C again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
+        else:
+            print_stage("Send SIGINT again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
+    else:
+        print_stage("Canceling job…")
+        job.stop()
+
+        print_stage("Waiting for job to stop…")
+        if stdin.isatty():
+            print(f"(Press Control-C {'one more time ' if confirm else ''}if you don't want to wait.)")
+        else:
+            print(f"(Send SIGINT {'one more time ' if confirm else ''}if you don't want to wait.)")
+
+    return False
 
 
 def detach(job: jobs.JobState, local_workdir: Optional[Path]) -> int:

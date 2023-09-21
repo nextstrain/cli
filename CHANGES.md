@@ -13,6 +13,35 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* When attached to an AWS Batch job, `nextstrain build` now only requires
+  confirmation to stop the job (e.g. a double Control-C/`SIGINT`) when stdin is
+  a terminal (TTY).  When stdin is not a terminal, as is frequently the case in
+  automated or programmatic contexts, then `SIGINT` requests job cancellation
+  immediately.
+  ([#308][])
+
+* When attached to an AWS Batch job, `nextstrain build` now also detaches upon
+  receiving `SIGHUP` (in addition to detaching upon receiving
+  Control-Z/`SIGTSTP`).  `SIGHUP` is sent, for example, when a user closes (or
+  loses) the terminal in which `build` is still running.
+  ([#308][])
+
+* When launching or attaching to an AWS Batch job, `nextstrain build` now
+  supports the `--detach-on-interrupt` option to change Control-C/`SIGINT` to a
+  request to detach from the job rather than to cancel it.  This is useful in
+  automated contexts where `SIGINT` may be sent outside of a user's control,
+  and it's also handy as a molly-guard to avoid accidental cancellation when
+  the intent is to just observe a job.
+  ([#308][])
+
+* When attaching to an AWS Batch job, `nextstrain build` now supports the
+  `--cancel` option to immediately request cancellation.
+  ([#308][])
+
+[#308]: https://github.com/nextstrain/cli/pull/308
+
 ## Bug fixes
 
 * We've plugged some isolation leaks in the Conda runtime where the
@@ -62,6 +91,7 @@ _Unreleased due to [test failures](https://github.com/nextstrain/cli/actions/run
 * Updated fsspec and s3fs dependencies to avoid version 2023.9.1, since they
   caused `nextstrain build --aws-batch` invocations to fail.
   ([#313](https://github.com/nextstrain/cli/pull/313))
+
 
 # 7.2.0 (17 August 2023)
 
