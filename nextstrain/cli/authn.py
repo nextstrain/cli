@@ -48,7 +48,7 @@ class User:
         assert session.id_claims
 
         self.username = session.id_claims["cognito:username"]
-        self.groups   = session.id_claims["cognito:groups"]
+        self.groups   = session.id_claims.get("cognito:groups", [])
         self.email    = session.id_claims["email"]
 
         self.http_authorization = f"Bearer {session.id_token}"
