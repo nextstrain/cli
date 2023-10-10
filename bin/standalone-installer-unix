@@ -201,6 +201,17 @@ shell-rc() {
             esac;;
         zsh)
             echo "${ZDOTDIR:-~}/.zshrc";;
+        sh)
+            # sh, whether a historic version or bash in sh-compat mode, doesn't
+            # use any default startup file for interactive shells.  It only
+            # uses a default startup file for login shells.  We'll have to
+            # assume here that anyone using sh as their default shell will also
+            # be using login shells appropriately.  On macOS, at least, common
+            # terminal emulators spawn login shells (see commentary above).
+            #   -trs, 26 September 2023
+
+            # shellcheck disable=SC2088
+            echo "~/.profile";;
         *)
             # A decent guess?
             #
