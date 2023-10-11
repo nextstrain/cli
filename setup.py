@@ -130,7 +130,7 @@ setup(
     extras_require = {
         "dev": [
             "flake8 >=4.0.0",
-            "mypy",
+            "mypy <1.6",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
