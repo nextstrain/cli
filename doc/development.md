@@ -60,7 +60,7 @@ with the same, e.g.:
 
     export NEXTSTRAIN_DOT_ORG=http://localhost:5000
     export NEXTSTRAIN_COGNITO_USER_POOL_ID="$(jq -r .COGNITO_USER_POOL_ID ../nextstrain.org/env/testing/config.json)"
-    export NEXTSTRAIN_COGNITO_CLI_CLIENT_ID="$(jq -r .COGNITO_CLI_CLIENT_ID ../nextstrain.org/env/testing/config.json)"
+    export NEXTSTRAIN_COGNITO_CLI_CLIENT_ID="$(jq -r .OAUTH2_CLI_CLIENT_ID ../nextstrain.org/env/testing/config.json)"
 
     nextstrain login
     nextstrain whoami
