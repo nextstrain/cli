@@ -86,7 +86,6 @@ setup(
     python_requires = '>=3.8',
 
     install_requires = [
-        "dataclasses; python_version < '3.7'",
         "docutils",
         "fasteners",
         "importlib_metadata; python_version < '3.8'",
