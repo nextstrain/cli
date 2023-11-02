@@ -13,6 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release drops support for Python versions 3.6 and 3.7.
+([#325](https://github.com/nextstrain/cli/pull/325))
+
 ## Improvements
 
 * `nextstrain remote upload` now skips gzip compression when uploading
