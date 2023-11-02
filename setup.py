@@ -88,7 +88,6 @@ setup(
     install_requires = [
         "docutils",
         "fasteners",
-        "importlib_metadata; python_version < '3.8'",
         "importlib_resources >=5.3.0; python_version < '3.11'",
         "packaging",
         "pyjwt[crypto] >=2.0.0",

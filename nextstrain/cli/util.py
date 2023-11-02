@@ -1,8 +1,3 @@
-try:
-    from importlib.metadata import distribution as distribution_info, PackageNotFoundError
-except ModuleNotFoundError:
-    from importlib_metadata import distribution as distribution_info, PackageNotFoundError
-
 import os
 import platform
 import re
@@ -11,6 +6,7 @@ import site
 import subprocess
 import sys
 from functools import partial
+from importlib.metadata import distribution as distribution_info, PackageNotFoundError
 from typing import Any, Callable, Iterable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 # TODO: Use typing.Literal once Python 3.8 is the minimum supported version.
 from typing_extensions import Literal
