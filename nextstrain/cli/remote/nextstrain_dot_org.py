@@ -683,6 +683,7 @@ def raise_for_status(response: requests.Response) -> None:
         response.raise_for_status()
 
     except requests.exceptions.HTTPError as err:
+        assert type(err.response) is requests.Response
         status = err.response.status_code
 
         if status == 400:
