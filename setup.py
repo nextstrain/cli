@@ -71,6 +71,10 @@ setup(
         # Python 3 only
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
 
     # Install a "nextstrain" program which calls nextstrain.cli.__main__.main()
