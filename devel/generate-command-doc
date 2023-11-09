@@ -46,6 +46,10 @@ os.environ.update({
 
     # Ensure we detect a browser for stable `nextstrain view` output.
     "BROWSER": "/bin/true",
+
+    # Ensure HOST and PORT are stable for `nextstrain view` output.
+    "HOST": "127.0.0.1",
+    "PORT": "4000",
 })
 
 from nextstrain.cli import make_parser
