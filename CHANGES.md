@@ -36,6 +36,13 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
   when the default shell is sh.
   ([#321](https://github.com/nextstrain/cli/pull/321))
 
+* The Singularity runtime once again supports Apptainer's `singularity`
+  executable.  The minimum version checking added in 7.0.0 broke usage of the
+  Singularity runtime with Apptainer (compared with SingularityCE).  Our intent
+  is to support both lineages of Singularity.  Thanks to @osageorange for
+  raising this issue and testing the fix!
+  ([#343](https://github.com/nextstrain/cli/pull/343))
+
 
 # 7.4.0 (21 September 2023)
 
