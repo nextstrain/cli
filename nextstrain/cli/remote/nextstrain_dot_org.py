@@ -464,12 +464,14 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bo
             raise UserError(f"Path {path} does not seem to exist")
 
         for resource in resources:
-            yield "nextstrain.org" + str(resource.path)
+            endpoint = api_endpoint(resource.path)
+
+            yield endpoint
 
             if dry_run:
                 continue
 
-            response = http.delete(api_endpoint(resource.path))
+            response = http.delete(endpoint)
 
             raise_for_status(response)
 
