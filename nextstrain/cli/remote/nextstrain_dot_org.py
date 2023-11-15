@@ -650,6 +650,10 @@ class auth(requests.auth.AuthBase):
     def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
         if self.user and origin(request.url) == origin(NEXTSTRAIN_DOT_ORG):
             request.headers["Authorization"] = self.user.http_authorization
+
+            # Used in error handling for more informative error messages
+            request._user = self.user # type: ignore
+
         return request
 
 
@@ -710,7 +714,10 @@ def raise_for_status(response: requests.Response) -> None:
                     """, msg = indent("\n".join(wrap(msg)), "  ")) from err
 
         elif status in {401, 403}:
-            user = current_user()
+            try:
+                user = response.request._user # type: ignore
+            except AttributeError:
+                user = None
 
             if user:
                 challenge = authn_challenge(response) if status == 401 else None
