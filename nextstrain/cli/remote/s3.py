@@ -65,6 +65,9 @@ from ..types import S3Bucket, S3Object
 mimetypes.add_type("application/json", ".json")
 mimetypes.add_type("text/markdown", ".md")
 
+# Add zstd to encodings map since it is not yet included in the standard library
+mimetypes.encodings_map[".zst"] = "zstd"
+
 
 def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
     """
@@ -281,6 +284,9 @@ def guess_type(path: Path) -> Tuple[str, Optional[str]]:
     >>> guess_type(Path("metadata.tsv.xz"))
     ('text/tab-separated-values', 'application/x-xz')
 
+    >>> guess_type(Path("metadata.tsv.zst"))
+    ('text/tab-separated-values', 'application/zstd')
+
     >>> guess_type(Path("metadata.tsv.Z"))
     ('text/tab-separated-values', 'application/octet-stream')
 
@@ -292,6 +298,7 @@ def guess_type(path: Path) -> Tuple[str, Optional[str]]:
         "gzip": "application/gzip",
         "xz": "application/x-xz",
         "bzip2": "application/x-bzip2",
+        "zstd": "application/zstd",
     }
 
     type, encoding = mimetypes.guess_type(path.name)
