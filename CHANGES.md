@@ -13,6 +13,25 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain remote upload` now skips gzip compression when uploading
+  zstandard-compressed (`.zst`) files, matching its behaviour for other types
+  of compressed files.
+  ([#330](https://github.com/nextstrain/cli/pull/330))
+
+## Bug fixes
+
+* Commands making use of user authentication (e.g. `nextstrain login`,
+  `nextstrain whoami`, some invocations of `nextstrain remote`, etc.) no longer
+  fail if the logged in user is a member of no groups.
+  ([#323](https://github.com/nextstrain/cli/pull/323))
+
+* On Linux and macOS, the standalone installer's final instructions now
+  correctly suggest modifying `~/.profile` instead of, incorrectly, `~/.shrc`
+  when the default shell is sh.
+  ([#321](https://github.com/nextstrain/cli/pull/321))
+
 
 # 7.4.0 (21 September 2023)
 
