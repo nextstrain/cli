@@ -253,10 +253,6 @@ def parse_snakemake_args(args):
     >>> sorted(parse_snakemake_args([]).items())
     [('--cores', []), ('--resources', [])]
     """
-    # XXX TODO: Consider using a small ArgumentParser() for this in the
-    # future, when we can require Python 3.7 and use parse_intermixed_args().
-    #   -trs, 20 May 2020
-
     opts = {
         "-j" if re.search(r"^-j\d+$", arg) else arg
             for arg in map(lambda arg: arg.split("=", 1)[0], args)

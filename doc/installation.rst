@@ -42,7 +42,7 @@ From PyPI
 ---------
 
 .. note::
-    Nextstrain CLI is written in Python 3 and requires at least Python 3.6.  There
+    Nextstrain CLI is written in Python 3 and requires at least Python 3.8.  There
     are many ways to install Python 3 on Windows, macOS, or Linux, including the
     `official packages`_, `Homebrew`_ for macOS, and the `Anaconda Distribution`_.
     Details are beyond the scope of this guide, but make sure you install Python

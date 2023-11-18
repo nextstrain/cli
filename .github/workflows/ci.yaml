@@ -35,39 +35,10 @@ jobs:
           - macos-latest
           - windows-latest
         python:
-          - '3.6'
-          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
 
-        # Python 3.6 is not available on Ubuntu 22.04, which is what
-        # ubuntu-latest points to as of Q4 2022¹, so replace that job with 3.6
-        # on Ubuntu 20.04.
-        #   -trs, 22 Nov 2022
-        #
-        # ¹ <https://github.blog/changelog/2022-11-09-github-actions-ubuntu-latest-workflows-will-use-ubuntu-22-04/>
-        #
-        # A bodged https://github.com/actions/python-version build of 3.7.17
-        # for macOS mistakenly doesn't include the bz2 module of the stdlib¹,
-        # which breaks us because some of our deps (fsspec, at the least)
-        # assume bz2 is available² (though that will be fixed in its next
-        # release³).  Replace the 3.7 macOS job with a 3.7.16 job.
-        #   -trs, 22 June 2023
-        #
-        # ¹ <https://github.com/actions/setup-python/issues/682>
-        # ² <https://github.com/nextstrain/cli/pull/289#issuecomment-1595417903>
-        # ³ <https://github.com/fsspec/filesystem_spec/pull/1295>
-        exclude:
-          - os: ubuntu-latest
-            python: '3.6'
-          - os: macos-latest
-            python: '3.7'
-        include:
-          - os: ubuntu-20.04
-            python: '3.6'
-          - os: macos-latest
-            python: '3.7.16'
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -240,11 +211,9 @@ jobs:
           - macos-latest
           - windows-latest
         python:
-          - '3.6'
-          - '3.7'
           - '3.8'
           - '3.9'
-          # XXX TODO: Add 3.10 here once supported by Conda/Bioconda/Conda Forge.
+          - '3.10'
     runs-on: ${{ matrix.os }}
     defaults:
       run:

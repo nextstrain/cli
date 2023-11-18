@@ -1,8 +1,3 @@
-try:
-    from importlib.metadata import distribution as distribution_info, PackageNotFoundError
-except ModuleNotFoundError:
-    from importlib_metadata import distribution as distribution_info, PackageNotFoundError
-
 import os
 import platform
 import re
@@ -11,6 +6,7 @@ import site
 import subprocess
 import sys
 from functools import partial
+from importlib.metadata import distribution as distribution_info, PackageNotFoundError
 from typing import Any, Callable, Iterable, Mapping, List, Optional, Sequence, Tuple, Union, overload
 # TODO: Use typing.Literal once Python 3.8 is the minimum supported version.
 from typing_extensions import Literal
@@ -270,10 +266,6 @@ def capture_output(argv, extra_env: Mapping = {}):
     """
     Run the command specified by the argument list and return a list of output
     lines.
-
-    This wrapper around subprocess.run() exists because its own capture_output
-    parameter wasn't added until Python 3.7 and we aim for compat with 3.6.
-    When we bump our minimum Python version, we can remove this wrapper.
 
     If an *extra_env* mapping is passed, the provided keys and values are
     overlayed onto the current environment.  Keys with a value of ``None`` are
