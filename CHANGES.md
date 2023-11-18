@@ -13,8 +13,9 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
-This release drops support for Python versions 3.6 and 3.7.
-([#325](https://github.com/nextstrain/cli/pull/325))
+This release drops support for Python versions 3.6 and 3.7 and adds support for
+3.11. ([#325](https://github.com/nextstrain/cli/pull/325),
+[#327](https://github.com/nextstrain/cli/pull/327))
 
 ## Improvements
 
