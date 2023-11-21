@@ -65,7 +65,6 @@ import json
 import os
 import requests
 import requests.auth
-import urllib.parse
 from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
@@ -73,16 +72,23 @@ from requests.utils import parse_dict_header
 from tempfile import NamedTemporaryFile
 from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
-from urllib.parse import urljoin, urlsplit, quote as urlquote
+from urllib.parse import quote as urlquote
 from .. import markdown
-from ..authn import current_user
+
+# XXX TODO: These implement part of the RemoteModule protocol for us, which is
+# sort of a weird way to organize things.  I think fine for now, esp. as
+# there's only two remotes and only one of them (this one) supports authn, and
+# so we have only one set of authn routines… but we may want to shuffle things
+# around a bit internally in the future?
+#   -trs, 21 Nov 2023
+from ..authn import current_user, login, logout, renew  # noqa: F401 (see above)
+
 from ..errors import UserError
 from ..gzip import GzipCompressingReader
+from ..net import is_loopback
+from ..url import URL, Origin
 from ..util import remove_prefix, glob_matcher, glob_match
 
-
-NEXTSTRAIN_DOT_ORG = os.environ.get("NEXTSTRAIN_DOT_ORG") \
-                  or "https://nextstrain.org"
 
 # Default to embedding images, but allow it to be turned off as an escape
 # hatch.
@@ -172,13 +178,14 @@ class Narrative(Resource):
     ]
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
+def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the given nextstrain.org *url*.
 
     Doesn't actually upload anything if *dry_run* is truthy.
     """
-    path = remote_path(url)
+    origin, path = url.origin, normalize_path(url.path)
+    assert origin
 
     # XXX TODO: Consider changing the RemoteModule interface for upload() and
     # organizing files in the upload command's run() instead of here.  This
@@ -227,7 +234,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
     single = bool((len(datasets) + len(narratives)) == 1 and prefixed(path))
 
     with requests.Session() as http:
-        http.auth = auth()
+        http.auth = auth(origin)
 
         def put(endpoint, file, media_type):
             with GzipCompressingReader(file.open("rb")) as data:
@@ -264,7 +271,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
         # Upload datasets
         for dataset, files in datasets.items():
             for media_type, file in files.items():
-                endpoint = destination = api_endpoint(path if single else path / dataset)
+                endpoint = destination = api_endpoint(origin, path if single else path / dataset)
 
                 if media_type != "application/vnd.nextstrain.dataset.main+json":
                     destination += f" ({sidecar_suffix(media_type)})"
@@ -287,7 +294,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
             if not narratives_only(path):
                 narrative = f"narratives/{narrative}"
 
-            endpoint = destination = api_endpoint(path if single else path / narrative)
+            endpoint = destination = api_endpoint(origin, path if single else path / narrative)
 
             yield file, destination
 
@@ -317,14 +324,15 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
                 put(endpoint, file, markdown_type)
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
+def download(url: URL, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the datasets or narratives deployed at the given remote *url*,
     optionally *recursively*, saving them into the *local_dir*.
 
     Doesn't actually download anything if *dry_run* is truthy.
     """
-    path = remote_path(url)
+    origin, path = url.origin, normalize_path(url.path)
+    assert origin
 
     if str(path) == "/" and not recursively:
         raise UserError(f"""
@@ -334,9 +342,9 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             """)
 
     with requests.Session() as http:
-        http.auth = auth()
+        http.auth = auth(origin)
 
-        resources = _ls(path, recursively = recursively, http = http)
+        resources = _ls(origin, path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
@@ -344,7 +352,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
         for resource in resources:
             for subresource in resource.subresources:
                 # Remote source
-                endpoint = source = api_endpoint(resource.path)
+                endpoint = source = api_endpoint(origin, resource.path)
 
                 if not subresource.primary:
                     source += f" ({sidecar_suffix(subresource.media_type)})"
@@ -390,22 +398,23 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
                             local_file.write(chunk)
 
 
-def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
+def ls(url: URL) -> Iterable[str]:
     """
     List the datasets and narratives deployed at the given nextstrain.org *url*.
     """
-    path = remote_path(url)
+    origin, path = url.origin, normalize_path(url.path)
+    assert origin
 
     return [
-        api_endpoint(item.path)
+        api_endpoint(origin, item.path)
             for item
-             in _ls(path, recursively = True)
+             in _ls(origin, path, recursively = True)
     ]
 
 
-def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session = None):
+def _ls(origin: Origin, path: NormalizedPath, recursively: bool = False, http: requests.Session = None):
     """
-    List the :class:`Resource`(s) available at *path*.
+    List the :class:`Resource`(s) available on *origin* at *path*.
 
     If *recursively* is false (the default), then only an exact match of
     *path* is returned, if any.  If *recursively* is true, then all resources
@@ -416,10 +425,10 @@ def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session 
     """
     if http is None:
         http = requests.Session()
-        http.auth = auth()
+        http.auth = auth(origin)
 
     response = http.get(
-        api_endpoint("charon/getAvailable"),
+        api_endpoint(origin, "/charon/getAvailable"),
         params = {"prefix": str(path)},
         headers = {"Accept": "application/json"})
 
@@ -439,14 +448,15 @@ def _ls(path: NormalizedPath, recursively: bool = False, http: requests.Session 
     ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
+def delete(url: URL, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
     """
     Delete the datasets and narratives deployed at the given nextstrain.org
     *url*, optionally *recursively*.
 
     Doesn't actually delete anything if *dry_run* is truthy.
     """
-    path = remote_path(url)
+    origin, path = url.origin, normalize_path(url.path)
+    assert origin
 
     if str(path) == "/" and not recursively:
         raise UserError(f"""
@@ -456,15 +466,15 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bo
             """)
 
     with requests.Session() as http:
-        http.auth = auth()
+        http.auth = auth(origin)
 
-        resources = _ls(path, recursively = recursively, http = http)
+        resources = _ls(origin, path, recursively = recursively, http = http)
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
 
         for resource in resources:
-            endpoint = api_endpoint(resource.path)
+            endpoint = api_endpoint(origin, resource.path)
 
             yield endpoint
 
@@ -476,15 +486,6 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bo
             raise_for_status(response)
 
             assert response.status_code == 204
-
-
-def remote_path(url: urllib.parse.ParseResult) -> NormalizedPath:
-    """
-    Extract the remote path, or "prefix" in nextstrain.org parlance, from a
-    nextstrain.org *url*.
-    """
-    assert url.netloc.lower() == "nextstrain.org"
-    return normalize_path(url.path)
 
 
 def normalize_path(path: str) -> NormalizedPath:
@@ -631,44 +632,49 @@ def namespace(path: NormalizedPath) -> NormalizedPath:
         return normalize_path("/")
 
 
-def api_endpoint(path: Union[str, PurePosixPath]) -> str:
+def api_endpoint(origin: Origin, path: Union[str, PurePosixPath]) -> str:
     """
-    Join the API *path* with the base API URL to produce a complete endpoint URL.
+    Join the API *path* with the base API *origin* to produce a complete
+    endpoint URL.
+
+    >>> api_endpoint(URL("https://nextstrain.org").origin, "a/b/c")
+    'https://nextstrain.org/a/b/c'
+
+    >>> api_endpoint(URL("http://localhost:5000/").origin, "/a/b/c")
+    'http://localhost:5000/a/b/c'
+
+    >>> api_endpoint(URL("http://localhost:5000/x").origin, "//a/b/c")
+    'http://localhost:5000/a/b/c'
+
+    >>> api_endpoint(URL("http://localhost:5000/x/").origin, "a/b/c")
+    'http://localhost:5000/a/b/c'
     """
-    return urljoin(NEXTSTRAIN_DOT_ORG, urlquote(str(path).lstrip("/")))
+    return origin + "/" + urlquote(str(path).lstrip("/"))
 
 
 class auth(requests.auth.AuthBase):
     """
     Authentication class for Requests which adds HTTP request headers to
-    authenticate with the nextstrain.org API as the CLI's currently logged in
-    user, if any.
+    authenticate with the nextstrain.org (or alike) API as the CLI's currently
+    logged in user, if any, for a given origin.
     """
-    def __init__(self):
-        self.user = current_user()
+    def __init__(self, origin: Origin):
+        self.origin = origin
+        self.user = current_user(origin)
 
     def __call__(self, request: requests.PreparedRequest) -> requests.PreparedRequest:
-        if self.user and origin(request.url) == origin(NEXTSTRAIN_DOT_ORG):
+        url = URL(str(request.url))
+
+        secure = url.scheme == "https" \
+              or is_loopback(url.hostname)
+
+        if self.user and url.origin == self.origin and self.user.origin == self.origin and secure:
             request.headers["Authorization"] = self.user.http_authorization
 
             # Used in error handling for more informative error messages
             request._user = self.user # type: ignore
 
         return request
-
-
-def origin(url: Optional[str]) -> Tuple[str, str]:
-    """
-    Parse *url* and into its origin tuple (scheme, netloc).
-
-    >>> origin("https://nextstrain.org/a/b/c")
-    ('https', 'nextstrain.org')
-
-    >>> origin("http://localhost:5000/x/y/z")
-    ('http', 'localhost:5000')
-    """
-    u = urlsplit(url or "")
-    return u.scheme, u.netloc
 
 
 def raise_for_status(response: requests.Response) -> None:

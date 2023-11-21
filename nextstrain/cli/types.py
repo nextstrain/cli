@@ -5,13 +5,15 @@ Type definitions for internal use.
 import argparse
 import builtins
 import sys
-import urllib.parse
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Iterable, List, Mapping, Optional, Tuple, Union
 # TODO: Use typing.Protocol once Python 3.8 is the minimum supported version.
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import Protocol, TypeAlias
+# XXX FIXME: causes import cycle; need to sort that out
+#from .authn import User
 from .volume import NamedVolume
+from .url import URL, Origin
 
 # Re-export EllipsisType so we can paper over its absence from older Pythons
 if sys.version_info >= (3, 10):
@@ -82,13 +84,25 @@ class RunnerModule(Protocol):
 
 class RemoteModule(Protocol):
     @staticmethod
-    def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]: ...
+    def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]: ...
 
     @staticmethod
-    def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]: ...
+    def download(url: URL, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]: ...
 
     @staticmethod
-    def ls(url: urllib.parse.ParseResult) -> Iterable[str]: ...
+    def ls(url: URL) -> Iterable[str]: ...
 
     @staticmethod
-    def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bool = False) -> Iterable[str]: ...
+    def delete(url: URL, recursively: bool = False, dry_run: bool = False) -> Iterable[str]: ...
+
+    @staticmethod
+    def current_user(origin: Origin) -> Optional['User']: ...
+
+    @staticmethod
+    def login(origin: Origin, credentials: Optional[Callable[[], Tuple[str, str]]] = None) -> 'User': ...
+
+    @staticmethod
+    def renew(origin: Origin) -> Optional['User']: ...
+
+    @staticmethod
+    def logout(origin: Origin): ...
