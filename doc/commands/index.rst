@@ -74,11 +74,11 @@ commands
 
 .. option:: login
 
-    Log into Nextstrain.org. See :doc:`/commands/login`.
+    Log into Nextstrain.org (and other remotes). See :doc:`/commands/login`.
 
 .. option:: logout
 
-    Log out of Nextstrain.org. See :doc:`/commands/logout`.
+    Log out of Nextstrain.org (and other remotes). See :doc:`/commands/logout`.
 
 .. option:: whoami
 

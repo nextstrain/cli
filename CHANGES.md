@@ -19,15 +19,40 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
 
 ## Improvements
 
+* The `nextstrain remote` family of commands now support alternative
+  nextstrain.org-like remotes such as internal Nextstrain Groups Server
+  instances and development instances of nextstrain.org.  Authentication with
+  these remotes is supported via `nextstrain login` and related commands.
+  Remotes maintain their authentication alongside each other, e.g. you can be
+  logged into nextstrain.org as well as an alternative nextstrain.org-like
+  instance.
+
+  As an example, a Nextstrain Groups Server instance accessible at
+  nextstrain.example.com could now be logged into and interacted with like so:
+
+      nextstrain login nextstrain.example.com
+      nextstrain whoami nextstrain.example.com
+      nextstrain remote ls nextstrain.example.com/groups/bedford-lab/
+
+  The default remote is still nextstrain.org.
+  ([#333](https://github.com/nextstrain/cli/pull/333))
+
+* `nextstrain login` now performs authentication via a web browser by default
+  (using OpenID Connect 1.0 and OAuth 2.0).  The previously method of direct
+  password entry is still used when a username is provided (e.g. with
+  `--username` or `-u`).  See `nextstrain login --help` for more information.
+  ([#333](https://github.com/nextstrain/cli/pull/333))
+
 * `nextstrain remote upload` now skips gzip compression when uploading
   zstandard-compressed (`.zst`) files, matching its behaviour for other types
   of compressed files.
   ([#330](https://github.com/nextstrain/cli/pull/330))
 
-* Commands that may automatically open a web browser, e.g. `nextstrain view`,
-  now respect the semi-conventional `NOBROWSER` environment variable to disable
-  opening a browser.  Set `NOBROWSER` to a non-empty value to disable automatic
-  opening.
+* Commands that may automatically open a web browser, e.g. `nextstrain view` or
+  `nextstrain login`, now respect the semi-conventional `NOBROWSER` environment
+  variable to disable opening a browser.  Set `NOBROWSER` to a non-empty value
+  to disable automatic opening.  When disabled, the URL to manually open will
+  be shown.
   ([#332](https://github.com/nextstrain/cli/pull/332))
 
 * The error message emitted by the `nextstrain remote` family of commands when

@@ -43,17 +43,18 @@ also supported.
 import boto3
 import mimetypes
 import re
-import urllib.parse
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
 from os.path import commonprefix
 from pathlib import Path
 from time import time
-from typing import Iterable, List, Optional, Tuple
+from typing import Callable, Iterable, List, Optional, Tuple
 from .. import aws
+from ..authn import User
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
 from ..types import S3Bucket, S3Object
+from ..url import URL, Origin
 
 
 # Add these statically so that they're always available, even if there's no
@@ -66,7 +67,7 @@ mimetypes.add_type("text/markdown", ".md")
 mimetypes.encodings_map[".zst"] = "zstd"
 
 
-def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
+def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable[Tuple[Path, str]]:
     """
     Upload the *local_files* to the bucket and optional prefix specified by *url*.
 
@@ -104,7 +105,7 @@ def upload(url: urllib.parse.ParseResult, local_files: List[Path], dry_run: bool
     purge_cloudfront(bucket, [remote for local, remote in files], dry_run)
 
 
-def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
+def download(url: URL, local_path: Path, recursively: bool = False, dry_run: bool = False) -> Iterable[Tuple[str, Path]]:
     """
     Download the files deployed at the given remote *url*, optionally
     *recursively*, saving them into the *local_dir*.
@@ -150,7 +151,7 @@ def download(url: urllib.parse.ParseResult, local_path: Path, recursively: bool 
             remote_object.download_fileobj(file)
 
 
-def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
+def ls(url: URL) -> Iterable[str]:
     """
     List the files deployed at the given remote *url*.
     """
@@ -159,7 +160,7 @@ def ls(url: urllib.parse.ParseResult) -> Iterable[str]:
     return [ obj.key for obj in bucket.objects.filter(Prefix = prefix) ]
 
 
-def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
+def delete(url: URL, recursively: bool = False, dry_run: bool = False) -> Iterable[str]:
     """
     Delete the files deployed at the given remote *url*, optionally *recursively*.
 
@@ -196,7 +197,32 @@ def delete(url: urllib.parse.ParseResult, recursively: bool = False, dry_run: bo
         purge_cloudfront(bucket, [ obj.key for obj in objects ], dry_run)
 
 
-def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
+def current_user(origin: Origin) -> Optional[User]:
+    raise UserError(f"""
+        Authentication management commands (e.g. `nextstrain login` and
+        related) are not supported for S3 remotes.
+        """)
+
+def login(origin: Origin, credentials: Optional[Callable[[], Tuple[str, str]]] = None) -> User:
+    raise UserError(f"""
+        Authentication management commands (e.g. `nextstrain login` and
+        related) are not supported for S3 remotes.
+        """)
+
+def renew(origin: Origin):
+    raise UserError(f"""
+        Authentication management commands (e.g. `nextstrain login` and
+        related) are not supported for S3 remotes.
+        """)
+
+def logout(origin: Origin):
+    raise UserError(f"""
+        Authentication management commands (e.g. `nextstrain logout` and
+        related) are not supported for S3 remotes.
+        """)
+
+
+def split_url(url: URL) -> Tuple[S3Bucket, str]:
     """
     Splits the given s3:// *url* into a Bucket object and normalized path
     with some sanity checking.
