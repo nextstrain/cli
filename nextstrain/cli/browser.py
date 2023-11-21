@@ -7,6 +7,12 @@ Web browser interaction.
     falling back to a set of default browsers.  May be program names, e.g.
     ``firefox``, or absolute paths to specific executables, e.g.
     ``/usr/bin/firefox``.
+
+.. envvar:: NOBROWSER
+
+    If set to a truthy value (e.g. 1) then no web browser will be considered
+    available.  This can be useful to prevent opening of a browser when there
+    are not other means of doing so.
 """
 import webbrowser
 from threading import Thread, ThreadError
@@ -14,15 +20,18 @@ from os import environ
 from .util import warn
 
 
-# Avoid text-mode browsers
-TERM = environ.pop("TERM", None)
-try:
-    BROWSER = webbrowser.get()
-except:
+if environ.get("NOBROWSER"):
     BROWSER = None
-finally:
-    if TERM is not None:
-        environ["TERM"] = TERM
+else:
+    # Avoid text-mode browsers
+    TERM = environ.pop("TERM", None)
+    try:
+        BROWSER = webbrowser.get()
+    except:
+        BROWSER = None
+    finally:
+        if TERM is not None:
+            environ["TERM"] = TERM
 
 
 def open_browser(url: str, new_thread: bool = True):
