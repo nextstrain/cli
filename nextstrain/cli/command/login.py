@@ -110,7 +110,7 @@ def run(opts):
         print(f"Logging into {url.origin}…")
         print()
 
-        # If we have either a username or a password, then obtain a comlete
+        # If we have either a username or a password, then obtain a complete
         # set of credentials and do password-based login.
         #
         # If we have neither, we'll do browser-based login.
