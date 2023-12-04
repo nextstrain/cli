@@ -410,8 +410,8 @@ class OpenIDSession(Session):
                     Having trouble?  If you see an \"Unable to connect\" or
                     \"This site can't be reached\" error page after logging in
                     via your browser, try copying the URL in the address bar of
-                    your browser—it'll begin with {redirect_uri}—and pasting it
-                    below.
+                    your browser — it'll begin with {redirect_uri} — and pasting
+                    it below.
                     """)))
                 print()
                 while input_url is None:
