@@ -6,7 +6,7 @@ import sys
 from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError, SUPPRESS, _SubParsersAction # pyright: ignore[reportPrivateUsage]
 from itertools import chain, takewhile
 from pathlib import Path
-from textwrap import indent
+from textwrap import indent as indent_text
 from types import SimpleNamespace
 from typing import Iterable, Optional, Tuple
 from .rst import rst_to_text
@@ -49,8 +49,8 @@ class HelpFormatter(ArgumentDefaultsHelpFormatter):
         super().__init__(prog, indent_increment, max_help_position, width)
 
     # Based on argparse.RawDescriptionHelpFormatter's implementation
-    def _fill_text(self, text, width, prefix):
-        return indent(rst_to_text(text, width), prefix)
+    def _fill_text(self, text, width, indent):
+        return indent_text(rst_to_text(text, width), prefix=indent)
 
     # Based on argparse.RawTextHelpFormatter's implementation
     def _split_lines(self, text, width):
