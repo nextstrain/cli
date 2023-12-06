@@ -130,7 +130,7 @@ def run(opts):
                 """)
 
     print(f"Logged into {url.origin} as {user.username}.")
-    print(f"Log out with `nextstrain logout --remote {shquote(url.origin)}`.")
+    print(f"Log out with `nextstrain logout {shquote(url.origin)}`.")
 
 
 def prompt_for_credentials(username: Optional[str], password: Optional[str]) -> Tuple[str, str]:
