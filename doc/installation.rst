@@ -80,8 +80,7 @@ command-line apps like this one:
 From Bioconda
 -------------
 
-Use `Conda <https://conda.io>`__ (or `Mamba <https://mamba.readthedocs.io>`__) to
-install the `nextstrain-cli package in Bioconda
+Install the `nextstrain-cli package from Bioconda
 <https://bioconda.github.io/recipes/nextstrain-cli/README.html>`__:
 
 .. code-block:: bash
