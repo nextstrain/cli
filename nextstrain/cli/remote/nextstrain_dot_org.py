@@ -835,7 +835,9 @@ def content_media_type(response: requests.Response) -> str:
     # so instead!
     msg = EmailMessage()
 
-    msg["Content-Type"] = response.headers.get("Content-Type")
+    if "Content-Type" in response.headers:
+        msg["Content-Type"] = response.headers["Content-Type"]
+
     msg.set_default_type("application/octet-stream")
 
     return msg.get_content_type()
