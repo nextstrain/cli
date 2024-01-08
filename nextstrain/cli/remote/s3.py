@@ -225,9 +225,11 @@ def split_url(url: urllib.parse.ParseResult) -> Tuple[S3Bucket, str]:
 
     except ClientError:
         raise UserError(f"""
-            No bucket exists with the name "{bucket.name}".
+            Unable to read from S3 bucket "{bucket.name}". Possible reasons:
 
-            Buckets are not automatically created for safety reasons.
+            1. Your AWS credentials are invalid.
+            2. Your AWS credentails are valid but lack permissions to the bucket.
+            3. The bucket does not exist (buckets are not automatically created for safety reasons).
             """)
 
     return bucket, prefix
