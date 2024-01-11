@@ -194,7 +194,7 @@ class Session:
         self.verify_tokens(
             id_token      = result.get("IdToken"),
             access_token  = result.get("AccessToken"),
-            refresh_token = refresh_token)
+            refresh_token = result.get("RefreshToken", refresh_token))
 
 
     def verify_tokens(self, *, id_token, access_token, refresh_token):

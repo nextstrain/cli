@@ -17,7 +17,7 @@ from textwrap import dedent
 from types    import SimpleNamespace
 
 from .argparse    import HelpFormatter, register_commands, register_default_command
-from .command     import build, view, deploy, remote, shell, update, setup, check_setup, login, logout, whoami, version, init_shell, authorization, debugger
+from .command     import all_commands, version
 from .debug       import DEBUGGING
 from .errors      import NextstrainCliError, UsageError
 from .util        import warn
@@ -69,31 +69,8 @@ def make_parser():
         formatter_class = HelpFormatter,
     )
 
-    # Maintain these manually for now while the list is very small.  If we need
-    # to support pluggable commands or command discovery, we can switch to
-    # using the "entry points" system:
-    #    https://setuptools.readthedocs.io/en/latest/setuptools.html#dynamic-discovery-of-services-and-plugins
-    #
-    commands = [
-        build,
-        view,
-        deploy,
-        remote,
-        shell,
-        update,
-        setup,
-        check_setup,
-        login,
-        logout,
-        whoami,
-        version,
-        init_shell,
-        authorization,
-        debugger,
-    ]
-
     register_default_command(parser)
-    register_commands(parser, commands)
+    register_commands(parser, all_commands)
     register_version_alias(parser)
 
     return parser

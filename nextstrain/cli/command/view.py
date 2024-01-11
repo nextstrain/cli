@@ -48,7 +48,6 @@ be ignored for the purposes of finding available narratives.
 from multiprocessing import Process, ProcessError
 import re
 import requests
-import webbrowser
 from inspect import cleandoc
 from os import environ
 from pathlib import Path
@@ -57,6 +56,7 @@ from time import sleep, time
 from typing import Iterable, NamedTuple, Tuple, Union
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
+from ..browser import BROWSER, open_browser as __open_browser
 from ..runner import docker, ambient, conda, singularity
 from ..util import colored, remove_suffix, warn
 from ..volume import NamedVolume
@@ -66,16 +66,6 @@ from ..volume import NamedVolume
 HOST = environ.get("HOST") or "127.0.0.1"
 PORT = environ.get("PORT") or "4000"
 
-
-# Avoid text-mode browsers
-TERM = environ.pop("TERM", None)
-try:
-    BROWSER = webbrowser.get()
-except:
-    BROWSER = None
-finally:
-    if TERM is not None:
-        environ["TERM"] = TERM
 
 OPEN_DEFAULT = bool(BROWSER)
 
@@ -454,8 +444,4 @@ def _open_browser(url: str):
         warn(f"Couldn't open <{url}> in browser: Auspice never started listening")
         return
 
-    try:
-        # new = 2 means new tab, if possible
-        BROWSER.open(url, new = 2, autoraise = True)
-    except webbrowser.Error as err:
-        warn(f"Couldn't open <{url}> in browser: {err!r}")
+    __open_browser(url, new_thread = False)
