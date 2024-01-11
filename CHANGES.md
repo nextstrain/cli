@@ -30,6 +30,11 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
   opening.
   ([#332](https://github.com/nextstrain/cli/pull/332))
 
+* The error message emitted by the `nextstrain remote` family of commands when
+  they're unable to access an S3 bucket now lists a few possible reasons for
+  the failure.
+  ([#341](https://github.com/nextstrain/cli/pull/341))
+
 ## Bug fixes
 
 * Commands making use of user authentication (e.g. `nextstrain login`,
