@@ -24,6 +24,12 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
   of compressed files.
   ([#330](https://github.com/nextstrain/cli/pull/330))
 
+* Commands that may automatically open a web browser, e.g. `nextstrain view`,
+  now respect the semi-conventional `NOBROWSER` environment variable to disable
+  opening a browser.  Set `NOBROWSER` to a non-empty value to disable automatic
+  opening.
+  ([#332](https://github.com/nextstrain/cli/pull/332))
+
 ## Bug fixes
 
 * Commands making use of user authentication (e.g. `nextstrain login`,
