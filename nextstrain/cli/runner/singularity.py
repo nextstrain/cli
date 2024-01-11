@@ -119,6 +119,8 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_SINGULARITY_IMAGE") \
 
 SINGULARITY_MINIMUM_VERSION = "3.0.0"
 
+APPTAINER_MINIMUM_VERSION = "1.0.0" # forked from Singularity 3.9.5
+
 SINGULARITY_CONFIG_ENV = {
     # Store image caches in our runtime root instead of ~/.singularity/…
     "SINGULARITY_CACHEDIR": str(CACHE),
@@ -158,7 +160,7 @@ def SINGULARITY_EXEC_ARGS(): return [
     #     --writable-tmpfs        (3.0.0)
     #     --no-init               (3.0.0)
     #     --no-umask              (3.7.0)
-    #     --no-eval               (3.10.0)
+    #     --no-eval               (3.10.0, Apptainer 1.1.0)
     #
     # We opt not to use the --compat bundle option itself mainly for broader
     # version compatibility but also because what it includes will likely
@@ -208,7 +210,7 @@ def SINGULARITY_EXEC_ARGS(): return [
     # Don't evaluate the entrypoint command line (e.g. arguments passed via
     # `nextstrain build`) before exec-ing the entrypoint.  It leads to unwanted
     # substitutions that happen too early.
-    *(["--no-eval"] if singularity_version_at_least("3.10.0") else []),
+    *(["--no-eval"] if singularity_version_at_least("3.10.0", apptainer="1.1.0") else []),
 
     # Since we use --no-home above, avoid warnings about not being able to cd
     # to $HOME (the default behaviour).  run() will override this by specifying
@@ -335,8 +337,8 @@ def test_setup() -> RunnerTestResults:
     return [
         ("singularity is installed",
             shutil.which("singularity") is not None),
-        (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION}",
-            singularity_version_at_least(SINGULARITY_MINIMUM_VERSION)),
+        (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION} ({APPTAINER_MINIMUM_VERSION} for Apptainer)",
+            singularity_version_at_least(SINGULARITY_MINIMUM_VERSION, apptainer=APPTAINER_MINIMUM_VERSION)),
         ("singularity works",
             test_run()),
     ]
@@ -546,11 +548,14 @@ def run_bash(script: str, image: str = DEFAULT_IMAGE) -> List[str]:
 
 
 @lru_cache(maxsize = None)
-def singularity_version_at_least(min_version: str) -> bool:
+def singularity_version_at_least(min_version: str, *, apptainer: str) -> bool:
     version = singularity_version()
 
     if not version:
         return False
+
+    if singularity_is_apptainer():
+        min_version = apptainer
 
     return version >= Version(min_version)
 
@@ -571,3 +576,19 @@ def singularity_version() -> Optional[Version]:
             return Version(re.sub(r'-.+$', '', raw_version))
         except InvalidVersion:
             return None
+
+
+@lru_cache(maxsize = None)
+def singularity_is_apptainer() -> Optional[bool]:
+    singularity = shutil.which("singularity")
+
+    if not singularity:
+        return None
+
+    if not Path(singularity).is_symlink():
+        return False
+
+    try:
+        return Path(os.readlink(singularity)).name == "apptainer"
+    except OSError:
+        return None
