@@ -387,7 +387,7 @@ def print_url(host, port, available_paths):
     print()
 
 
-def resolve(host, port) -> Tuple[str, int]:
+def resolve(host: str, port: str) -> Tuple[str, int]:
     """
     Resolves *host* to an address and *port* to a number, if either is a name.
 
@@ -402,9 +402,9 @@ def resolve(host, port) -> Tuple[str, int]:
     ip4 = [a for a in addrs if a.family is AF_INET]
     ip6 = [a for a in addrs if a.family is AF_INET6]
 
-    return ip4[0].sockaddr[0:2] if ip4 \
-      else ip6[0].sockaddr[0:2] if ip6 \
-      else (host, int(port))
+    return (ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 \
+      else (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6 \
+      else (str(host), int(port))
 
 
 class AddressInfo(NamedTuple):
