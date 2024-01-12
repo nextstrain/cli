@@ -7,10 +7,9 @@ import builtins
 import sys
 import urllib.parse
 from pathlib import Path
-from typing import Any, Iterable, List, Mapping, Optional, Tuple, Union
-# TODO: Use typing.Protocol once Python 3.8 is the minimum supported version.
+from typing import Any, Iterable, List, Mapping, Optional, Protocol, Tuple, Union
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
-from typing_extensions import Protocol, TypeAlias
+from typing_extensions import TypeAlias
 from .volume import NamedVolume
 
 # Re-export EllipsisType so we can paper over its absence from older Pythons
