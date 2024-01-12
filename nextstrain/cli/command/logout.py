@@ -9,10 +9,16 @@ Other devices/clients (like your web browser) are not logged out of
 Nextstrain.org (or other remotes).
 """
 from inspect import cleandoc
+from .. import authn
 from ..remote import parse_remote_path
 
 
 def register_parser(subparser):
+    """
+    %(prog)s [<remote-url>]
+    %(prog)s --all
+    %(prog)s --help
+    """
     parser = subparser.add_parser("logout", help = "Log out of Nextstrain.org (and other remotes)")
 
     parser.add_argument(
@@ -27,14 +33,20 @@ def register_parser(subparser):
         nargs   = "?",
         default = "nextstrain.org")
 
-    # XXX TODO: Supporting `nextstrain logout --all` would be nice.
-    #   -trs, 15 Nov 2023
+    parser.add_argument(
+        "--all",
+        help = "Log out of all remotes for which there are locally-saved credentials",
+        action = "store_true")
 
     return parser
 
 
 def run(opts):
-    remote, url = parse_remote_path(opts.remote)
-    assert url.origin
+    if opts.all:
+        authn.logout_all()
 
-    remote.logout(url.origin)
+    else:
+        remote, url = parse_remote_path(opts.remote)
+        assert url.origin
+
+        remote.logout(url.origin)

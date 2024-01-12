@@ -12,7 +12,9 @@ nextstrain logout
 
 .. code-block:: none
 
-    usage: nextstrain logout [-h] [<remote-url>]
+    usage: nextstrain logout [<remote-url>]
+           nextstrain logout --all
+           nextstrain logout --help
 
 
 Log out of Nextstrain.org (and other remotes) by deleting locally-saved
@@ -44,4 +46,8 @@ options
 .. option:: -h, --help
 
     show this help message and exit
+
+.. option:: --all
+
+    Log out of all remotes for which there are locally-saved credentials
 

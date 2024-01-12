@@ -43,6 +43,11 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
   `--username` or `-u`).  See `nextstrain login --help` for more information.
   ([#333](https://github.com/nextstrain/cli/pull/333))
 
+* With the new support for being logged into multiple remotes, `nextstrain
+  logout` now also supports an `--all` flag to remove all locally-saved
+  credentials without having to logout of each remote separately.
+  ([#333](https://github.com/nextstrain/cli/pull/333))
+
 * `nextstrain remote upload` now skips gzip compression when uploading
   zstandard-compressed (`.zst`) files, matching its behaviour for other types
   of compressed files.

@@ -145,6 +145,32 @@ def logout(origin: Origin):
         print(f"Not logged in to {origin}.", file = stderr)
 
 
+def logout_all():
+    """
+    Remove **all** locally-saved credentials.
+
+    Equivalent to calling :func:`logout` on all origins found in the secrets
+    file.
+    """
+    with config.write_lock():
+        secrets = config.load(config.SECRETS)
+
+        sections = [
+            (section, _parse_section(section))
+                for section in secrets
+                 if _parse_section(section) ]
+
+        if sections:
+            for section, origin in sections:
+                del secrets[section]
+                print(f"Credentials for {origin} removed from {config.SECRETS}.", file = stderr)
+                print(f"Logged out of {origin}.", file = stderr)
+
+            config.save(secrets, config.SECRETS)
+        else:
+            print(f"Not logged in to any remotes.", file = stderr)
+
+
 def current_user(origin: Origin) -> Optional[User]:
     """
     Information about the currently logged in user for *origin*, if any.
@@ -237,3 +263,12 @@ def _config_section(origin: Origin) -> str:
     if origin == "https://nextstrain.org":
         return CONFIG_SECTION
     return f"{CONFIG_SECTION} {origin}"
+
+
+def _parse_section(section: str) -> Optional[Origin]:
+    if section == CONFIG_SECTION:
+        return Origin("https://nextstrain.org")
+    elif section.startswith(CONFIG_SECTION + " "):
+        return Origin(section.split(" ", 1)[1])
+    else:
+        return None
