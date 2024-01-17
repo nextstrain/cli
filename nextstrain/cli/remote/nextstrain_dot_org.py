@@ -682,7 +682,7 @@ def api_endpoint(origin: Origin, path: Union[str, PurePosixPath]) -> str:
     >>> api_endpoint(URL("http://localhost:5000/x/").origin, "a/b/c")
     'http://localhost:5000/a/b/c'
     """
-    return origin + "/" + urlquote(str(path).lstrip("/"))
+    return origin + "/" + urlquote(str(path).lstrip("/"), safe = "/@")
 
 
 class auth(requests.auth.AuthBase):
