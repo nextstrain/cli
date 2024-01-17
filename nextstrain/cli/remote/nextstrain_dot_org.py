@@ -132,6 +132,21 @@ class SubResource(NamedTuple):
     file_extension: str
     primary: bool = False
 
+    def __str__(self) -> str:
+        type, subtype = self.media_type.split("/", 1)
+        subtype_sans_suffix, *_ = subtype.split("+", 1)
+        subtype_tree = tuple(subtype_sans_suffix.split("."))
+
+        resource = (
+            "dataset"   if subtype_tree[0:3] == ("vnd", "nextstrain", "dataset")   else
+            "narrative" if subtype_tree[0:3] == ("vnd", "nextstrain", "narrative") else
+            self.media_type
+        )
+
+        sidecar = sidecar_suffix(self.media_type)
+
+        return f"{resource} ({sidecar})" if sidecar else resource
+
 
 class Dataset(Resource):
     """
@@ -327,7 +342,18 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
     with requests.Session() as http:
         http.auth = auth(origin)
 
-        resources = _ls(origin, path, recursively = recursively, http = http)
+        if recursively:
+            resources = _ls(origin, path, recursively = recursively, http = http)
+        else:
+            # Avoid the query and just try to download the single resource.
+            # This saves a request for single-dataset (or narrative) downloads,
+            # but also allows downloading core datasets which aren't in the
+            # manifest.  (At least until the manifest goes away.)
+            #   -trs, 9 Nov 2022
+            if narratives_only(path):
+                resources = [Narrative(str(path))]
+            else:
+                resources = [Dataset(str(path))]
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
@@ -352,7 +378,9 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
 
                     # Check for bad response
                     raise_for_status(response)
-                    assert content_media_type(response) == subresource.media_type
+
+                    if content_media_type(response) != subresource.media_type:
+                        raise UserError(f"Path {path} does not seem to be a {subresource}.")
 
                     # Local destination
                     if local_path.is_dir():
