@@ -65,6 +65,22 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
   the failure.
   ([#341](https://github.com/nextstrain/cli/pull/341))
 
+* `nextstrain remote download` now supports downloading core datasets which are
+  only visible on the web by direct access via their URL.  For example, the
+  following now work (where in previous versions they did not):
+
+      nextstrain remote download https://nextstrain.org/nextclade/sars-cov-2/21L
+      nextstrain remote download https://nextstrain.org/enterovirus/d68/vp1/2020-01-23
+
+  This support also covers [past snapshots of
+  datasets](https://docs.nextstrain.org/en/latest/guides/versions.html), which
+  is a recently-added feature to nextstrain.org.  For example:
+
+      nextstrain remote download https://nextstrain.org/flu/seasonal/h3n2/ha/6y@2023-07-01
+      nextstrain remote download https://nextstrain.org/ncov/gisaid/21L/global/6m@2024-01-09
+
+  ([#345](https://github.com/nextstrain/cli/pull/345))
+
 ## Bug fixes
 
 * Commands making use of user authentication (e.g. `nextstrain login`,

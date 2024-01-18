@@ -103,16 +103,15 @@ class NormalizedPath(PurePosixPath):
 
 class Resource:
     """
-    Base class for a remote Nextstrain resource, as described by a Charon API
-    "getAvailable" response.
+    Base class for a remote Nextstrain resource described by its *path*.
 
     Concretely, either a :class:`Dataset` or :class:`Narrative` currently.
     """
     path: NormalizedPath
     subresources: List['SubResource']
 
-    def __init__(self, api_item: dict):
-        self.path = normalize_path(api_item["request"])
+    def __init__(self, path: str):
+        self.path = normalize_path(path)
 
 
 class SubResource(NamedTuple):
@@ -133,45 +132,44 @@ class SubResource(NamedTuple):
     file_extension: str
     primary: bool = False
 
+    def __str__(self) -> str:
+        type, subtype = self.media_type.split("/", 1)
+        subtype_sans_suffix, *_ = subtype.split("+", 1)
+        subtype_tree = tuple(subtype_sans_suffix.split("."))
+
+        resource = (
+            "dataset"   if subtype_tree[0:3] == ("vnd", "nextstrain", "dataset")   else
+            "narrative" if subtype_tree[0:3] == ("vnd", "nextstrain", "narrative") else
+            self.media_type
+        )
+
+        sidecar = sidecar_suffix(self.media_type)
+
+        return f"{resource} ({sidecar})" if sidecar else resource
+
 
 class Dataset(Resource):
     """
-    A remote Nextstrain dataset, as described by a Charon API response,
-    extended for the nextstrain.org RESTful API.
+    A remote Nextstrain dataset as described by its *path* and optional list of
+    *sidecars*.
     """
-    def __init__(self, api_item):
-        super().__init__(api_item)
+    def __init__(self, path: str, sidecars: Optional[List[str]] = None):
+        super().__init__(path)
 
-        default_sidecars = ["root-sequence", "tip-frequencies", "measurements"]
+        if sidecars is None:
+            sidecars = ["root-sequence", "tip-frequencies", "measurements"]
 
         self.subresources = [
             SubResource("application/vnd.nextstrain.dataset.main+json", ".json", primary = True),
 
-            # XXX TODO: The "sidecars" field in the /charon/getAvailable API
-            # response doesn't actually exist yet and its use here is
-            # prospective.
-            #
-            # I plan to extend the /charon/getAvailable API endpoint (or maybe
-            # switch to a new endpoint) in the future to include the "sidecars"
-            # field listing the available sidecars for each dataset, so that
-            # this code only has to try to fetch what is reported to exist.
-            # More than just reducing requests, the primary upshot is looser
-            # coupling by avoiding the need to update the hardcoded list of
-            # sidecars here and get people to upgrade their installed version
-            # of this CLI if we add a new sidecar in the future.  Other API
-            # clients would also likely benefit.
-            #
-            #   -trs, 18 August 2021
-            #
             *[SubResource(f"application/vnd.nextstrain.dataset.{type}+json", ".json")
-                for type in api_item.get("sidecars", default_sidecars)],
+                for type in sidecars],
         ]
 
 
 class Narrative(Resource):
     """
-    A remote Nextstrain narrative, as described by a Charon API response,
-    extended for the nextstrain.org RESTful API.
+    A remote Nextstrain narrative as described by its *path*.
     """
     subresources = [
         SubResource("text/vnd.nextstrain.narrative+markdown", ".md", primary = True),
@@ -344,7 +342,18 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
     with requests.Session() as http:
         http.auth = auth(origin)
 
-        resources = _ls(origin, path, recursively = recursively, http = http)
+        if recursively:
+            resources = _ls(origin, path, recursively = recursively, http = http)
+        else:
+            # Avoid the query and just try to download the single resource.
+            # This saves a request for single-dataset (or narrative) downloads,
+            # but also allows downloading core datasets which aren't in the
+            # manifest.  (At least until the manifest goes away.)
+            #   -trs, 9 Nov 2022
+            if narratives_only(path):
+                resources = [Narrative(str(path))]
+            else:
+                resources = [Dataset(str(path))]
 
         if not resources:
             raise UserError(f"Path {path} does not seem to exist")
@@ -369,7 +378,9 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
 
                     # Check for bad response
                     raise_for_status(response)
-                    assert content_media_type(response) == subresource.media_type
+
+                    if content_media_type(response) != subresource.media_type:
+                        raise UserError(f"Path {path} does not seem to be a {subresource}.")
 
                     # Local destination
                     if local_path.is_dir():
@@ -442,9 +453,31 @@ def _ls(origin: Origin, path: NormalizedPath, recursively: bool = False, http: r
         else:
             return x.path == path
 
+    def to_dataset(api_item: dict) -> Dataset:
+        # XXX TODO: The "sidecars" field in the /charon/getAvailable API
+        # response doesn't actually exist yet and its use here is
+        # prospective.
+        #
+        # I plan to extend the /charon/getAvailable API endpoint (or maybe
+        # switch to a new endpoint) in the future to include the "sidecars"
+        # field listing the available sidecars for each dataset, so that
+        # this code only has to try to fetch what is reported to exist.
+        # More than just reducing requests, the primary upshot is looser
+        # coupling by avoiding the need to update the hardcoded list of
+        # sidecars here and get people to upgrade their installed version
+        # of this CLI if we add a new sidecar in the future.  Other API
+        # clients would also likely benefit.
+        #
+        #   -trs, 18 August 2021
+        #
+        return Dataset(api_item["request"], api_item.get("sidecars"))
+
+    def to_narrative(api_item: dict) -> Narrative:
+        return Narrative(api_item["request"])
+
     return [
-        *filter(matches_path, map(Dataset, available["datasets"])),
-        *filter(matches_path, map(Narrative, available["narratives"])),
+        *filter(matches_path, map(to_dataset, available["datasets"])),
+        *filter(matches_path, map(to_narrative, available["narratives"])),
     ]
 
 
@@ -649,7 +682,7 @@ def api_endpoint(origin: Origin, path: Union[str, PurePosixPath]) -> str:
     >>> api_endpoint(URL("http://localhost:5000/x/").origin, "a/b/c")
     'http://localhost:5000/a/b/c'
     """
-    return origin + "/" + urlquote(str(path).lstrip("/"))
+    return origin + "/" + urlquote(str(path).lstrip("/"), safe = "/@")
 
 
 class auth(requests.auth.AuthBase):
