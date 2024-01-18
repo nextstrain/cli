@@ -95,7 +95,7 @@ from ..errors import UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, colored, exec_or_return, split_image_name, warn
-from . import docker
+from . import docker # type: ignore[no-redef] # for mypy
 
 flatten = itertools.chain.from_iterable
 

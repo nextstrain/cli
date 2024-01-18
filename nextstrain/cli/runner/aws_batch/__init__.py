@@ -90,7 +90,7 @@ from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ...util import colored, prose_list, warn
 from ... import config
-from .. import docker
+from .. import docker # type: ignore[no-redef] # for mypy
 from . import jobs, s3
 
 

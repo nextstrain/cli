@@ -17,6 +17,8 @@ Web browser interaction.
 import webbrowser
 from threading import Thread, ThreadError
 from os import environ
+from typing import Union
+from .url import URL
 from .util import warn
 
 
@@ -34,7 +36,7 @@ else:
             environ["TERM"] = TERM
 
 
-def open_browser(url: str, new_thread: bool = True):
+def open_browser(url: Union[str, URL], new_thread: bool = True):
     """
     Opens *url* in a web browser.
 
@@ -59,9 +61,9 @@ def open_browser(url: str, new_thread: bool = True):
 
     try:
         if new_thread:
-            Thread(target = open_browser, args = (url, False), daemon = True).start()
+            Thread(target = open_browser, args = (str(url), False), daemon = True).start()
         else:
             # new = 2 means new tab, if possible
-            BROWSER.open(url, new = 2, autoraise = True)
+            BROWSER.open(str(url), new = 2, autoraise = True)
     except (ThreadError, webbrowser.Error) as err:
         warn(f"Couldn't open <{url}> in browser: {err!r}")

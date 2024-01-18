@@ -59,12 +59,22 @@ resources from our ["testing" configuration][], you can configure `nextstrain`
 with the same, e.g.:
 
     export NEXTSTRAIN_DOT_ORG=http://localhost:5000
-    export NEXTSTRAIN_COGNITO_USER_POOL_ID="$(jq -r .COGNITO_USER_POOL_ID ../nextstrain.org/env/testing/config.json)"
-    export NEXTSTRAIN_COGNITO_CLI_CLIENT_ID="$(jq -r .OAUTH2_CLI_CLIENT_ID ../nextstrain.org/env/testing/config.json)"
 
     nextstrain login
     nextstrain whoami
     nextstrain remote ls groups/test-private
+
+Most of the times the above is not necessary, however, as you can specify the
+local remote explicitly instead of pretending it's nextstrain.org, e.g.:
+
+    nextstrain remote ls http://localhost:5000/groups/test
+
+    nextstrain login http://localhost:5000
+    nextstrain whoami http://localhost:5000
+    nextstrain remote ls http://localhost:5000/groups/test-private
+
+Setting `NEXTSTRAIN_DOT_ORG` is mostly useful when testing the default-remote
+code paths themselves.
 
 ## Releasing
 

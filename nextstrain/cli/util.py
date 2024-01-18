@@ -7,9 +7,7 @@ import subprocess
 import sys
 from functools import partial
 from importlib.metadata import distribution as distribution_info, PackageNotFoundError
-from typing import Any, Callable, Iterable, Mapping, List, Optional, Sequence, Tuple, Union, overload
-# TODO: Use typing.Literal once Python 3.8 is the minimum supported version.
-from typing_extensions import Literal
+from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from packaging.version import parse as parse_version
 from pathlib import Path
 from shlex import quote as shquote
