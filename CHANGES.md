@@ -17,6 +17,14 @@ This release drops support for Python versions 3.6 and 3.7 and adds support for
 3.11. ([#325](https://github.com/nextstrain/cli/pull/325),
 [#327](https://github.com/nextstrain/cli/pull/327))
 
+Note that this Python version support only matters if you're installing
+Nextstrain CLI from PyPI or Bioconda
+([c.f.](https://docs.nextstrain.org/projects/cli/en/8.0.0/installation/)).  It
+does not apply if you're installing Nextstrain CLI using the standalone
+installation method we recommend in the [Nextstrain installation
+documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
+supported Python version is always bundled with `nextstrain`.
+
 ## Improvements
 
 * The `nextstrain remote` family of commands now support alternative
