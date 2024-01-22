@@ -1,0 +1,22 @@
+#!/bin/bash
+# Reflows paragraphs in Markdown to single long lines while preserving verbatim
+# code blocks, lists, and what not.
+set -euo pipefail
+
+devel="$(dirname "$0")"
+
+main() {
+    pandoc --wrap none --from markdown --to markdown
+}
+
+pandoc() {
+    # XXX TODO: This relies on Docker being available, which it typically is in
+    # our development environments (local and CI).  If Docker ever poses a
+    # burden, we could switch to just-in-time downloading of static binaries
+    # from <https://github.com/jgm/pandoc/releases/latest> and exec-ing those à
+    # la what our devel/pyoxidizer does.
+    #   -trs, 18 Jan 2024
+    "$devel"/within-container --interactive pandoc/core "$@"
+}
+
+main "$@"
