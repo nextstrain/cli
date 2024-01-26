@@ -100,12 +100,13 @@ def login(origin: Origin, credentials: Optional[Callable[[], Tuple[str, str]]] =
 
 def renew(origin: Origin) -> Optional[User]:
     """
-    Renews existing tokens for *origin*, if possible.
+    Renews existing saved credentials for *origin*, if possible.
 
     Returns a :class:`User` object with renewed information about the logged in
     user when successful.
 
-    Raises a :class:`UserError` if authentication fails.
+    Returns ``None`` if there are no saved credentials or if they're unable to
+    be automatically renewed.
     """
     assert origin
 
