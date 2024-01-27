@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* Several kinds of errors from `nextstrain login` and `nextstrain whoami`
+  related to their interactions with a remote server are now clearer.
+  ([#347](https://github.com/nextstrain/cli/pull/347))
+
 
 # 8.0.0 (18 January 2024)
 
