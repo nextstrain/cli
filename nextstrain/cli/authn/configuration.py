@@ -20,18 +20,31 @@ def openid_configuration(origin: Origin):
     assert origin
 
     with requests.Session() as http:
-        response = http.get(origin.rstrip("/") + "/.well-known/openid-configuration")
+        try:
+            response = http.get(origin.rstrip("/") + "/.well-known/openid-configuration")
+            response.raise_for_status()
+            return response.json()
 
-        if response.status_code == 404:
+        except requests.exceptions.ConnectionError as err:
             raise UserError(f"""
-                Failed to retrieve authentication metadata for {origin}.
+                Could not connect to {origin} to retrieve
+                authentication metadata:
+
+                    {type(err).__name__}: {err}
+
+                That remote may be invalid or you may be experiencing network
+                connectivity issues.
+                """) from err
+
+        except (requests.exceptions.HTTPError, requests.exceptions.JSONDecodeError) as err:
+            raise UserError(f"""
+                Failed to retrieve authentication metadata for {origin}:
+
+                    {type(err).__name__}: {err}
 
                 That remote seems unlikely to be an alternate nextstrain.org
                 instance or an internal Nextstrain Groups Server instance.
-                """)
-
-        response.raise_for_status()
-        return response.json()
+                """) from err
 
 
 def client_configuration(origin: Origin):
