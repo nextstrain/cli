@@ -184,8 +184,14 @@ def current_user(origin: Origin) -> Optional[User]:
     """
     assert origin
 
-    session = Session(origin)
     tokens = _load_tokens(origin)
+
+    # Short-circuit if we don't have any tokens to speak of.  Avoids trying to
+    # fetch authn metadata from the remote origin.
+    if all(token is None for token in tokens.values()):
+        return None
+
+    session = Session(origin)
 
     try:
         try:
