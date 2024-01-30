@@ -20,7 +20,7 @@ documentation.
 
     computing platform
         The foundation of a :term:`computing environment` (or part of it), such
-        as Docker, Conda, AWS Batch, etc.
+        as Docker, Conda, Singularity, AWS Batch, etc.
 
     runner
         The code (i.e. Python module, e.g. :file:`nextstrain/cli/runner/docker.py`)

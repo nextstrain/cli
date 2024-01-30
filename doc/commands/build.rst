@@ -22,8 +22,8 @@ The build directory should contain a Snakefile, which will be run with
 snakemake.
 
 You need at least one runtime available to run a build.  You can test if the
-Docker, Conda, ambient, or AWS Batch runtimes are properly supported on your
-computer by running::
+Docker, Conda, Singularity, ambient, or AWS Batch runtimes are properly
+supported on your computer by running::
 
     nextstrain check-setup
 
