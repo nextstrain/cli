@@ -78,7 +78,7 @@ jobs:
       - run: python3 -m build
 
       # Upload dists as workflow artifacts.
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -189,7 +189,7 @@ jobs:
       # Upload installation archive as a workflow artifact.
       #
       # At least one path needs to match, or this errors.
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: standalone-${{ matrix.target }}
           path: |
