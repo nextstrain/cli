@@ -78,7 +78,7 @@ jobs:
       - run: python3 -m build
 
       # Upload dists as workflow artifacts.
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
@@ -131,7 +131,7 @@ jobs:
 
       # Build the executable + necessary external files from the dists.
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
@@ -189,7 +189,7 @@ jobs:
       # Upload installation archive as a workflow artifact.
       #
       # At least one path needs to match, or this errors.
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: standalone-${{ matrix.target }}
           path: |
@@ -259,7 +259,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
@@ -309,7 +309,7 @@ jobs:
           python-version: '3.9'
 
       # Download and extract the installation archive.
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: standalone-${{ matrix.target }}
 
@@ -358,20 +358,20 @@ jobs:
           python-version: "3.10"
       - run: python3 -m pip install --upgrade twine
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist/
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: standalone-x86_64-unknown-linux-gnu
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: standalone-x86_64-apple-darwin
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: standalone-x86_64-pc-windows-msvc
 
