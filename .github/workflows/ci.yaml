@@ -201,6 +201,34 @@ jobs:
       # launching the more extensive tests below.
       - run: ./build/${{ matrix.target }}/release/installation/${{ matrix.exe }} --help
 
+  write-install-commands:
+    needs: build-standalone
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write installation commands to job summary
+        run: |
+          cat >"$GITHUB_STEP_SUMMARY" <<'~~'
+          Build complete. Commands to install locally:
+
+          Linux:
+
+          ```bash
+          curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash -s ci-build/${{ github.run_id }}
+          ```
+
+          macOS:
+
+          ```bash
+          curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash -s ci-build/${{ github.run_id }}
+          ```
+
+          Windows:
+
+          ```powershell
+          Invoke-Expression "& { $(Invoke-RestMethod https://nextstrain.org/cli/installer/windows) } ci-build/${{ github.run_id }}"
+          ```
+          ~~
+
   test-dist:
     needs: build-dist
     name: test-dist (python=${{ matrix.python }} os=${{ matrix.os }})
