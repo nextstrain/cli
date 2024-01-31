@@ -7,11 +7,11 @@ from typing import Tuple
 from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
-from ..errors import UserError
 from ..paths import SHELL_HISTORY
 from ..runner import docker, conda, singularity
 from ..util import colored, remove_prefix, runner_name, warn
 from ..volume import store_volume, NamedVolume
+from .build import assert_overlay_volumes_support
 
 
 def register_parser(subparser):
@@ -43,6 +43,8 @@ def register_parser(subparser):
 
 
 def run(opts):
+    assert_overlay_volumes_support(opts)
+
     # Ensure our build dir exists
     if not opts.build.src.is_dir():
         warn("Error: Build path \"%s\" does not exist or is not a directory." % opts.build.src)
@@ -52,14 +54,6 @@ def run(opts):
             warn("Perhaps your current working directory is different than you expect?")
 
         return 1
-
-    overlay_volumes = [v for v in opts.volumes if v is not opts.build]
-
-    if overlay_volumes and opts.__runner__ not in {docker, singularity}:
-        raise UserError(f"""
-            The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
-            Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
-            """)
 
     print(colored("bold", f"Entering the Nextstrain runtime ({runner_name(opts.__runner__)})"))
     print()
