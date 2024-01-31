@@ -163,7 +163,7 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
-    # Unlike other runners, the AWS Bach runner currently *requires* a working
+    # Unlike other runners, the AWS Batch runner currently *requires* a working
     # dir in most usages.  This is ok as we only provide the AWS Batch runner
     # for commands which also require a working dir (e.g. build), whereas other
     # runners also work with commands that don't.
