@@ -13,6 +13,67 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Features
+
+* `nextstrain build` and `nextstrain shell` now better support pathogen
+  repositories which place workflows in subdirectories.  The top-level of the
+  repo must contain a `nextstrain-pathogen.yaml` file for this support to
+  activate.  The file may be empty for now, though we anticipate using it for
+  pathogen-level metadata in the future to aid indexing, listing, and
+  attribution of pathogen repos.
+
+  As an example of the new support, consider the following repo layout
+
+      mpox/
+      ├── nextstrain-pathogen.yaml
+      ├── ingest/
+      │   ├── Snakefile
+      │   └── …
+      ├── phylogenetic/
+      │   ├── Snakefile
+      │   └── …
+      ├── shared/
+      │   ├── reference.fasta
+      │   └── …
+      └── …
+
+  where `ingest/` and `phylogenetic/` contain workflows that use
+  `shared/reference.fasta` via a relative path (i.e.
+  `../shared/reference.fasta`).
+
+  It's now possible to invoke those workflows with any of the following:
+
+      nextstrain build mpox/ingest/
+      nextstrain build mpox/phylogenetic/
+
+      cd mpox
+      nextstrain build ingest/
+      nextstrain build phylogenetic/
+
+      cd phylogenetic
+      nextstrain build .
+      nextstrain build ../ingest/
+
+  regardless of runtime.
+
+  Previously, such workflows required careful invocation, e.g.
+
+      nextstrain build mpox/ -d phylogenetic/ -s phylogenetic/Snakefile
+
+  when using runtimes with filesystem isolation (i.e. the [containerized][]
+  ones; Docker, Singularity, and AWS Batch) but not when using runtimes without
+  it.
+
+  When active, this feature makes the top-level of the pathogen repo (e.g.
+  `mpox/`) available in the container at `/nextstrain/build` while the
+  initial working directory is set to the workflow subdirectory in the
+  container (e.g. `/nextstrain/build/phylogenetic`).  That is, the filesystem
+  isolation boundary is drawn at the top-level of the pathogen repo instead of
+  at the workflow directory (i.e. what's given to `nextstrain build`).
+  ([#355](https://github.com/nextstrain/cli/pull/355))
+
+[containerized]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/#comparison
+
 ## Improvements
 
 * `nextstrain build` now errors if a [development overlay option][] such as

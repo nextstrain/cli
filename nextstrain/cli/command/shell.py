@@ -3,15 +3,16 @@ Start a new shell inside a Nextstrain runtime to run ad-hoc
 commands and perform debugging.
 """
 
+from pathlib import Path
 from typing import Tuple
 from .. import resources
 from .. import runner
 from ..argparse import add_extended_help_flags
 from ..paths import SHELL_HISTORY
 from ..runner import docker, conda, singularity
-from ..util import colored, remove_prefix, runner_name, warn
-from ..volume import store_volume, NamedVolume
-from .build import assert_overlay_volumes_support
+from ..util import colored, remove_prefix, runner_name
+from ..volume import NamedVolume
+from .build import assert_overlay_volumes_support, pathogen_volumes
 
 
 def register_parser(subparser):
@@ -30,7 +31,7 @@ def register_parser(subparser):
         "directory",
         help    = "Path to pathogen build directory",
         metavar = "<directory>",
-        action  = store_volume("build"))
+        type    = Path)
 
     # Register runner flags and arguments; excludes ambient and AWS Batch
     # runners since those don't make any sense here.
@@ -45,15 +46,10 @@ def register_parser(subparser):
 def run(opts):
     assert_overlay_volumes_support(opts)
 
-    # Ensure our build dir exists
-    if not opts.build.src.is_dir():
-        warn("Error: Build path \"%s\" does not exist or is not a directory." % opts.build.src)
+    # Interpret the given directory
+    build_volume, working_volume = pathogen_volumes(opts.directory)
 
-        if not opts.build.src.is_absolute():
-            warn()
-            warn("Perhaps your current working directory is different than you expect?")
-
-        return 1
+    opts.volumes.append(build_volume) # for Docker and Singularity
 
     print(colored("bold", f"Entering the Nextstrain runtime ({runner_name(opts.__runner__)})"))
     print()
@@ -107,7 +103,7 @@ def run(opts):
             "NEXTSTRAIN_HISTFILE": str(history_file),
         }
 
-        return runner.run(opts, working_volume = opts.build, extra_env = extra_env)
+        return runner.run(opts, working_volume = working_volume, extra_env = extra_env)
 
 
 def ps1() -> str:
