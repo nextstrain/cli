@@ -99,13 +99,6 @@ jobs:
         #
         # ¹ https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_distributing_binary_portability.html
         # ² https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_status.html#an-official-build-environment
-        #
-        # XXX TODO: GitHub doesn't yet host any runners on M1 (Apple Silicon,
-        # aarch64, arm64) hardware, and we don't have M1 hardware on which to
-        # self-host a runner.  Amazon's mac2.metal EC2 instances are M1, but
-        # they cost a minimum of ~$15/day.  It would be cheaper to buy an M1
-        # Mac Mini for ~$700 which would pay for itself in less than 2 months.
-        #   -trs, 31 May 2022
         include:
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
@@ -113,6 +106,10 @@ jobs:
 
           - os: macos-11
             target: x86_64-apple-darwin
+            exe: nextstrain
+
+          - os: macos-14
+            target: aarch64-apple-darwin
             exe: nextstrain
 
           - os: windows-2019
@@ -283,13 +280,12 @@ jobs:
         # end-user runtime issues with our binaries (e.g. missing DLLs).  Such
         # fresh CI machines are not readily available, however, since
         # pre-installation is convenient for builds.
-        #
-        # XXX TODO: macOS aarch64 (M1, Apple Silicon, arm64); see above.
         include:
           - { os: ubuntu-20.04, target: x86_64-unknown-linux-gnu }
           - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu }
           - { os: macos-11,     target: x86_64-apple-darwin }
           - { os: macos-12,     target: x86_64-apple-darwin }
+          - { os: macos-14,     target: aarch64-apple-darwin }
           - { os: windows-2019, target: x86_64-pc-windows-msvc }
           - { os: windows-2022, target: x86_64-pc-windows-msvc }
 
@@ -370,6 +366,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: standalone-x86_64-apple-darwin
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: standalone-aarch64-apple-darwin
 
       - uses: actions/download-artifact@v4
         with:
