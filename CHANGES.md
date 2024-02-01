@@ -13,6 +13,17 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain build` now errors if a [development overlay option][] such as
+  `--augur` or `--auspice` is given when using a runtime without support for
+  those (anything but Docker or Singularity).  Previously, it would silently
+  ignore those options when unsupported by the runtime.  The new behaviour
+  matches the behaviour of `nextstrain shell` since 5.0.0.
+  ([#354](https://github.com/nextstrain/cli/pull/354))
+
+[development overlay option]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#development-options-for-docker
+
 
 # 8.0.1 (29 January 2024)
 

@@ -102,6 +102,10 @@ update-changelog() {
     # preserving the __NEXT__ heading itself.
     perl -pi -e "s/(?<=^# __NEXT__$)/\n\n\n# $new_version ($today)/" "$changes_file"
 
+    # Replace any occurrences of __NEXT__ under the new version heading, e.g.
+    # for use in doc URLs that should point to the released version.
+    perl -pi -e "s/__NEXT__/$new_version/g if /^# \\Q$new_version/ ... /^# /" "$changes_file"
+
     # Remove the __NEXT__ heading and the sentence «The "__NEXT__" heading
     # below…» for the next commit, but leave the working tree untouched.
     perl -0p -e '

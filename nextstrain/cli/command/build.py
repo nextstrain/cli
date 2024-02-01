@@ -21,7 +21,8 @@ from textwrap import dedent
 from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UsageError, UserError
-from ..util import byte_quantity, warn
+from ..runner import docker, singularity
+from ..util import byte_quantity, runner_name, warn
 from ..volume import store_volume
 
 
@@ -146,6 +147,8 @@ def register_parser(subparser):
 
 
 def run(opts):
+    assert_overlay_volumes_support(opts)
+
     # We must check this before the conditions under which opts.build is
     # optional because otherwise we could pass a missing build dir to a runner
     # which ignores opts.attach.
@@ -231,6 +234,19 @@ def run(opts):
                     """ % (snakemake_opts["--resources"][0],)))
 
     return runner.run(opts, working_volume = opts.build, cpus = opts.cpus, memory = opts.memory)
+
+
+def assert_overlay_volumes_support(opts):
+    """
+    Check that runtime overlays are supported, if given.
+    """
+    overlay_volumes = [v for v in opts.volumes if v is not opts.build]
+
+    if overlay_volumes and opts.__runner__ not in {docker, singularity}:
+        raise UserError(f"""
+            The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
+            Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
+            """)
 
 
 def parse_snakemake_args(args):
