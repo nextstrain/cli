@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* We now produce standalone installation archives for macOS running on aarch64
+  hardware (aka arm64, Apple Silicon, M1/M2).
+  ([#357](https://github.com/nextstrain/cli/pull/357))
+
 
 # 8.0.1 (29 January 2024)
 
