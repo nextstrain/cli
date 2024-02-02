@@ -87,7 +87,7 @@ from typing import Iterable, List
 from .. import config, env
 from ..errors import UserError
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
-from ..util import warn, colored, capture_output, exec_or_return, split_image_name
+from ..util import warn, colored, capture_output, exec_or_return, split_image_name, test_rosetta_enabled
 from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
 
@@ -387,7 +387,12 @@ def test_setup() -> RunnerTestResults:
         ('docker run works',
             test_run()),
         *test_memory_limit(),
-        *test_image_version()
+        *test_image_version(),
+
+        # Rosetta 2 is optional, so convert False (fail) → None (warning)
+        *[(msg, None if status is False else status)
+            for msg, status
+             in test_rosetta_enabled("Rosetta 2 is enabled for faster execution (optional)")],
     ]
 
 

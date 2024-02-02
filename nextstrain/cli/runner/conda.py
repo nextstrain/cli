@@ -87,7 +87,7 @@ from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
+from ..util import capture_output, colored, exec_or_return, runner_tests_ok, test_rosetta_enabled, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -467,10 +467,11 @@ def test_support() -> RunnerTestResults:
         else:
             return False
 
-
     return [
         ('operating system is supported',
             supported_os()),
+
+        *test_rosetta_enabled(),
 
         ("runtime data dir doesn't have spaces",
             " " not in str(RUNTIME_ROOT)),

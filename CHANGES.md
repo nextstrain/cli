@@ -21,6 +21,15 @@ development source code and as such may not be routinely kept up to date.
   ([#357](https://github.com/nextstrain/cli/pull/357),
   [#358](https://github.com/nextstrain/cli/pull/358))
 
+* The Conda and Docker runtime checks performed by `nextstrain setup` and
+  `nextstrain check-setup` now test if Rosetta 2 is enabled for macOS on
+  aarch64 (aka arm64, Apple Silicon, M1/M2) hardware.  Rosetta is required for
+  the Conda runtime and optional, but recommended, for the Docker runtime.
+  Previously only the standalone installer checked for Rosetta, but starting
+  with this release it will not.
+  ([#361](https://github.com/nextstrain/cli/pull/361),
+  [#358](https://github.com/nextstrain/cli/pull/358))
+
 * `nextstrain build` now errors if a [development overlay option][] such as
   `--augur` or `--auspice` is given when using a runtime without support for
   those (anything but Docker or Singularity).  Previously, it would silently
