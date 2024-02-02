@@ -16,8 +16,10 @@ development source code and as such may not be routinely kept up to date.
 ## Improvements
 
 * We now produce standalone installation archives for macOS running on aarch64
-  hardware (aka arm64, Apple Silicon, M1/M2).
-  ([#357](https://github.com/nextstrain/cli/pull/357))
+  hardware (aka arm64, Apple Silicon, M1/M2).  The standalone installer will
+  use these archives starting with this release.
+  ([#357](https://github.com/nextstrain/cli/pull/357),
+  [#358](https://github.com/nextstrain/cli/pull/358))
 
 * `nextstrain build` now errors if a [development overlay option][] such as
   `--augur` or `--auspice` is given when using a runtime without support for
