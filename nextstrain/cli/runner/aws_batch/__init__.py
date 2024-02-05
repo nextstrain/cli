@@ -163,14 +163,22 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
+    build_volume = next((v for v in opts.volumes if v and v.name == "build"), None)
+
     # Unlike other runners, the AWS Batch runner currently *requires* a working
     # dir in most usages.  This is ok as we only provide the AWS Batch runner
     # for commands which also require a working dir (e.g. build), whereas other
     # runners also work with commands that don't.
     #   -trs, 28 Feb 2022 (updated 24 August 2023)
-    assert working_volume is not None or (opts.attach and (not opts.download or opts.cancel))
+    assert (working_volume is not None and build_volume is not None) or (opts.attach and (not opts.download or opts.cancel))
 
-    local_workdir = working_volume.src.resolve(strict = True) if working_volume else None
+    # Note that "workdir" here always refers to our image's default WORKDIR,
+    # /nextstrain/build, since AWS Batch provides no way to override the
+    # initial working directory of a container, i.e. an equivalent to the
+    # --workdir option of `docker run`.  Instead, to change the initial working
+    # directory, we arrange to exec-chain thru `env --chdir`.
+    #   -trs, 29 Jan 2024
+    local_workdir = build_volume.src.resolve(strict = True) if build_volume else None
 
     if opts.attach:
         print_stage("Attaching to Nextstrain AWS Batch Job ID:", opts.attach)
@@ -192,6 +200,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         print_stage("Job is %s" % job.status)
     else:
         assert local_workdir is not None
+        assert working_volume is not None
 
         # Generate our own unique run id since we can't know the AWS Batch job id
         # until we submit it.  This run id is used for workdir and run results
@@ -239,6 +248,14 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
             # Memory from our caller is in bytes, but AWS expects MiB.
             memory //= 1024**2
 
+        # Change working directory in the container before running our command.
+        # Note that this happens _after_ the build context we uploaded
+        # (remote_workdir) is downloaded and extracted to the default working
+        # directory (/nextstrain/build).
+        exec = [
+            "env", "--chdir", str(docker.mount_point(working_volume)), "--",
+            *argv ]
+
         try:
             job = jobs.submit(
                 name       = run_id,
@@ -248,7 +265,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                 cpus       = cpus,
                 memory     = memory,
                 workdir    = remote_workdir,
-                exec       = argv,
+                exec       = exec,
                 env        = { k: v for k, v in extra_env.items() if v is not None })
         except Exception as error:
             warn(error)

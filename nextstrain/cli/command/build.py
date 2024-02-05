@@ -17,13 +17,16 @@ changes in the future as desired or necessary.
 """
 
 import re
+from pathlib import Path, PurePosixPath
 from textwrap import dedent
+from typing import Tuple
 from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
+from ..debug import debug
 from ..errors import UsageError, UserError
 from ..runner import docker, singularity
 from ..util import byte_quantity, runner_name, warn
-from ..volume import store_volume
+from ..volume import NamedVolume
 
 
 def register_parser(subparser):
@@ -137,7 +140,7 @@ def register_parser(subparser):
                   "Required, except when the AWS Batch runtime is in use and --attach and either --no-download or --cancel are given.  "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar = "<directory>",
-        action  = store_volume("build"),
+        type    = Path,
         nargs   = "?")
 
     # Register runner flags and arguments
@@ -149,7 +152,7 @@ def register_parser(subparser):
 def run(opts):
     assert_overlay_volumes_support(opts)
 
-    # We must check this before the conditions under which opts.build is
+    # We must check this before the conditions under which opts.directory is
     # optional because otherwise we could pass a missing build dir to a runner
     # which ignores opts.attach.
     if (opts.attach or opts.detach or opts.detach_on_interrupt or opts.cancel) and opts.__runner__ is not runner.aws_batch:
@@ -160,24 +163,23 @@ def run(opts):
             Did you forget to specify --aws-batch?
             """)
 
-    # Ensure our build dir exists
-    if opts.build is None:
+    # Interpret the given directory and ensure it exists if necessary.
+    if opts.directory is not None:
+        build_volume, working_volume = pathogen_volumes(opts.directory)
+
+    else:
         if opts.attach and (not opts.download or opts.cancel):
             # Don't require a build directory with --attach + --no-download
             # or --attach + --cancel.  User just wants to check status/logs or
             # stop the job.
-            pass
+            build_volume = None
+            working_volume = None
         else:
             raise UsageError("Path to a pathogen build <directory> is required.")
 
-    elif not opts.build.src.is_dir():
-        warn("Error: Build path \"%s\" does not exist or is not a directory." % opts.build.src)
+    if build_volume:
+        opts.volumes.append(build_volume) # for Docker, Singularity, and AWS Batch
 
-        if not opts.build.src.is_absolute():
-            warn()
-            warn("Perhaps your current working directory is different than you expect?")
-
-        return 1
 
     # Automatically pass thru appropriate resource options to Snakemake to
     # avoid the user having to repeat themselves (once for us, once for
@@ -233,20 +235,107 @@ def run(opts):
                     based on its --memory option.  This may or may not be what you expect.
                     """ % (snakemake_opts["--resources"][0],)))
 
-    return runner.run(opts, working_volume = opts.build, cpus = opts.cpus, memory = opts.memory)
+    return runner.run(opts, working_volume = working_volume, cpus = opts.cpus, memory = opts.memory)
 
 
 def assert_overlay_volumes_support(opts):
     """
     Check that runtime overlays are supported, if given.
     """
-    overlay_volumes = [v for v in opts.volumes if v is not opts.build]
+    overlay_volumes = opts.volumes
 
     if overlay_volumes and opts.__runner__ not in {docker, singularity}:
         raise UserError(f"""
             The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
             Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
             """)
+
+
+def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
+    """
+    Discern the pathogen **build volume** and **working volume** for a given
+    *directory* path.
+
+    The **build volume** is the pathogen repo root, if discernable by the
+    presence of :file:`nextstrain-pathogen.yaml` in one of the parents of
+    *directory*.  Otherwise, its the given *directory* as-is.
+
+    The **working volume** is always the given *directory* labeled with a
+    volume name that reflects its relative path within the **build volume**.
+
+    Some examples:
+
+    >>> build_volume, working_volume = pathogen_volumes(Path("tests/data/pathogen-repo/ingest/"))
+    >>> build_volume # doctest: +ELLIPSIS
+    NamedVolume(name='build', src=...Path('.../tests/data/pathogen-repo'), dir=True, writable=True)
+    >>> working_volume # doctest: +ELLIPSIS
+    NamedVolume(name='build/ingest', src=...Path('.../tests/data/pathogen-repo/ingest'), dir=True, writable=True)
+    >>> docker.mount_point(build_volume) <= docker.mount_point(working_volume)
+    True
+
+    >>> build_volume, working_volume = pathogen_volumes(Path("tests/data/"))
+    >>> build_volume # doctest: +ELLIPSIS
+    NamedVolume(name='build', src=...Path('.../tests/data'), dir=True, writable=True)
+    >>> working_volume # doctest: +ELLIPSIS
+    NamedVolume(name='build', src=...Path('.../tests/data'), dir=True, writable=True)
+    >>> docker.mount_point(build_volume) <= docker.mount_point(working_volume)
+    True
+    """
+    if not directory.is_dir():
+        err = f"Build path {str(directory)!r} does not exist or is not a directory."
+
+        if not directory.is_absolute():
+            raise UserError(f"""
+                {err}
+
+                Perhaps your current working directory is different than you expect?
+                """)
+        else:
+            raise UserError(err)
+
+    # The pathogen repo root is (optionally) indicated by the presence of
+    # nextstrain-pathogen.yaml.  We intentionally don't use a marker tied to
+    # Git, i.e. .git/, because we and users sometimes run pathogen repos out of
+    # exports from/snapshots of Git instead of full Git clones.
+    #
+    # Also, we have ideas for leveraging nextstrain-pathogen.yaml in the future
+    # as a source of pathogen-level metadata for use in indexing, listing,
+    # attribution, etc.  For now, the contents do not matter and an empty file
+    # works just fine as the repo root marker.
+    #   -trs, 29 Jan 2024
+    marker_name = "nextstrain-pathogen.yaml"
+
+    # Search upwards for pathogen repo root to serve as the build volume.
+    working_dir = directory.resolve(strict = True)
+    debug(f"Resolved {directory} to {working_dir}")
+
+    debug(f"Looking for {marker_name} as pathogen root dir marker")
+
+    for marker in (d / marker_name for d in [working_dir, *working_dir.parents]):
+        if marker.exists():
+            debug(f"{marker}: exists")
+            build_volume = NamedVolume("build", marker.parent)
+            break
+        else:
+            debug(f"{marker}: does not exist")
+    else:
+        build_volume = NamedVolume("build", working_dir)
+
+    debug(f"Using {build_volume.src} as build volume")
+
+    # Construct the working volume name based on its relative path within the
+    # build volume we just determined.  The working volume should always be
+    # within (or identical to) the build volume.
+    working_volume = NamedVolume(
+        str(PurePosixPath(build_volume.name) / working_dir.relative_to(build_volume.src)),
+        working_dir)
+
+    debug(f"Using {working_volume.src} as working ({working_volume.name}) volume")
+
+    assert build_volume.src <= working_volume.src
+    assert docker.mount_point(build_volume) <= docker.mount_point(working_volume) # type: ignore[attr-defined] # for mypy
+
+    return build_volume, working_volume
 
 
 def parse_snakemake_args(args):
