@@ -44,7 +44,7 @@ jobs:
 
     runs-on: ${{matrix.os}}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # Use pipes like are used in the real instructions when the installer is
       # fetched from nextstrain.org.  This tests that the shell programs work
