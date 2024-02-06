@@ -16,7 +16,7 @@ from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
 from .__version__ import __version__
 from .debug import debug
-from .types import RunnerModule, RunnerTestResults
+from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
 
 
 def warn(*args):
@@ -601,6 +601,47 @@ def print_runner_tests(tests: RunnerTestResults):
             remove_prefix("  ", indent(description, "  "))
 
         print(status.get(result, str(result)) + ":", formatted_description)
+
+
+def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
+    """
+    Check if Rosetta 2 is enabled (installed and active) on macOS aarch64
+    systems.
+    """
+    if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
+        return []
+
+    status: RunnerTestResultStatus = ... # unknown
+
+    try:
+        subprocess.run(
+            ["pgrep", "-qU", "_oahd"],
+            stdin  = subprocess.DEVNULL,
+            stdout = subprocess.DEVNULL,
+            stderr = subprocess.DEVNULL,
+            check  = True)
+
+    except OSError:
+        status = ... # unknown; something's maybe wrong with our check
+
+    except subprocess.CalledProcessError as err:
+        if err.returncode > 0:
+            status = False
+            msg += dedent("""
+
+                To enable Rosetta, please run:
+
+                    softwareupdate --install-rosetta
+
+                and then try your setup or check-setup command again.\
+                """)
+        else:
+            status = None # warning; something's weird about the system
+            msg += " (unable to check!)"
+    else:
+        status = True
+
+    return [(msg, status)]
 
 
 # Copied without modification from lib/id3c/api/utils/__init__.py in the ID3C
