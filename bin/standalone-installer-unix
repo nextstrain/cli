@@ -20,16 +20,16 @@ shopt -s failglob
 # Globals declared here to make them more obvious, but set by main() to avoid
 # source ordering requirements and delay execution until the full file is
 # parsed.
-declare KERNEL TARGET DESTINATION VERSION
+declare VERSION KERNEL TARGET DESTINATION
 
 # Wrap everything in a function which we call at the end to avoid execution of
 # a partially-downloaded program.
 main() {
+    VERSION="${1:-${VERSION:-latest}}"
+
     KERNEL="${KERNEL:-$(uname -s)}"
     TARGET="${TARGET:-$(target-triple)}"
     DESTINATION="${DESTINATION:-${NEXTSTRAIN_HOME:-$HOME/.nextstrain}/cli-standalone}"
-
-    VERSION="${1:-${VERSION:-latest}}"
 
     local archive archive_url tmp
 
@@ -115,9 +115,23 @@ target-triple() {
             ;;
 
         Darwin)
-            [[ "$machine" == x86_64 || "$machine" == arm64 ]] || die "unsupported architecture: $machine"
-            [[ "$machine" != arm64 ]] || pgrep -qU _oahd 2>/dev/null || die "Rosetta 2 not enabled.  Please run:"$'\n\n'"    softwareupdate --install-rosetta"$'\n\n'"and then retry this installation of Nextstrain CLI."
-            machine=x86_64
+            # Rosetta 2 will not be needed for the standalone version of
+            # Nextstrain CLI itself as of 8.2.0.  The Conda runtime still
+            # requires it and the Docker runtime can benefit from it, but we
+            # now check for it in their setup instead.
+            #  -trs, 1 Feb 2024
+               version-gte 8.2.0 \
+            || [[ "$machine" != arm64 ]] \
+            || pgrep -qU _oahd 2>/dev/null \
+            || die "Rosetta 2 not enabled.  Please run:"$'\n\n'"    softwareupdate --install-rosetta"$'\n\n'"and then retry this installation of Nextstrain CLI."
+
+            # aarch64 builds will only be available starting with 8.2.0.  Older
+            # versions only provide x86_64, which will run under Rosetta.
+            case "$machine" in
+                x86_64) ;;
+                arm64) version-gte 8.2.0 && machine=aarch64 || machine=x86_64;;
+                *) die "unsupported architecture: $machine";;
+            esac
             vendor=apple
             os=darwin
             ;;
@@ -127,6 +141,16 @@ target-triple() {
     esac
 
     echo "$machine-$vendor-$os"
+}
+
+version-gte() {
+    local minimum="$1"
+
+    # If $minimum sorts before $VERSION, then $VERSION is at least ≥$minimum.
+    # Note that non-numeric values sort by byte order, so "latest" and
+    # "pr-build/123" and so on end up after (greater than) a numeric value like
+    # 8.1.0.  Both macOS/BSD sort and GNU sort support -V.
+    [[ $(printf '%s\n%s\n' "$minimum" "$VERSION" | sort -V | head -n1) == "$minimum" ]]
 }
 
 default-shell() {
