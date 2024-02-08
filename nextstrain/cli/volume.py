@@ -23,8 +23,7 @@ def store_volume(volume_name):
     path definitions for named volumes.
 
     Each named volume is stored as a NamedTuple (name, src).  The tuple is
-    stored on the options object under the volume's name (modified to replace
-    slashes with underscores), as well as added to a shared list of volumes,
+    stored on the options object as an element in a shared list of volumes,
     accessible via the "volumes" attribute on the options object.
 
     For convenient path manipulation and testing, the "src" value is stored as
@@ -36,8 +35,5 @@ def store_volume(volume_name):
             volumes    = getattr(namespace, "volumes", [])
             new_volume = NamedVolume(volume_name, Path(values)) if values else None
             setattr(namespace, "volumes", [*volumes, new_volume])
-
-            # Allow the new volume to be found by name on the opts object
-            setattr(namespace, volume_name.replace('/', '_'), new_volume)
 
     return store
