@@ -1,0 +1,26 @@
+name: Sync RTD redirects
+
+on:
+  push:
+    branches:
+      - $default-branch
+    paths:
+      - doc/redirects.yaml
+      - .github/workflows/sync-rtd-redirects.yaml
+
+  # The reusable workflow will only actually make changes when running on the
+  # default branch (e.g. refs/heads/main); every other run will be a dry run.
+  pull_request:
+
+  # Manually triggered using GitHub's UI
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: rtd redirects
+    uses: nextstrain/.github/.github/workflows/sync-rtd-redirects.yaml@master
+    with:
+      project: nextstrain-cli
+      file: doc/redirects.yaml
+    secrets:
+      RTD_TOKEN: ${{ secrets.RTD_TOKEN }}
