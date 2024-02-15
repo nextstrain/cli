@@ -86,6 +86,7 @@ Table of Contents
     :caption: Development
     :titlesonly:
 
+    authn
     glossary
 
 

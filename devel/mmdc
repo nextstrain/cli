@@ -1,0 +1,2 @@
+#!/bin/bash
+exec npx --package @mermaid-js/mermaid-cli -- mmdc "$@"
