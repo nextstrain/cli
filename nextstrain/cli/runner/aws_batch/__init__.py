@@ -531,9 +531,9 @@ def print_job_log(entry):
 
     if ts is not None:
         ts = datetime.fromtimestamp(round(ts / 1000)).astimezone().isoformat()
-        print(f"[batch] [{ts}] {msg}")
+        print(f"[batch] [{ts}] {msg}", flush=True)
     else:
-        print(f"[batch] {msg}")
+        print(f"[batch] {msg}", flush=True)
 
 
 def generate_run_id() -> str:
