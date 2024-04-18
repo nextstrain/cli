@@ -18,8 +18,8 @@ computing platforms, such as
 
 .. note::
     If you're unfamiliar with Nextstrain builds, you may want to follow our
-    :doc:`docs:tutorials/running-a-workflow` tutorial first and then come back
-    here.
+    :doc:`docs:tutorials/running-a-phylogenetic-workflow` tutorial first and
+    then come back here.
 
 
 Table of Contents
