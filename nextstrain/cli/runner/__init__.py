@@ -1,5 +1,6 @@
 import argparse
-from argparse import ArgumentParser
+import os
+from argparse import ArgumentParser, ArgumentTypeError
 from typing import cast, List, Union, TYPE_CHECKING
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
@@ -173,6 +174,7 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
                   "Each filename is used as the variable name. "
                   "The first line of the contents of each file is used as the variable value. "
                   "When this option or :option:`--env` is given, the default behaviour of automatically passing thru several \"well-known\" variables is disabled. "
+                  f"Envdirs may also be specified by setting ``NEXTSTRAIN_RUNTIME_ENVDIRS`` in the environment to a ``{os.pathsep}``-separated list of paths. "
                   "See the description of :option:`--env` for more details. "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         type    = DirectoryPath,
@@ -263,6 +265,14 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
     # selected runner.
     if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
         opts.image = singularity.DEFAULT_IMAGE # type: ignore
+
+    if envdirs := os.environ.get("NEXTSTRAIN_RUNTIME_ENVDIRS"):
+        try:
+            opts.envdir = [
+                *[DirectoryPath(d) for d in envdirs.split(os.pathsep) if d],
+                *opts.envdir ]
+        except ArgumentTypeError as err:
+            raise UserError(f"{err} (in NEXTSTRAIN_RUNTIME_ENVDIRS)")
 
     # Add env from automatically forwarded vars xor from --envdir and --env
     # without overriding values explicitly set by our commands' own internals
