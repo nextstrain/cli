@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* Commands which utilize a runtime—`nextstrain build`, `nextstrain shell`, and
+  `nextstrain view`—now support specifying envdirs to forward into the runtime
+  environment by setting `NEXTSTRAIN_RUNTIME_ENVDIRS` to a `:`-separated (`;`
+  on Windows) list of paths.  This is in addition to the existing support for
+  specifying one or more `--envdir` options.
+  ([#365](https://github.com/nextstrain/cli/pull/365))
+
 
 # 8.2.0 (6 February 2024)
 
