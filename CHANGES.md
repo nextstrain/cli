@@ -13,6 +13,14 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+- The Conda runtime now uses Micromamba 1.5.8 (upgraded from 1.1.0) to manage
+  the runtime environment. The newer version supports Zstandard-compressed
+  index files which speeds up `nextstrain setup` and `nextstrain update` for
+  the Conda runtime.
+  ([#367](https://github.com/nextstrain/cli/pull/367))
+
 
 # 8.3.0 (30 April 2024)
 
