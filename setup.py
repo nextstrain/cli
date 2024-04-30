@@ -145,8 +145,7 @@ setup(
             "types-botocore",
             "types-docutils",
             "types-setuptools",
-            "types-requests; python_version != '3.6'",
-            "types-requests <=2.28.11.12; python_version == '3.6'",
+            "types-requests",
         ],
     },
 )
