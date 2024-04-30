@@ -39,6 +39,7 @@ jobs:
           - '3.9'
           - '3.10'
           - '3.11'
+          - '3.12'
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -240,7 +241,8 @@ jobs:
           - '3.8'
           - '3.9'
           - '3.10'
-          # XXX TODO: Add 3.11 here once supported by Augur: https://github.com/nextstrain/augur/issues/1334
+          # XXX TODO: Add 3.11 here once supported by bioconda: https://github.com/nextstrain/augur/issues/1334
+          # XXX TODO: Add 3.12 here once supported by bioconda: https://github.com/nextstrain/augur/issues/1334
     runs-on: ${{ matrix.os }}
     defaults:
       run:
