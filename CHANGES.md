@@ -24,6 +24,15 @@ installation method we recommend in the [Nextstrain installation
 documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
 supported Python version is always bundled with `nextstrain`.
 
+## Improvements
+
+* The Conda runtime now uses Micromamba 1.5.8 (upgraded from 1.1.0) to manage
+  the runtime environment. The newer version supports Zstandard-compressed
+  index files which speeds up `nextstrain setup` and `nextstrain update` for
+  the Conda runtime.
+  ([#367](https://github.com/nextstrain/cli/pull/367))
+
+
 # 8.3.0 (30 April 2024)
 
 ## Improvements
