@@ -74,6 +74,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
 
     # Install a "nextstrain" program which calls nextstrain.cli.__main__.main()
@@ -145,8 +146,7 @@ setup(
             "types-botocore",
             "types-docutils",
             "types-setuptools",
-            "types-requests; python_version != '3.6'",
-            "types-requests <=2.28.11.12; python_version == '3.6'",
+            "types-requests",
         ],
     },
 )
