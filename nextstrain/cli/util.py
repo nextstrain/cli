@@ -13,7 +13,7 @@ from pathlib import Path
 from shlex import quote as shquote
 from shutil import which
 from textwrap import dedent, indent
-from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE
+from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
 from .__version__ import __version__
 from .debug import debug
 from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
@@ -537,20 +537,23 @@ def split_image_name(name: str, implicit_latest: bool = True) -> Tuple[str, Opti
     return (repository, tag)
 
 
-def glob_matcher(patterns: Sequence[str]) -> Callable[[Union[str, Path]], bool]:
+def glob_matcher(patterns: Sequence[str], *, root: Path = None) -> Callable[[Union[str, Path]], bool]:
     """
     Generate a function which matches a string or path-like object against the
     list of Bash-like glob *patterns*.
 
+    If a *root* path is provided, paths will be matched against *patterns* as
+    real filesystem paths relative to the given *root* directory.
+
     See :func:`glob_match` for supported pattern features.
     """
     def matcher(path: Union[str, Path]) -> bool:
-        return glob_match(path, patterns)
+        return glob_match(path, patterns, root = root)
 
     return matcher
 
 
-def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]]) -> bool:
+def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]], *, root: Path = None) -> bool:
     """
     Test if *path* matches any of the glob *patterns*.
 
@@ -559,10 +562,17 @@ def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]]) -> b
     globbing features are also supported: multi-part wildcards (``**``),
     extended globbing (``@(…)``, ``+(…)``, etc.), basename matching for
     patterns containing only a single path part, and negation (``!…``).
+    Passing only negated patterns is explicitly supported and will match
+    anything that doesn't match the given patterns.
+
+    If a *root* path is provided, *path* will be matched against *patterns* as
+    real filesystem paths relative to the given *root* directory.
 
     Implemented with with :func:`wcmatch.glob.globmatch`.
     """
-    return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE)
+    if root:
+        path = Path(path).resolve(strict = True).relative_to(root)
+    return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE | NEGATEALL | (REALPATH if root else 0), root_dir = root)
 
 
 def runner_tests_ok(tests: RunnerTestResults) -> bool:

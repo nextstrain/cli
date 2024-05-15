@@ -38,17 +38,20 @@ def object_from_url(s3url: str) -> S3Object:
     return bucket(url.netloc).Object(key)
 
 
-def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
+def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str, patterns: List[str] = None) -> S3Object:
     """
     Upload a ZIP archive of the local *workdir* to the remote S3 *bucket* for
     the given *run_id*.
+
+    An optional list of *patterns* (shell-style advanced globs) can be passed
+    to selectively exclude part of the local *workdir* from being uploaded.
 
     Returns the S3.Object instance of the uploaded archive.
     """
 
     remote_workdir = bucket.Object(run_id + ".zip")
 
-    excluded = path_matcher([
+    always_excluded = path_matcher([
         # Jobs don't use .git, so save the bandwidth/space/time.  It may also
         # contain information in history that shouldn't be uploaded.
         ".git/",
@@ -64,6 +67,13 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str) -> S3Object:
         "*.pyc",
         "__pycache__/",
     ])
+
+    if patterns:
+        deselected = glob_matcher(patterns, root = workdir)
+    else:
+        deselected = lambda path: False
+
+    excluded = lambda path: always_excluded(path) or deselected(path)
 
     # Stream writes directly to the remote ZIP file
     remote_file: Any
@@ -85,6 +95,15 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
     An optional list of *patterns* (shell-style advanced globs) can be passed
     to selectively download only part of the remote workdir.
     """
+
+    # XXX TODO: Consider extending excluded patterns with the globs from any
+    # --exclude-from-upload options given, so that files excluded from upload
+    # are by default also excluded from download.  That behaviour would seems
+    # sometimes useful but other times confusing.  See also my discussion with
+    # Trevor and James about this.¹
+    #   -trs, 23 May 2024
+    #
+    # ¹ <https://bedfordlab.slack.com/archives/C0K3GS3J8/p1715750350029879?thread_ts=1715695506.612949&cid=C0K3GS3J8>
 
     excluded = path_matcher([
         # Jobs don't use .git and it may also contain information that

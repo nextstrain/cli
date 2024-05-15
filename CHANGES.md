@@ -24,6 +24,15 @@ installation method we recommend in the [Nextstrain installation
 documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
 supported Python version is always bundled with `nextstrain`.
 
+## Features
+
+* `nextstrain build` now supports two new options when using the AWS Batch
+  runtime: [`--exclude-from-upload`][] and [`--exclude-from-download`][].  The
+  former is useful for avoiding the upload of large, ancillary files not needed
+  by the build.  The latter exists to parallel the former and make it easier to
+  exclude files from both upload and download.
+  ([#370](https://github.com/nextstrain/cli/pull/370))
+
 ## Improvements
 
 * The Conda runtime now uses Micromamba 1.5.8 (upgraded from 1.1.0) to manage
@@ -31,6 +40,19 @@ supported Python version is always bundled with `nextstrain`.
   index files which speeds up `nextstrain setup` and `nextstrain update` for
   the Conda runtime.
   ([#367](https://github.com/nextstrain/cli/pull/367))
+
+## Bug fixes
+
+* The [`--download`][] option of `nextstrain build` now supports passing _only_
+  negated patterns (e.g. `!…` and `!(…)`).  All files which _don't_ match the
+  negated patterns will be downloaded.  Previously, no files were downloaded
+  unless at least one positive pattern was given.
+  ([#370](https://github.com/nextstrain/cli/pull/370))
+
+
+[`--exclude-from-upload`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-exclude-from-upload
+[`--exclude-from-download`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-exclude-from-download
+[`--download`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-download
 
 
 # 8.3.0 (30 April 2024)
