@@ -7,18 +7,17 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 8.4.0 (29 May 2024)
 
 This release adds explicit (i.e. tested) support for Python version 3.12.
 ([#369](https://github.com/nextstrain/cli/pull/369))
 
 Note that this Python version support only matters if you're installing
 Nextstrain CLI from PyPI or Bioconda
-([c.f.](https://docs.nextstrain.org/projects/cli/en/__NEXT__/installation/)).  It
+([c.f.](https://docs.nextstrain.org/projects/cli/en/8.4.0/installation/)).  It
 does not apply if you're installing Nextstrain CLI using the standalone
 installation method we recommend in the [Nextstrain installation
 documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
@@ -50,9 +49,9 @@ supported Python version is always bundled with `nextstrain`.
   ([#370](https://github.com/nextstrain/cli/pull/370))
 
 
-[`--exclude-from-upload`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-exclude-from-upload
-[`--exclude-from-download`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-exclude-from-download
-[`--download`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-download
+[`--exclude-from-upload`]: https://docs.nextstrain.org/projects/cli/en/8.4.0/commands/build/#cmdoption-nextstrain-build-exclude-from-upload
+[`--exclude-from-download`]: https://docs.nextstrain.org/projects/cli/en/8.4.0/commands/build/#cmdoption-nextstrain-build-exclude-from-download
+[`--download`]: https://docs.nextstrain.org/projects/cli/en/8.4.0/commands/build/#cmdoption-nextstrain-build-download
 
 
 # 8.3.0 (30 April 2024)
