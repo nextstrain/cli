@@ -97,12 +97,66 @@ options
     wildcards (``**``), extended globbing (``@(…)``, ``+(…)``, etc.),
     and negation (``!…``).
 
+    Patterns should be relative to the build directory.
+
 
 
 
 .. option:: --no-download
 
     Do not download any files from the remote build when it completes. Currently only supported when also using :option:`--aws-batch`.
+
+.. option:: --exclude-from-download <pattern>
+
+    Exclude files matching ``<pattern>`` from being downloaded from
+    the remote build.  Equivalent to passing a negated pattern to
+    :option:`--download`.  That is, the following are equivalent::
+
+        --exclude-from-download 'xyz'
+        --download '!xyz'
+
+    Refer to :option:`--download` for usage details, but note that this
+    option doesn't support already-negated patterns (e.g. ``!…`` or
+    ``!(…)``).
+
+    This option exists to parallel :option:`--exclude-from-upload`.
+
+
+
+
+.. option:: --exclude-from-upload <pattern>
+
+    Exclude files matching ``<pattern>`` from being uploaded as part of
+    the remote build.  Shell-style advanced globbing is supported, but
+    be sure to escape wildcards or quote the whole pattern so your
+    shell doesn't expand them.  May be passed more than once.
+    Currently only supported when also using :option:`--aws-batch`.
+    Default is to upload the entire pathogen build directory (except
+    for some ancillary files which are always excluded).
+
+    Note that files excluded from upload may still be downloaded from
+    the remote build, e.g. if they're created by it, and if downloaded
+    will overwrite the local files.  Use :option:`--no-download` to
+    avoid downloading any files, or :option:`--exclude-from-download`
+    to avoid downloading specific files, e.g.::
+
+        --exclude-from-upload 'results/**' \
+        --exclude-from-download 'results/**'
+
+    Your shell's brace expansion can also be used to shorten this, e.g.::
+
+        --exclude-from-{up,down}load='results/**'
+
+    Besides basic glob features like single-part wildcards (``*``),
+    character classes (``[…]``), and brace expansion (``{…, …}``),
+    several advanced globbing features are also supported: multi-part
+    wildcards (``**``), extended globbing (``@(…)``, ``+(…)``, etc.),
+    and negation (``!…``).
+
+    Patterns should be relative to the build directory.
+
+
+
 
 .. option:: --no-logs
 

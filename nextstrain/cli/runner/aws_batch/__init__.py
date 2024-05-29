@@ -213,7 +213,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         print_stage("Uploading %s to S3" % local_workdir)
 
         bucket = s3.bucket(opts.s3_bucket)
-        remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id)
+        remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id, opts.exclude_from_upload)
 
         print("uploaded:", s3.object_url(remote_workdir))
 
