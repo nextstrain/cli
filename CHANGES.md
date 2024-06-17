@@ -13,6 +13,21 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* Snakemake's per-input/output file metadata (stored in `.snakemake/metadata/`)
+  is now downloaded from AWS Batch builds by default.  Like file modification
+  times (mtimes), which are already preserved from the remote build, this
+  additional metadata is used by Snakemake to track when inputs have changed
+  and when it should regenerate outputs.  The metadata is also used in
+  [Snakemake report generation](https://snakemake.readthedocs.io/en/v8.14.0/snakefiles/reporting.html#rendering-reports)
+  and can be useful for gathering ad-hoc workflow statistics.
+
+  The runtime image used must be at least `nextstrain/base:build-20240617T235011Z`
+  for these Snakemake metadata files to be available for download from the AWS
+  Batch job.
+  ([#374](https://github.com/nextstrain/cli/pull/374))
+
 
 # 8.4.0 (29 May 2024)
 
