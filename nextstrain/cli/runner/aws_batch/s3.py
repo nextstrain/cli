@@ -119,8 +119,12 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
     ])
 
     included = path_matcher([
-        # But we do want the Snakemake logs to come over.
+        # But we do want the Snakemake logs to come over…
         ".snakemake/log/",
+
+        # …and the input/output metadata Snakemake tracks (akin to mtimes,
+        # which we also preserve).
+        ".snakemake/metadata/",
     ])
 
     if patterns:
