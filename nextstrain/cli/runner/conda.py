@@ -610,9 +610,10 @@ def package_distribution(channel: str, package: str, version: str = None, label:
 
     if (system, machine) == ("Linux", "x86_64"):
         subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+    elif (system, machine) == ("Darwin", "x86_64"):
         subdir = "osx-64"
+    elif (system, machine) == ("Darwin", "arm64"):
+        subdir = "osx-arm64"
     else:
         raise InternalError(f"Unsupported system/machine: {system}/{machine}")
 
