@@ -87,7 +87,7 @@ from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, runner_tests_ok, test_rosetta_enabled, warn
+from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -453,9 +453,6 @@ def test_support() -> RunnerTestResults:
         if system == "Linux":
             return machine == "x86_64"
 
-        # Note even on arm64 (e.g. aarch64, Apple Silicon M1) we use x86_64
-        # binaries because of current ecosystem compatibility, but Rosetta will
-        # make it work.
         elif system == "Darwin":
             return machine in {"x86_64", "arm64"}
 
@@ -466,8 +463,6 @@ def test_support() -> RunnerTestResults:
 
     yield ('operating system is supported',
             supported_os())
-
-    yield from test_rosetta_enabled()
 
     yield ("runtime data dir doesn't have spaces",
             " " not in str(RUNTIME_ROOT))
@@ -605,9 +600,10 @@ def package_distribution(channel: str, package: str, version: str = None, label:
 
     if (system, machine) == ("Linux", "x86_64"):
         subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+    elif (system, machine) == ("Darwin", "x86_64"):
         subdir = "osx-64"
+    elif (system, machine) == ("Darwin", "arm64"):
+        subdir = "osx-arm64"
     else:
         raise InternalError(f"Unsupported system/machine: {system}/{machine}")
 
