@@ -397,6 +397,49 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
 
 
 def _download_destination(resource: Resource, subresource: SubResource, local_path: Path) -> Path:
+    """
+    These examples show all potential file names.
+
+    >>> def names(r, d = Path.cwd()):
+    ...    return [_download_destination(r, s, d).name for s in r.subresources]
+
+    Dataset files.
+
+    >>> names(Dataset("/ncov/open/global/6m")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov_open_global_6m.json',
+     'ncov_open_global_6m_root-sequence.json',
+     'ncov_open_global_6m_tip-frequencies.json',
+     'ncov_open_global_6m_measurements.json']
+
+    Narrative files.
+
+    >>> names(Narrative("/narratives/ncov/sit-rep/2020-01-23")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov_sit-rep_2020-01-23.md']
+
+    Namespace is omitted.
+
+    >>> names(Dataset("/groups/blab/ncov-king-county/omicron")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov-king-county_omicron.json',
+     'ncov-king-county_omicron_root-sequence.json',
+     'ncov-king-county_omicron_tip-frequencies.json',
+     'ncov-king-county_omicron_measurements.json']
+
+    When a non-directory local path is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("foo")) # doctest: +NORMALIZE_WHITESPACE
+    ['foo.json',
+     'foo_root-sequence.json',
+     'foo_tip-frequencies.json',
+     'foo_measurements.json']
+
+    When a non-directory local path with extension is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("bar.json")) # doctest: +NORMALIZE_WHITESPACE
+    ['bar.json',
+     'bar_root-sequence.json',
+     'bar_tip-frequencies.json',
+     'bar_measurements.json']
+    """
     if local_path.is_dir():
         local_name = (
             str(resource.path.relative_to(namespace(resource.path)))
