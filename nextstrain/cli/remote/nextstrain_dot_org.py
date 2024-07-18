@@ -383,20 +383,7 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                         raise UserError(f"Path {path} does not seem to be a {subresource}.")
 
                     # Local destination
-                    if local_path.is_dir():
-                        local_name = (
-                            str(resource.path.relative_to(namespace(resource.path)))
-                                .lstrip("/")
-                                .replace("/", "_"))
-
-                        destination = local_path / local_name
-                    else:
-                        destination = local_path
-
-                    if not subresource.primary:
-                        destination = destination.with_name(f"{destination.with_suffix('').name}_{sidecar_suffix(subresource.media_type)}")
-
-                    destination = destination.with_suffix(subresource.file_extension)
+                    destination = _download_destination(resource, subresource, local_path)
 
                     yield source, destination
 
@@ -407,6 +394,25 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                     with destination.open("w") as local_file:
                         for chunk in response.iter_content(chunk_size = None, decode_unicode = True):
                             local_file.write(chunk)
+
+
+def _download_destination(resource: Resource, subresource: SubResource, local_path: Path) -> Path:
+    if local_path.is_dir():
+        local_name = (
+            str(resource.path.relative_to(namespace(resource.path)))
+                .lstrip("/")
+                .replace("/", "_"))
+
+        destination = local_path / local_name
+    else:
+        destination = local_path
+
+    if not subresource.primary:
+        destination = destination.with_name(f"{destination.with_suffix('').name}_{sidecar_suffix(subresource.media_type)}")
+
+    destination = destination.with_suffix(subresource.file_extension)
+
+    return destination
 
 
 def ls(url: URL) -> Iterable[str]:
