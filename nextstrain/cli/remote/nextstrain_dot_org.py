@@ -455,6 +455,26 @@ def _download_destination(resource: Resource, subresource: SubResource, local_pa
      '2022.04.29-ncov_omicron-BA-two_root-sequence.json',
      '2022.04.29-ncov_omicron-BA-two_tip-frequencies.json',
      '2022.04.29-ncov_omicron-BA-two_measurements.json']
+
+    When subresources don't share the same extension and may not have a sidecar
+    suffix.  This is a hypothetical (though possible) use case for now, but
+    demonstrates an edge case to consider in the code below.
+
+    >>> r = Resource("/foo/bar")
+    >>> r.subresources = [
+    ...   SubResource("text/vnd.nextstrain.narrative+markdown", ".md", True),
+    ...   SubResource("application/vnd.nextstrain.dataset.main+json", ".json"),
+    ...   SubResource("application/vnd.nextstrain.dataset.root-sequence+json", ".json"),
+    ... ]
+
+    >>> names(r, Path("baz"))
+    ['baz.md', 'baz.json', 'baz_root-sequence.json']
+
+    >>> names(r, Path("baz.md"))
+    ['baz.md', 'baz.json', 'baz_root-sequence.json']
+
+    >>> names(r, Path("baz.bam"))
+    ['baz.bam.md', 'baz.bam.json', 'baz.bam_root-sequence.json']
     """
     if local_path.is_dir():
         local_name = (
