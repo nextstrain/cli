@@ -28,6 +28,15 @@ development source code and as such may not be routinely kept up to date.
   Batch job.
   ([#374](https://github.com/nextstrain/cli/pull/374))
 
+## Bug fixes
+
+* `nextstrain remote download` now produces the expected local file names when
+  there are periods (dots) in the remote dataset name (e.g. `nextstrain remote
+  download /a/b.c/d` now produces `a_b.c_d.json` instead of `a_b.json`) and
+  when there are periods in the given local file name (e.g. `nextstrain remote
+  download /x/y/z x.y.z` now produces `x.y.z.json` instead of `x.y.json`).
+  ([#381](https://github.com/nextstrain/cli/pull/381))
+
 
 # 8.4.0 (29 May 2024)
 
