@@ -439,6 +439,22 @@ def _download_destination(resource: Resource, subresource: SubResource, local_pa
      'bar_root-sequence.json',
      'bar_tip-frequencies.json',
      'bar_measurements.json']
+
+    When a local path with non-extension dotted segment is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("mpox.clade-IIb")) # doctest: +NORMALIZE_WHITESPACE
+    ['mpox.clade-IIb.json',
+     'mpox.clade-IIb_root-sequence.json',
+     'mpox.clade-IIb_tip-frequencies.json',
+     'mpox.clade-IIb_measurements.json']
+
+    When there are dots in the remote dataset name.
+
+    >>> names(Dataset("/groups/niph/2022.04.29-ncov/omicron-BA-two")) # doctest: +NORMALIZE_WHITESPACE
+    ['2022.04.29-ncov_omicron-BA-two.json',
+     '2022.04.29-ncov_omicron-BA-two_root-sequence.json',
+     '2022.04.29-ncov_omicron-BA-two_tip-frequencies.json',
+     '2022.04.29-ncov_omicron-BA-two_measurements.json']
     """
     if local_path.is_dir():
         local_name = (
