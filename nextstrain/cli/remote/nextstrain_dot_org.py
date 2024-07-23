@@ -464,12 +464,24 @@ def _download_destination(resource: Resource, subresource: SubResource, local_pa
 
         destination = local_path / local_name
     else:
-        destination = local_path
+        # We assume a bit about subresource ordering here, so assert it.  Down
+        # the road, it'd be better to enforce it structurally in Resource.
+        #   -trs, 23 July 2024
+        assert resource.subresources[0].primary, "first subresource is primary"
+        assert all(not s.primary for s in resource.subresources[1:]), "subsequent subresources are not primary"
+
+        # Strip the suffix provided by the user *iff* it matches our expected
+        # *primary* extension; otherwise we assume they're intending to include
+        # dots in their desired filename.
+        if local_path.suffix == resource.subresources[0].file_extension:
+            destination = local_path.with_suffix('')
+        else:
+            destination = local_path
 
     if not subresource.primary:
-        destination = destination.with_name(f"{destination.with_suffix('').name}_{sidecar_suffix(subresource.media_type)}")
+        destination = destination.with_name(f"{destination.name}_{sidecar_suffix(subresource.media_type)}")
 
-    destination = destination.with_suffix(subresource.file_extension)
+    destination = destination.with_name(destination.name + subresource.file_extension)
 
     return destination
 
