@@ -498,8 +498,8 @@ def _download_destination(resource: Resource, subresource: SubResource, local_pa
         else:
             destination = local_path
 
-    if not subresource.primary:
-        destination = destination.with_name(f"{destination.name}_{sidecar_suffix(subresource.media_type)}")
+    if not subresource.primary and (suffix := sidecar_suffix(subresource.media_type)):
+        destination = destination.with_name(f"{destination.name}_{suffix}")
 
     destination = destination.with_name(destination.name + subresource.file_extension)
 
