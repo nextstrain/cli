@@ -383,20 +383,7 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                         raise UserError(f"Path {path} does not seem to be a {subresource}.")
 
                     # Local destination
-                    if local_path.is_dir():
-                        local_name = (
-                            str(resource.path.relative_to(namespace(resource.path)))
-                                .lstrip("/")
-                                .replace("/", "_"))
-
-                        destination = local_path / local_name
-                    else:
-                        destination = local_path
-
-                    if not subresource.primary:
-                        destination = destination.with_name(f"{destination.with_suffix('').name}_{sidecar_suffix(subresource.media_type)}")
-
-                    destination = destination.with_suffix(subresource.file_extension)
+                    destination = _download_destination(resource, subresource, local_path)
 
                     yield source, destination
 
@@ -407,6 +394,116 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                     with destination.open("w") as local_file:
                         for chunk in response.iter_content(chunk_size = None, decode_unicode = True):
                             local_file.write(chunk)
+
+
+def _download_destination(resource: Resource, subresource: SubResource, local_path: Path) -> Path:
+    """
+    These examples show all potential file names.
+
+    >>> def names(r, d = Path.cwd()):
+    ...    return [_download_destination(r, s, d).name for s in r.subresources]
+
+    Dataset files.
+
+    >>> names(Dataset("/ncov/open/global/6m")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov_open_global_6m.json',
+     'ncov_open_global_6m_root-sequence.json',
+     'ncov_open_global_6m_tip-frequencies.json',
+     'ncov_open_global_6m_measurements.json']
+
+    Narrative files.
+
+    >>> names(Narrative("/narratives/ncov/sit-rep/2020-01-23")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov_sit-rep_2020-01-23.md']
+
+    Namespace is omitted.
+
+    >>> names(Dataset("/groups/blab/ncov-king-county/omicron")) # doctest: +NORMALIZE_WHITESPACE
+    ['ncov-king-county_omicron.json',
+     'ncov-king-county_omicron_root-sequence.json',
+     'ncov-king-county_omicron_tip-frequencies.json',
+     'ncov-king-county_omicron_measurements.json']
+
+    When a non-directory local path is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("foo")) # doctest: +NORMALIZE_WHITESPACE
+    ['foo.json',
+     'foo_root-sequence.json',
+     'foo_tip-frequencies.json',
+     'foo_measurements.json']
+
+    When a non-directory local path with extension is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("bar.json")) # doctest: +NORMALIZE_WHITESPACE
+    ['bar.json',
+     'bar_root-sequence.json',
+     'bar_tip-frequencies.json',
+     'bar_measurements.json']
+
+    When a local path with non-extension dotted segment is given.
+
+    >>> names(Dataset("/mpox/clade-IIb"), Path("mpox.clade-IIb")) # doctest: +NORMALIZE_WHITESPACE
+    ['mpox.clade-IIb.json',
+     'mpox.clade-IIb_root-sequence.json',
+     'mpox.clade-IIb_tip-frequencies.json',
+     'mpox.clade-IIb_measurements.json']
+
+    When there are dots in the remote dataset name.
+
+    >>> names(Dataset("/groups/niph/2022.04.29-ncov/omicron-BA-two")) # doctest: +NORMALIZE_WHITESPACE
+    ['2022.04.29-ncov_omicron-BA-two.json',
+     '2022.04.29-ncov_omicron-BA-two_root-sequence.json',
+     '2022.04.29-ncov_omicron-BA-two_tip-frequencies.json',
+     '2022.04.29-ncov_omicron-BA-two_measurements.json']
+
+    When subresources don't share the same extension and may not have a sidecar
+    suffix.  This is a hypothetical (though possible) use case for now, but
+    demonstrates an edge case to consider in the code below.
+
+    >>> r = Resource("/foo/bar")
+    >>> r.subresources = [
+    ...   SubResource("text/vnd.nextstrain.narrative+markdown", ".md", True),
+    ...   SubResource("application/vnd.nextstrain.dataset.main+json", ".json"),
+    ...   SubResource("application/vnd.nextstrain.dataset.root-sequence+json", ".json"),
+    ... ]
+
+    >>> names(r, Path("baz"))
+    ['baz.md', 'baz.json', 'baz_root-sequence.json']
+
+    >>> names(r, Path("baz.md"))
+    ['baz.md', 'baz.json', 'baz_root-sequence.json']
+
+    >>> names(r, Path("baz.bam"))
+    ['baz.bam.md', 'baz.bam.json', 'baz.bam_root-sequence.json']
+    """
+    if local_path.is_dir():
+        local_name = (
+            str(resource.path.relative_to(namespace(resource.path)))
+                .lstrip("/")
+                .replace("/", "_"))
+
+        destination = local_path / local_name
+    else:
+        # We assume a bit about subresource ordering here, so assert it.  Down
+        # the road, it'd be better to enforce it structurally in Resource.
+        #   -trs, 23 July 2024
+        assert resource.subresources[0].primary, "first subresource is primary"
+        assert all(not s.primary for s in resource.subresources[1:]), "subsequent subresources are not primary"
+
+        # Strip the suffix provided by the user *iff* it matches our expected
+        # *primary* extension; otherwise we assume they're intending to include
+        # dots in their desired filename.
+        if local_path.suffix == resource.subresources[0].file_extension:
+            destination = local_path.with_suffix('')
+        else:
+            destination = local_path
+
+    if not subresource.primary and (suffix := sidecar_suffix(subresource.media_type)):
+        destination = destination.with_name(f"{destination.name}_{suffix}")
+
+    destination = destination.with_name(destination.name + subresource.file_extension)
+
+    return destination
 
 
 def ls(url: URL) -> Iterable[str]:
