@@ -51,7 +51,7 @@ From PyPI
 
     .. _official packages: https://www.python.org/downloads/
     .. _Homebrew: https://brew.sh
-    .. _Anaconda Distribution: https://www.anaconda.com/distribution/
+    .. _Anaconda Distribution: https://www.anaconda.com/download
 
 Use `Pip <https://pip.pypa.io>`__ to install the `nextstrain-cli package on
 PyPI <https://pypi.org/project/nextstrain-cli>`__:
