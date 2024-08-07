@@ -35,7 +35,7 @@ can press Control-Z to detach at any point once the build is submitted.
 By default, each AWS Batch job will have available to it the number of vCPUs
 and amount of memory configured in your [job definition](#job-definition).  To
 take full advantage of multiple CPUs available, [Snakemake's `--jobs` (or
-`-j`)](https://snakemake.readthedocs.io/en/stable/executable.html#EXECUTION)
+`-j`)](https://snakemake.readthedocs.io/en/stable/executing/cli.html#all-options)
 option should generally be matched to the configured number of vCPUs.  Using
 `nextstrain build`'s `--cpus` and `--memory` options will both scale the Batch
 instance size and inform Snakemake's resource scheduler for you.
@@ -523,12 +523,12 @@ which only needs to be ephemeral so as not to incur increasing costs.
 [ECS]: https://aws.amazon.com/ecs/
 [EC2]: https://aws.amazon.com/ec2/
 [ECS-optimized AMIs]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
-[ami-storage]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-ami-storage-config.html#al2-ami-storage-config
+[ami-storage]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
 [launch template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
 [create-launch-template]: https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#LaunchTemplates:
 [batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
 [cloud-init user data format]: https://cloudinit.readthedocs.io/en/latest/topics/format.html
-[ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#multi-part_user_data
+[ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#bootstrap_docker_daemon
 [compute environment launch template]: https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment.html#create-compute-environment-managed-ec2
 [EFS volumes]: https://docs.aws.amazon.com/batch/latest/userguide/efs-volumes.html
 
