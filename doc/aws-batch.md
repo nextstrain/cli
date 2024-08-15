@@ -348,7 +348,7 @@ each run.  You must adjust the [log retention policy][] for the
 continue to pay for their storage.  You may use a shorter (or longer) lifetime,
 but Amazon's prorated billing uses a minimum duration of one month.
 
-[log retention policy]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SettingLogRetention
+[log retention policy]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Working-with-log-groups-and-streams.html#SttingLogRetention
 
 
 ### Disk space for your jobs
