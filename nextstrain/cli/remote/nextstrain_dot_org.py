@@ -69,6 +69,7 @@ from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
 from requests.utils import parse_dict_header
+from shlex import quote as shquote
 from tempfile import NamedTemporaryFile
 from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
@@ -264,7 +265,7 @@ def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable
                     else:
                         raise
 
-                raise_for_status(response)
+                raise_for_status(origin, response)
 
         # Upload datasets
         for dataset, files in datasets.items():
@@ -377,7 +378,7 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                         continue
 
                     # Check for bad response
-                    raise_for_status(response)
+                    raise_for_status(origin, response)
 
                     if content_media_type(response) != subresource.media_type:
                         raise UserError(f"Path {path} does not seem to be a {subresource}.")
@@ -540,7 +541,7 @@ def _ls(origin: Origin, path: NormalizedPath, recursively: bool = False, http: r
         params = {"prefix": str(path)},
         headers = {"Accept": "application/json"})
 
-    raise_for_status(response)
+    raise_for_status(origin, response)
 
     available = response.json()
 
@@ -613,7 +614,7 @@ def delete(url: URL, recursively: bool = False, dry_run: bool = False) -> Iterab
 
             response = http.delete(endpoint)
 
-            raise_for_status(response)
+            raise_for_status(origin, response)
 
             assert response.status_code == 204
 
@@ -807,7 +808,7 @@ class auth(requests.auth.AuthBase):
         return request
 
 
-def raise_for_status(response: requests.Response) -> None:
+def raise_for_status(origin: Origin, response: requests.Response) -> None:
     """
     Human-centered error handling for nextstrain.org API responses.
 
@@ -875,26 +876,39 @@ def raise_for_status(response: requests.Response) -> None:
                     # enough to handle things like re-seeking streams (which
                     # may not be possible without cooperation).
                     #   -trs, 10 May 2022
-                    raise UserError("""
+                    raise UserError(f"""
                         Login credentials appear to be out of date.
 
-                        Please run `nextstrain login --renew` and then retry your command.
+                        Please run
+
+                            nextstrain login --renew {shquote(origin)}
+
+                        and then retry your command.
                         """) from err
                 else:
                     raise UserError(f"""
                         Permission denied.
 
-                        Are you logged in as the correct user?  Current user: {user.username}.
+                        Are you logged in as the correct user?
+
+                        Current user: {user.username}
 
                         If your permissions were recently changed (e.g. new group
-                        membership), it might help to run `nextstrain login --renew`
+                        membership), it might help to run
+
+                            nextstrain login --renew {shquote(origin)}
+
                         and then retry your command.
                         """) from err
             else:
-                raise UserError("""
+                raise UserError(f"""
                     Permission denied.
 
-                    Logging in with `nextstrain login` might help?
+                    Logging in with
+
+                        nextstrain login {shquote(origin)}
+
+                    might help?
                     """) from err
 
         elif status == 404:

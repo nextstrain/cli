@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* The suggested commands to run (i.e. potential solutions) in expected errors
+  from `nextstrain remote` now explicitly include the remote origin to avoid
+  being incorrect or misleading for origins other than nextstrain.org.  For
+  example, if the error message suggested running `nextstrain login`, it now
+  suggests `nextstrain login https://nextstrain.org`.
+  ([#391](https://github.com/nextstrain/cli/pull/391))
+
 
 # 8.5.1 (31 July 2024)
 
