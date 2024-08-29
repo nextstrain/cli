@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* JWT authentication (e.g. `nextstrain login`) no longer verifies the issued at
+  (iat) claim. This should resolve issues for users who's system time was
+  slightly lagged and who were thus unable to login.
+  ([#394](https://github.com/nextstrain/cli/pull/394))
 
 # 8.5.2 (27 August 2024)
 
