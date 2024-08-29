@@ -638,7 +638,8 @@ class OpenIDSession(Session):
 
     def _verify_id_token(self, token):
         """
-        Verifies all aspects of the given ID *token* (a signed JWT).
+        Verifies all aspects of the given ID *token* (a signed JWT) except for the iat
+        (issued at claim, see <https://github.com/nextstrain/cli/issues/307>)
 
         Assertions about expected algorithms, audience, issuer, and token use
         follow guidelines from
@@ -656,7 +657,9 @@ class OpenIDSession(Session):
                 algorithms = ["RS256"],
                 audience   = self.client_configuration["client_id"],
                 issuer     = self.openid_configuration["issuer"],
-                options    = { "require": ["exp"] })
+                options    = { "require": ["exp"],
+                               "verify_iat": False,
+                             })
 
         except jwt.exceptions.ExpiredSignatureError:
             raise ExpiredTokenError(use)
