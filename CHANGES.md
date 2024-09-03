@@ -15,10 +15,16 @@ development source code and as such may not be routinely kept up to date.
 
 ## Bug fixes
 
-* JWT authentication (e.g. `nextstrain login`) no longer verifies the issued at
-  (iat) claim. This should resolve issues for users who's system time was
-  slightly lagged and who were thus unable to login.
+* Authentication established via `nextstrain login` and used by the `nextstrain
+  remote` family of commands no longer verifies the "issued at" (`iat`) time of
+  the received tokens in order to avoid the following error:
+
+      ImmatureSignatureError: The token is not yet valid (iat).
+
+  This error was seen by users who's system time was slightly lagged, and it
+  prevented them from logging in or renewing their authentication.
   ([#394](https://github.com/nextstrain/cli/pull/394))
+
 
 # 8.5.2 (27 August 2024)
 
