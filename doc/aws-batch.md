@@ -529,7 +529,7 @@ which only needs to be ephemeral so as not to incur increasing costs.
 [batch-launch-template]: https://docs.aws.amazon.com/batch/latest/userguide/launch-templates.html
 [cloud-init user data format]: https://cloudinit.readthedocs.io/en/latest/topics/format.html
 [ecs-docker-options]: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#bootstrap_docker_daemon
-[compute environment launch template]: https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment.html#create-compute-environment-managed-ec2
+[compute environment launch template]: https://docs.aws.amazon.com/batch/latest/userguide/create-compute-environment-managed-ec2.html
 [EFS volumes]: https://docs.aws.amazon.com/batch/latest/userguide/efs-volumes.html
 
 
