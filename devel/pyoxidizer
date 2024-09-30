@@ -29,7 +29,7 @@ main() {
 
 locate() {
     # Locate existing local copy of pyoxidizer.
-    echo "$devel"/pyoxidizer-[0-9]*_"$(platform-machine)"?(.exe) | head -n1
+    printf '%s\n' "$devel"/pyoxidizer-[0-9]*_"$(platform-machine)"?(.exe) | sort --reverse --version-sort | head -n1
 }
 
 download() {
