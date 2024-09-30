@@ -103,9 +103,17 @@ def exe_resource_policy_decision(policy, resource):
     # and data resources of these packages on the filesystem as well.
     pkgs_requiring_file = ["botocore", "boto3", "docutils.parsers.rst", "docutils.writers"]
 
+    # Some modules should be excluded from bytecode compilation, e.g. because
+    # they contain syntax unsupported on our Python version (3.10) and aren't
+    # used at runtime anyway.
+    modules_no_bytecode = ["aiohappyeyeballs._staggered"]
+
     if type(resource) == "PythonModuleSource":
         if resource.name in pkgs_requiring_file or any([resource.name.startswith(p + ".") for p in pkgs_requiring_file]):
             resource.add_location = "filesystem-relative:lib"
+
+        if resource.name in modules_no_bytecode:
+            resource.add_bytecode_optimization_level_zero = False
 
     if type(resource) in ("PythonPackageResource", "PythonPackageDistributionResource"):
         if resource.package in pkgs_requiring_file or any([resource.package.startswith(p + ".") for p in pkgs_requiring_file]):
