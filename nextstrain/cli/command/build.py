@@ -199,7 +199,7 @@ def register_parser(subparser):
     parser.add_argument(
         "directory",
         help    = "Path to pathogen build directory.  "
-                  "Required, except when the AWS Batch runtime is in use and --attach and either --no-download or --cancel are given.  "
+                  "Required, except when the AWS Batch runtime is in use and :option:`--attach` and either :option:`--no-download` or :option:`--cancel` are given.  "
                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
         metavar = "<directory>",
         type    = Path,
