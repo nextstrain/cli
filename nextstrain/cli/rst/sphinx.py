@@ -426,7 +426,7 @@ def my_wrap(text: str, width: int = MAXWIDTH, **kwargs: Any) -> List[str]:
 class TextWriter(writers.Writer):
     supported = ('text',)
     settings_spec = ('No options here.', '', ())
-    settings_defaults: Dict = {}
+    settings_defaults = {}
 
     output: str = None
 
