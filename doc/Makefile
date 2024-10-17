@@ -3,11 +3,11 @@
 SHELL := bash -euo pipefail
 
 # You can set these variables from the command line, and also
-# from the environment for the first two.
+# from the environment for the first three.
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
+BUILDDIR      ?= _build
 SOURCEDIR     = .
-BUILDDIR      = _build
 
 # Require stricter builds with
 #   -n: warn on missing references
