@@ -6,7 +6,7 @@ import argparse
 import builtins
 import sys
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, Iterable, Iterator, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
 
@@ -42,7 +42,7 @@ Options = argparse.Namespace
 
 RunnerSetupStatus = Optional[bool]
 
-RunnerTestResults = List['RunnerTestResult']
+RunnerTestResults = Iterator['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
 RunnerTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
 

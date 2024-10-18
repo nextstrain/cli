@@ -72,7 +72,7 @@ def run(opts: Options) -> int:
     if not opts.dry_run:
         tests = opts.runner.test_setup()
 
-        print_runner_tests(tests)
+        tests = print_runner_tests(tests)
 
         if not runner_tests_ok(tests):
             print()

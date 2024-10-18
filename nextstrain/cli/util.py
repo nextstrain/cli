@@ -582,7 +582,7 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     return False not in [result for test, result in tests]
 
 
-def print_runner_tests(tests: RunnerTestResults):
+def print_runner_tests(tests: RunnerTestResults) -> RunnerTestResults:
     """
     Prints a formatted version of the return value of a runner's
     ``test_setup()``.
@@ -604,13 +604,17 @@ def print_runner_tests(tests: RunnerTestResults):
         ...:   unknown("? unknown"),
     }
 
-    for description, result in tests:
+    for test in tests:
+        description, result = test
         # Indent subsequent lines of any multi-line descriptions so it
         # lines up under the status marker.
         formatted_description = \
             remove_prefix("  ", indent(description, "  "))
 
+        # FIXME/NOTE: this won't be printed unless the generator is consumed downstream
         print(status.get(result, str(result)) + ":", formatted_description)
+
+        yield test
 
 
 def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:

@@ -84,37 +84,33 @@ def run(opts: Options) -> int:
     # Run and collect our runners' self-tests
     print("Testing your setup…")
 
-    runner_tests = [
+    runner_tests = (
         (runner, runner.test_setup())
             for runner in opts.runners
-    ]
+    )
 
-    runner_status = {
-        runner: runner_tests_ok(tests)
-            for runner, tests in runner_tests
-    }
+    supported_runners = []
 
     # Print test results.  The first print() separates results from the
     # previous header or stderr output, making it easier to read.
     print()
 
     for runner, tests in runner_tests:
-        if runner_status[runner]:
+        print(colored("blue", "#"), "checking %s…" % (runner_name(runner)))
+
+        tests = print_runner_tests(tests)
+
+        runner_status = runner_tests_ok(tests)
+        if runner_status:
             supported = success("supported")
+            supported_runners.append(runner)
         else:
             supported = failure("not supported")
 
         print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
-        print_runner_tests(tests)
         print()
 
     # Print overall status.
-    supported_runners = [
-        runner
-            for runner, status_ok in runner_status.items()
-             if status_ok
-    ]
-
     if supported_runners:
         print("Supported Nextstrain runtimes:", ", ".join(success(runner_name(r)) for r in supported_runners))
 
