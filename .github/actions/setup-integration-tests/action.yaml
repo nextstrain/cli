@@ -91,7 +91,11 @@ runs:
         url="$(
           curl -fsSL --proto '=https' -H "Authorization: Bearer $GITHUB_TOKEN" \
             "https://api.github.com/repos/sylabs/singularity/releases?per_page=100" \
-              | jq -r 'map(select(.tag_name | startswith("v3."))) | .[0].assets | map(select(.name | endswith("\(env.UBUNTU_CODENAME)_amd64.deb"))) | .[0].browser_download_url')"
+              | jq -r '
+                    map(select(.tag_name | startswith("v3.")))
+                  | .[0].assets
+                  |    (map(select(.name | endswith("\(env.UBUNTU_CODENAME)_amd64.deb"))) | .[0].browser_download_url)
+                    // (map(select(.name | endswith("jammy_amd64.deb")))                  | .[0].browser_download_url)')"
 
         curl -fsSL --proto '=https' "$url" > singularity.deb
 
