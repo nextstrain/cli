@@ -77,6 +77,7 @@ defaults set by `config file variables`_.
     Default for ``--aws-batch-memory``.
 """
 
+import botocore.exceptions
 import os
 import shlex
 from datetime import datetime
@@ -404,8 +405,11 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                 # The watcher never started, so we probably missed the
                 # transition to running.  Display the whole log now!
                 if opts.logs:
-                    for entry in job.log_entries():
-                        print_job_log(entry)
+                    try:
+                        for entry in job.log_entries():
+                            print_job_log(entry)
+                    except botocore.exceptions.ClientError as error:
+                        warn(f"Unable to fetch job logs: {error}")
 
             print_stage(
                 "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
