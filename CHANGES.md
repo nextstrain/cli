@@ -13,6 +13,14 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* It is no longer a fatal error if the logs for a completed AWS Batch job
+  cannot be fetched for some reason.  `nextstrain build` will warn about the
+  error but continue on with printing the job status (e.g. success or reason
+  for failure) and, if applicable, downloading job results.
+  ([#406](https://github.com/nextstrain/cli/pull/406))
+
 
 # 8.5.3 (3 September 2024)
 
