@@ -1,32 +1,46 @@
 """
-Sets up a Nextstrain runtime for use with `nextstrain build`, `nextstrain
-view`, etc.
+Sets up a Nextstrain pathogen or runtime for use with `nextstrain run`,
+`nextstrain build`, `nextstrain view`, etc.
 
-Only the Conda runtime currently supports automated set up, but this command
-may still be used with other runtimes to check an existing (manual) setup and
-set the runtime as the default on success.
+For pathogens, TKTK
+
+For runtimes, only the Conda runtime currently supports fully-automated set up,
+but this command may still be used with other runtimes to check an existing
+(manual) setup and set the runtime as the default on success.
 
 Exits with an error code if automated set up fails or if setup checks fail.
 """
+# XXX FIXME doc above
 from functools import partial
 from textwrap import dedent
 
 from .. import config, console
-from ..argparse import runner_module_argument
-from ..util import colored, runner_name, runner_tests_ok, print_runner_tests
+from ..errors import UserError
+from ..util import colored, runner_module, runner_name, runner_tests_ok, print_runner_tests
 from ..types import Options
 from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
+heading = partial(colored, "bold")
+failure = partial(colored, "red")
+
+
 def register_parser(subparser):
-    parser = subparser.add_parser("setup", help = "Set up a runtime")
+    """
+    %(prog)s [--dry-run] [--force] [--set-default] <pathogen|runtime>
+    %(prog)s --help
+    """
+    parser = subparser.add_parser("setup", help = "Set up a pathogen or runtime")
 
     parser.add_argument(
-        "runner",
-        help     = "The Nextstrain runtime to set up. "
-                   f"One of {{{', '.join(all_runners_by_name)}}}.",
-        metavar  = "<runtime>",
-        type     = runner_module_argument)
+        "what",
+        help     = "The Nextstrain pathogen or runtime to set up. "
+                   f"A runtime is one of {{{', '.join(all_runners_by_name)}}}. "
+                   "A pathogen is either the name of a Nextstrain-maintained pathogen (e.g. measles) or a URL to a ZIP file (e.g. https://github.com/nextstrain/measles/archive/refs/heads/main.zip).",
+                   # XXX FIXME: pathogen@version syntax
+        metavar  = "<pathogen|runtime>")
+        #XXX FIXME
+        #type     = runner_module_argument)
 
     parser.add_argument(
         "--dry-run",
@@ -41,7 +55,7 @@ def register_parser(subparser):
 
     parser.add_argument(
         "--set-default",
-        help   = "Use the runtime as the default if set up is successful.",
+        help   = "Use this pathogen version or runtime as the default if set up is successful.",
         action = "store_true")
 
     return parser
@@ -49,10 +63,29 @@ def register_parser(subparser):
 
 @console.auto_dry_run_indicator()
 def run(opts: Options) -> int:
-    global default_runner
+    try:
+        opts.runner = runner_module(opts.what)
+    except ValueError as e1:
+        try:
+            opts.pathogen = pathogen_version(opts.what)
+        except ValueError as e2:
+            raise UserError(f"""
+                No valid runtime nor pathogen given:
 
-    heading = partial(colored, "bold")
-    failure = partial(colored, "red")
+                  • {e1}
+                  • {e2}
+                """)
+
+    if opts.runner:
+        return _run_runner(opts)
+    elif opts.pathogen:
+        return _run_pathogen(opts)
+    else:
+        raise AssertionError("setup got neither runtime nor pathogen")
+
+
+def _run_runner(opts: Options) -> int:
+    global default_runner
 
     # Setup
     print(heading(f"Setting up {runner_name(opts.runner)}…"))
@@ -114,3 +147,33 @@ def run(opts: Options) -> int:
     print()
     print("All good!  Set up of", runner_name(opts.runner), "complete.")
     return 0
+
+
+def _run_pathogen(opts: Options) -> int:
+    # Setup
+    print(heading(f"Setting up {opts.pathogen}…"))
+    setup_ok = opts.pathogen.setup(dry_run = opts.dry_run, force = opts.force)
+
+    if not setup_ok:
+        print()
+        print(failure("Set up failed!"))
+        return 1
+
+    # Test
+    print()
+    print(heading(f"Checking setup…"))
+
+    if not opts.dry_run:
+        tests = opts.pathogen.test_setup()
+
+        print_runner_tests(tests)
+
+        if not runner_tests_ok(tests):
+            print()
+            print(failure("Checks failed!  Setup is unlikely to be fully functional."))
+            return 1
+    else:
+        print("Skipping checks for dry run.")
+
+    # Optionally set as default
+    # Warn if this isn't the default
