@@ -38,6 +38,10 @@ development source code and as such may not be routinely kept up to date.
   type checks!
   ([#419][])
 
+* `NEXTSTRAIN_HOME` is now set for tests so as to avoid interference with the
+  local user's personal config and data.
+  ([#419][])
+
 [#419]: https://github.com/nextstrain/cli/pull/419
 
 
