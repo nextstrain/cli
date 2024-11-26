@@ -89,7 +89,7 @@ from time import sleep, time
 from typing import Iterable, Optional
 from uuid import uuid4
 from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ...util import colored, prose_list, warn
+from ...util import colored, prose_list, runner_name, warn
 from ... import config
 from .. import docker # type: ignore[no-redef] # for mypy
 from . import jobs, s3
@@ -574,9 +574,9 @@ def test_setup() -> RunnerTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``aws-batch``).
     """
-    pass
+    config.set("core", "runner", runner_name(__name__))
 
 
 def update() -> RunnerUpdateStatus:

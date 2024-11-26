@@ -94,7 +94,7 @@ from .. import config
 from ..errors import UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, split_image_name, warn
+from ..util import capture_output, colored, exec_or_return, runner_name, split_image_name, warn
 from . import docker # type: ignore[no-redef] # for mypy
 
 flatten = itertools.chain.from_iterable
@@ -346,9 +346,12 @@ def test_setup() -> RunnerTestResults:
 
 def set_default_config() -> None:
     """
+    Sets ``core.runner`` to this runner's name (``singularity``).
+
     Sets ``singularity.image``, if it isn't already set, to the latest
     ``build-*`` image.
     """
+    config.set("core", "runner", runner_name(__name__))
     config.setdefault("singularity", "image", latest_build_image(DEFAULT_IMAGE))
 
 

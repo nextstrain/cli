@@ -6,6 +6,7 @@ import argparse
 import builtins
 import sys
 from pathlib import Path
+from types import ModuleType
 from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
@@ -56,6 +57,8 @@ S3Object = Any
 
 
 class RunnerModule(Protocol):
+    __name__: str
+
     @staticmethod
     def register_arguments(parser: argparse.ArgumentParser) -> None: ...
 
