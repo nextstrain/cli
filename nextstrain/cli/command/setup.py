@@ -72,9 +72,9 @@ def run(opts: Options) -> int:
     except ValueError as e1:
         try:
             kind    = "pathogen"
-            thing   = pathogen_version(opts.thing)
+            thing   = PathogenWorkflows(opts.thing, new_setup = True)
             nameof  = str
-            default = pathogen_version(thing.pathogen)
+            default = PathogenWorkflows(thing.name)
 
         except ValueError as e2:
             raise UserError(f"""

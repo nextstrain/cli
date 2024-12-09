@@ -8,10 +8,10 @@ from .. import runner
 from ..argparse import add_extended_help_flags, DirectoryPath
 from ..debug import DEBUGGING
 from ..errors import UserError
-from ..paths import WORKFLOWS
 from ..runner import ambient, conda, docker, singularity
 from ..util import byte_quantity
 from ..volume import NamedVolume
+from ..workflows import PathogenWorkflows
 from . import build
 
 
@@ -93,15 +93,14 @@ def run(opts):
     build.assert_overlay_volumes_support(opts)
 
     # Resolve pathogen and workflow names to a local workflow directory.
-    # XXX FIXME: refactor into nextstrain/cli/workflow/…?
-    # XXX FIXME: support versioned resolution, e.g. <pathogen-name>@<version>
-    pathogen_directory = WORKFLOWS / opts.pathogen.lower()
-    workflow_directory = pathogen_directory / opts.workflow.lower()
+    pathogen = PathogenWorkflows(opts.pathogen)
 
-    # XXX FIXME: setup/update support
+    pathogen_directory = pathogen.path()
+    workflow_directory = pathogen.workflow_path(opts.workflow)
+
     if not pathogen_directory.is_dir():
         raise UserError(f"""
-            No pathogen named {opts.pathogen!r} found {f"in {str(pathogen_directory)!r}" if DEBUGGING else "locally"}.
+            No pathogen {opts.pathogen!r} found {f"in {str(pathogen_directory)!r}" if DEBUGGING else "locally"}.
 
             Did you set it up?
 
@@ -114,7 +113,7 @@ def run(opts):
 
             Maybe you need to update to a newer version of the pathogen?
 
-            Hint: to update the pathogen, run `nextstrain update {shquote(opts.pathogen)}`.
+            Hint: to update the pathogen, run `nextstrain update {shquote(pathogen.name)}`.
             """)
 
     # The build volume is the pathogen directory (i.e. repo).
