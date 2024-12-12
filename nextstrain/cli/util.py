@@ -16,7 +16,7 @@ from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
 from .__version__ import __version__
 from .debug import debug
-from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
+from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
 
 
 NO_COLOR = bool(
@@ -591,14 +591,14 @@ def glob_match(path: Union[str, Path, PurePath], patterns: Union[str, Sequence[s
     return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE | NEGATEALL | (REALPATH if root else 0), root_dir = root)
 
 
-def runner_tests_ok(tests: RunnerTestResults) -> bool:
+def setup_tests_ok(tests: SetupTestResults) -> bool:
     """
     Returns True iff none of a runner's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
 
 
-def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
+def print_and_check_setup_tests(tests: SetupTestResults) -> bool:
     """
     Iterates through and prints runner test results.
     Returns True if there are no failures.
@@ -632,10 +632,10 @@ def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
 
         print(status.get(result, str(result)) + ":", formatted_description)
 
-    return runner_tests_ok(results)
+    return setup_tests_ok(results)
 
 
-def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
+def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> SetupTestResults:
     """
     Check if Rosetta 2 is enabled (installed and active) on macOS aarch64
     systems.
@@ -643,7 +643,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
         return
 
-    status: RunnerTestResultStatus = ... # unknown
+    status: SetupTestResultStatus = ... # unknown
 
     try:
         subprocess.run(

@@ -13,8 +13,8 @@ from textwrap import dedent
 
 from .. import config, console
 from ..argparse import runner_module_argument
-from ..util import colored, runner_name, print_and_check_runner_tests
-from ..types import Options, RunnerTestResults
+from ..util import colored, runner_name, print_and_check_setup_tests
+from ..types import Options, SetupTestResults
 from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -70,9 +70,9 @@ def run(opts: Options) -> int:
     print(heading(f"Checking setup…"))
 
     if not opts.dry_run:
-        tests: RunnerTestResults = opts.runner.test_setup()
+        tests: SetupTestResults = opts.runner.test_setup()
 
-        ok = print_and_check_runner_tests(tests)
+        ok = print_and_check_setup_tests(tests)
 
         if not ok:
             print()

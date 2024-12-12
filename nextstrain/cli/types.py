@@ -40,13 +40,13 @@ EnvValue = Union[str, None]
 
 Options = argparse.Namespace
 
-RunnerSetupStatus = Optional[bool]
+SetupStatus = Optional[bool]
 
-RunnerTestResults = Iterable['RunnerTestResult']
-RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
-RunnerTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
+SetupTestResults = Iterable['SetupTestResult']
+SetupTestResult  = Tuple[str, 'SetupTestResultStatus']
+SetupTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
 
-RunnerUpdateStatus = Optional[bool]
+UpdateStatus = Optional[bool]
 
 # Cleaner-reading type annotations for boto3 S3 objects, which maybe can be
 # improved later.  The actual types are generated at runtime in
@@ -69,16 +69,16 @@ class RunnerModule(Protocol):
         ...
 
     @staticmethod
-    def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus: ...
+    def setup(dry_run: bool = False, force: bool = False) -> SetupStatus: ...
 
     @staticmethod
-    def test_setup() -> RunnerTestResults: ...
+    def test_setup() -> SetupTestResults: ...
 
     @staticmethod
     def set_default_config() -> None: ...
 
     @staticmethod
-    def update() -> RunnerUpdateStatus: ...
+    def update() -> UpdateStatus: ...
 
     @staticmethod
     def versions() -> Iterable[str]: ...

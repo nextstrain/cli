@@ -84,8 +84,8 @@ from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
-from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, parse_version_lax, runner_tests_ok, test_rosetta_enabled, warn
+from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
+from ..util import capture_output, colored, exec_or_return, parse_version_lax, setup_tests_ok, test_rosetta_enabled, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -168,7 +168,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     return exec_or_return(argv, {**extra_env, **EXEC_ENV})
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     if not setup_micromamba(dry_run, force):
         return False
 
@@ -389,7 +389,7 @@ def micromamba(*args, add_prefix: bool = True) -> None:
         raise InternalError(f"Error running {argv!r}") from err
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     def which_finds_our(cmd) -> bool:
         # which() checks executability and also handles PATHEXT, e.g. the
         # ".exe" extension on Windows, which is why we don't just naively test
@@ -422,7 +422,7 @@ def test_setup() -> RunnerTestResults:
 
     yield from support
 
-    if not runner_tests_ok(support):
+    if not setup_tests_ok(support):
         return
 
     elif not PREFIX_BIN.exists():
@@ -443,7 +443,7 @@ def test_setup() -> RunnerTestResults:
                 which_finds_our("auspice") and runnable("auspice", "--version"))
 
 
-def test_support() -> RunnerTestResults:
+def test_support() -> SetupTestResults:
     def supported_os() -> bool:
         machine = platform.machine()
         system = platform.system()
@@ -478,7 +478,7 @@ def set_default_config() -> None:
     pass
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Update all installed packages with Micromamba.
     """

@@ -93,7 +93,7 @@ from urllib.parse import urlsplit
 from .. import config
 from ..errors import UserError
 from ..paths import RUNTIMES
-from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
 from ..util import capture_output, colored, exec_or_return, split_image_name, warn
 from . import docker
 
@@ -273,7 +273,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     ], extra_env)
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     if not setup_image(dry_run, force):
         return False
 
@@ -309,7 +309,7 @@ def setup_image(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     def test_run():
         try:
             capture_output([
@@ -351,7 +351,7 @@ def set_default_config() -> None:
     config.setdefault("singularity", "image", latest_build_image(DEFAULT_IMAGE))
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Download and convert the latest Docker runtime image into a local
     Singularity image.
@@ -361,7 +361,7 @@ def update() -> RunnerUpdateStatus:
     return _update()
 
 
-def _update(dry_run: bool = False) -> RunnerUpdateStatus:
+def _update(dry_run: bool = False) -> UpdateStatus:
     current_image = DEFAULT_IMAGE
     latest_image  = latest_build_image(current_image)
 

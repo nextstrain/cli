@@ -88,7 +88,7 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable, Optional
 from uuid import uuid4
-from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ...types import Env, SetupStatus, SetupTestResults, UpdateStatus
 from ...util import colored, prose_list, warn
 from ... import config
 from .. import docker
@@ -559,14 +559,14 @@ def generate_run_id() -> str:
     return str(uuid4())
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     """
     Not supported.
     """
     return None
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     """
     Check that necessary AWS resources exist.
     """
@@ -587,7 +587,7 @@ def set_default_config() -> None:
     pass
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Not supported.  Updating the AWS Batch runtime isn't meaningful.
     """
