@@ -121,6 +121,7 @@ def run(opts: Options) -> int:
             default.set_default_config()
 
     # Warn if this isn't the default
+    # XXX FIXME: is comparison
     if default is not thing:
         if kind == "runtime":
             print()
@@ -143,9 +144,10 @@ def run(opts: Options) -> int:
                 """))
 
         elif kind == "pathogen":
+            # XXX FIXME
             ...
             
 
     print()
-    print("All good!  Set up of", runner_name(opts.runner), "complete.")
+    print("All good!  Set up of", nameof(thing), "complete.")
     return 0

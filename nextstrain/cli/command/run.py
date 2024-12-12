@@ -1,4 +1,6 @@
 # XXX FIXME command doc
+# - names of things <https://github.com/nextstrain/measles/pull/55#discussion_r1876754557>
+# - pathogen spec syntax
 """
 TKTKTK
 """
