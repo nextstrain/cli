@@ -137,7 +137,7 @@ class PathogenWorkflows:
             if new_setup:
                 version = github_repo_latest_ref(f"nextstrain/{name}")
             else:
-                version = pathogen_default_version(name)
+                version = pathogen_default_version(name, implicit = True)
 
         if not version:
             if new_setup:
@@ -189,6 +189,12 @@ class PathogenWorkflows:
 
         assert self.name
         assert self.version
+
+
+    def __eq__(self, other) -> bool:
+        return self.name    == other.name \
+           and self.version == other.version \
+           and (self.url    == other.url or self.url is None or other.url is None)
 
 
     def workflow_path(self, workflow: str) -> Path:
@@ -286,7 +292,7 @@ def pathogen_versions(name: str) -> List[str]:
     return sorted(versions, key = parse_version, reverse = True)
 
     
-def pathogen_default_version(name: str) -> Optional[str]:
+def pathogen_default_version(name: str, implicit: bool = True) -> Optional[str]:
     # XXX FIXME
     """
     TKTK
@@ -307,7 +313,7 @@ def pathogen_default_version(name: str) -> Optional[str]:
     default = config.get(f"pathogen {name}", "default_version")
 
     # XXX FIXME: reconsider this?
-    if not default:
+    if not default and use_implicit:
         versions = pathogen_versions(name)
 
         if len(versions) == 1:

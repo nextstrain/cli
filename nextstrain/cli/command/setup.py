@@ -74,7 +74,12 @@ def run(opts: Options) -> int:
             kind    = "pathogen"
             thing   = PathogenWorkflows(opts.thing, new_setup = True)
             nameof  = str
-            default = PathogenWorkflows(thing.name)
+
+            # XXX FIXME
+            if default_version := pathogen_default_version(thing.name, implicit = False):
+                default = PathogenWorkflows(thing.name, default_version)
+            else:
+                default = None
 
         except ValueError as e2:
             raise UserError(f"""
@@ -121,8 +126,7 @@ def run(opts: Options) -> int:
             default.set_default_config()
 
     # Warn if this isn't the default
-    # XXX FIXME: is comparison
-    if default is not thing:
+    if default != thing:
         if kind == "runtime":
             print()
             if not configured_runner:
