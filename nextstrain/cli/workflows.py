@@ -4,9 +4,11 @@ Pathogen workflows.
 import os.path
 import re
 import requests
-from base64 import urlsafe_b64encode, urlsafe_b64decode
+from base64 import b32encode, b32decode
+from textwrap import indent
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from shlex import quote as shquote
+from typing import Iterable, List, NamedTuple, Optional, Tuple
 from urllib.parse import quote as urlquote
 
 from . import config
@@ -17,16 +19,84 @@ from .url import URL
 from .util import parse_version
 
 
+class PathogenSpec(NamedTuple):
+    # XXX FIXME: docstring
+    """
+    XXX FIXME
+    """
+    name: Optional[str]
+    version: Optional[str]
+    url: Optional[URL]
+
+    @staticmethod
+    def parse(name_version_url: str) -> 'PathogenSpec':
+        # XXX FIXME: docstring
+        """
+        XXX FIXME
+
+        >>> PathogenSpec.parse("measles")
+        PathogenSpec(name='measles', version=None, url=None)
+
+        >>> PathogenSpec.parse("measles@v2")
+        PathogenSpec(name='measles', version='v2', url=None)
+
+        >>> PathogenSpec.parse("measles@v2 = https://example.com/a.zip")
+        PathogenSpec(name='measles', version='v2', url=URL(scheme='https', netloc='example.com', path='/a.zip', query='', fragment=''))
+
+        >>> PathogenSpec.parse("measles = https://example.com/x.zip")
+        PathogenSpec(name='measles', version=None, url=URL(scheme='https', netloc='example.com', path='/x.zip', query='', fragment=''))
+
+        >>> PathogenSpec.parse("measles@123@abc")
+        PathogenSpec(name='measles', version='123@abc', url=None)
+
+        >>> PathogenSpec.parse("@xyz")
+        PathogenSpec(name=None, version='xyz', url=None)
+
+        >>> PathogenSpec.parse("=https://example.com")
+        PathogenSpec(name=None, version=None, url=URL(scheme='https', netloc='example.com', path='', query='', fragment=''))
+
+        >>> PathogenSpec.parse("")
+        PathogenSpec(name=None, version=None, url=None)
+        """
+        if "=" in name_version_url:
+            name_version, url = name_version_url.split("=", 1)
+        else:
+            name_version, url = name_version_url, ""
+
+        if "@" in name_version:
+            name, version = name_version.split("@", 1)
+        else:
+            name, version = name_version, ""
+
+        name    = name.strip()    or None
+        version = version.strip() or None
+        url     = url.strip()     or None
+
+        assert name is None    or not set("@=") & set(name)
+        assert version is None or not set("=")  & set(version)
+
+        if url is not None:
+            url = URL(url)
+
+        return PathogenSpec(name, version, url)
+
+
 class PathogenWorkflows:
+    # XXX FIXME docstring
+    """
+    TKTK
+    """
     name: str
     version: str
-    url: URL
+    url: Optional[URL]
 
 
     def __init__(self, name_version_url: str, new_setup: bool = False):
-        name, version, url = self._parse_spec(name_version_url)
-
-        # XXX FIXME: do all this validation in _parse_spec instead?
+        # XXX FIXME docstring
+        """
+        TKTK
+        """
+        name, version, url = PathogenSpec.parse(name_version_url)
 
         if not name:
             raise UserError(f"""
@@ -70,38 +140,48 @@ class PathogenWorkflows:
                 version = pathogen_default_version(name)
 
         if not version:
-            raise UserError(f"""
-                No version specified in {name_version_url!r}.
+            if new_setup:
+                raise UserError(f"""
+                    No version specified in {name_version_url!r}.
 
-                There's no default version set (or intuitable), so a version
-                must be specified, e.g. as in NAME@VERSION[=URL].
-                """)
+                    There's no default version intuitable, so a version must be
+                    specified, e.g. as in NAME@VERSION.
+                    """)
+            else:
+                raise UserError(f"""
+                    No version specified in {name_version_url!r}.
 
-        # XXX FIXME: drop this validation if we're base64ing
-        if os.path.pardir in PurePath(version).parts:
-            raise UserError(f"""
-                Disallowed character sequence {os.path.pardir!r} combined with {os.path.sep!r} or {os.path.altsep!r} in version {version!r}.
-                """)
+                    There's no default version set (or intuitable), so a version
+                    must be specified, e.g. as in NAME@VERSION.
 
-        if not url:
-            url = github_repo_ref_zipball_url(f"nextstrain/{name}", version)
+                    Existing versions of {name!r} you have set up are:
 
-        if not url:
-            raise UserError(f"""
-                No source URL specified in {name_version_url!r}.
+                    {{versions}}
 
-                A default can not be determined, so a source URL must be
-                specified explicitly, e.g. as in NAME@VERSION=URL.
-                """)
+                    Hint: You can set a default version for {name!r} by running:
 
-        url = URL(url)
+                        nextstrain setup --set-default {shquote(name)}@VERSION
 
-        if url.scheme != "https":
-            raise UserError(f"""
-                Source URL scheme is {url.scheme!r}, not {"https"!r}.
+                    """, versions = indent("\n".join(pathogen_versions(name)), "    "))
 
-                Pathogen setup source must be an https:// URL.
-                """)
+        if new_setup:
+            if not url:
+                url = github_repo_ref_zipball_url(f"nextstrain/{name}", version)
+
+            if not url:
+                raise UserError(f"""
+                    No source URL specified in {name_version_url!r}.
+
+                    A default can not be determined, so a source URL must be
+                    specified explicitly, e.g. as in NAME@VERSION=URL.
+                    """)
+
+            if url.scheme != "https":
+                raise UserError(f"""
+                    Source URL scheme is {url.scheme!r}, not {"https"!r}.
+
+                    Pathogen setup source must be an https:// URL.
+                    """)
 
         self.name    = name
         self.version = version
@@ -109,58 +189,6 @@ class PathogenWorkflows:
 
         assert self.name
         assert self.version
-        assert self.url
-
-
-    @staticmethod
-    def _parse_spec(name_version_url: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-        # XXX FIXME: docstring
-        """
-        XXX FIXME
-
-        >>> PathogenWorkflows._parse_spec("measles")
-        ('measles', None, None)
-
-        >>> PathogenWorkflows._parse_spec("measles@v2")
-        ('measles', 'v2', None)
-
-        >>> PathogenWorkflows._parse_spec("measles@v2 = https://example.com/a.zip")
-        ('measles', 'v2', 'https://example.com/a.zip')
-
-        >>> PathogenWorkflows._parse_spec("measles = https://example.com/x.zip")
-        ('measles', None, 'https://example.com/x.zip')
-
-        >>> PathogenWorkflows._parse_spec("measles@123@abc")
-        ('measles', '123@abc', None)
-
-        >>> PathogenWorkflows._parse_spec("@xyz")
-        (None, 'xyz', None)
-
-        >>> PathogenWorkflows._parse_spec("=https://example.com")
-        (None, None, 'https://example.com')
-
-        >>> PathogenWorkflows._parse_spec("")
-        (None, None, None)
-        """
-        if "=" in name_version_url:
-            name_version, url = name_version_url.split("=", 1)
-        else:
-            name_version, url = name_version_url, ""
-
-        if "@" in name_version:
-            name, version = name_version.split("@", 1)
-        else:
-            name, version = name_version, ""
-
-        name    = name.strip()    or None
-        version = version.strip() or None
-        url     = url.strip()     or None
-
-        assert name is None    or not set("@=") & set(name)
-        assert version is None or not set("=")  & set(version)
-
-        return name, version, url
-
 
 
     def workflow_path(self, workflow: str) -> Path:
@@ -168,29 +196,48 @@ class PathogenWorkflows:
 
     @property
     def path(self) -> Path:
-        # XXX FIXME update comment if we're base64ing
-        # Because we allow slashes in the version, we avoid conflicts between
-        # different versions by 1) not using nested directories, e.g. WORKFLOWS /
-        # self.name / self.version, 2) delimiting the version within the
-        # directory name, e.g. with @ and =, and 3) restricting characters in
-        # name (no path separators) and version (no parent directory traversal
-        # parts).
-        #   -trs, 11 Dec 2024
         assert self.name
         assert self.version
         return WORKFLOWS / self.name / self._encode_version_dir(self.version)
 
     @staticmethod
     def _encode_version_dir(version: str) -> str:
+        """
+        >>> PathogenWorkflows._encode_version_dir("1.2.3")
+        '1.2.3=GEXDELRT'
+
+        >>> PathogenWorkflows._encode_version_dir("abc/lmnop/xyz")
+        'abc-lmnop-xyz=MFRGGL3MNVXG64BPPB4XU==='
+        """
         # Prefixing a munged version is solely for the benefit of humans
         # looking at their filesystem.
         version_munged = re.sub(r'[^A-Za-z0-9_.-]', '-', version)
-        version_b32 = b32encode(version.encode("utf-8"))
+        version_b32 = b32encode(version.encode("utf-8")).decode("utf-8")
+        assert "=" not in version_munged
         return version_munged + "=" + version_b32
 
     @staticmethod
-    def _decode_version_dir(name: str) -> str:
-        _, version_b32 = name.split("=", 1)
+    def _decode_version_dir(fname: str) -> str:
+        """
+        >>> PathogenWorkflows._decode_version_dir(PathogenWorkflows._encode_version_dir("v42"))
+        'v42'
+
+        >>> PathogenWorkflows._decode_version_dir("1.2.3=GEXDELRT")
+        '1.2.3'
+
+        Munged version prefix for humans is ignored.
+
+        >>> PathogenWorkflows._decode_version_dir("x.y.z=GEXDELRT")
+        '1.2.3'
+        >>> PathogenWorkflows._decode_version_dir("=GEXDELRT")
+        '1.2.3'
+
+        Case-mangled names are still ok.
+
+        >>> PathogenWorkflows._decode_version_dir("1.2.3=gExDeLrT")
+        '1.2.3'
+        """
+        _, version_b32 = fname.split("=", 1)
         return b32decode(version_b32, casefold = True).decode("utf-8")
 
 
@@ -256,7 +303,8 @@ def pathogen_default_version(name: str) -> Optional[str]:
     >>> pathogen_default_version("bogus") is None
     True
     """
-    default = config.get(_pathogen_config_section(name), "default_version")
+    assert name
+    default = config.get(f"pathogen {name}", "default_version")
 
     # XXX FIXME: reconsider this?
     if not default:
@@ -266,11 +314,6 @@ def pathogen_default_version(name: str) -> Optional[str]:
             default = versions[0]
 
     return default or None
-
-
-def _pathogen_config_section(name: str) -> str:
-    assert name
-    return f"pathogen {name}"
 
 
 def github_repo_latest_ref(repo: str) -> str:
