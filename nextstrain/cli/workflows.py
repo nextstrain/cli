@@ -191,6 +191,10 @@ class PathogenWorkflows:
         assert self.version
 
 
+    def __str__(self) -> str:
+        return f"{self.name}@{self.version}"
+
+
     def __eq__(self, other) -> bool:
         return self.name    == other.name \
            and self.version == other.version \
@@ -247,7 +251,7 @@ class PathogenWorkflows:
         return b32decode(version_b32, casefold = True).decode("utf-8")
 
 
-    def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    def setup(self, dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
         ...
 
 
@@ -259,11 +263,11 @@ class PathogenWorkflows:
         ...
 
 
-    def update() -> RunnerUpdateStatus:
+    def update(self) -> RunnerUpdateStatus:
         raise NotImplementedError
 
 
-    def versions() -> Iterable[str]:
+    def versions(self) -> Iterable[str]:
         raise NotImplementedError
 
 
@@ -313,7 +317,7 @@ def pathogen_default_version(name: str, implicit: bool = True) -> Optional[str]:
     default = config.get(f"pathogen {name}", "default_version")
 
     # XXX FIXME: reconsider this?
-    if not default and use_implicit:
+    if not default and implicit:
         versions = pathogen_versions(name)
 
         if len(versions) == 1:
@@ -341,5 +345,5 @@ def github_repo_latest_ref(repo: str) -> str:
         return response.json().get("default_branch")
 
 
-def github_repo_ref_zipball_url(repo: str, ref: str) -> str:
-    return f"https://api.github.com/repos/{urlquote(repo)}/zipball/{urlquote(ref)}"
+def github_repo_ref_zipball_url(repo: str, ref: str) -> URL:
+    return URL(f"https://api.github.com/repos/{urlquote(repo)}/zipball/{urlquote(ref)}")
