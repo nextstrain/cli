@@ -86,7 +86,7 @@ from textwrap import dedent
 from typing import Iterable, List
 from .. import config, env
 from ..errors import UserError
-from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
+from ..types import Env, SetupStatus, SetupTestResults, SetupTestResultStatus, UpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, runner_name, split_image_name, test_rosetta_enabled
 from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
@@ -265,7 +265,7 @@ def mount_point(volume: NamedVolume) -> PurePosixPath:
     return PurePosixPath("/nextstrain", volume.name)
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     if not setup_image(dry_run, force):
         return False
 
@@ -294,7 +294,7 @@ def setup_image(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     def test_run():
         try:
             status = subprocess.run(
@@ -311,7 +311,7 @@ def test_setup() -> RunnerTestResults:
         desired = 2 * GiB
 
         msg = 'containers have access to >%.0f GiB of memory' % (desired / GiB)
-        status: RunnerTestResultStatus = ...
+        status: SetupTestResultStatus = ...
 
         if image_exists():
             def int_or_none(x):
@@ -352,7 +352,7 @@ def test_setup() -> RunnerTestResults:
         minimum_tag = IMAGE_FEATURE.compatible_auspice.value
 
         msg = 'image is new enough for this CLI version'
-        status: RunnerTestResultStatus = ...
+        status: SetupTestResultStatus = ...
 
         repository, tag = split_image_name(DEFAULT_IMAGE)
 
@@ -407,14 +407,14 @@ def set_default_config() -> None:
     config.setdefault("docker", "image", latest_build_image(DEFAULT_IMAGE))
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Pull down the latest Docker image build and prune old image versions.
     """
     return _update()
 
 
-def _update(dry_run: bool = False) -> RunnerUpdateStatus:
+def _update(dry_run: bool = False) -> UpdateStatus:
     current_image = DEFAULT_IMAGE
     latest_image  = latest_build_image(current_image)
 

@@ -16,7 +16,7 @@ from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
 from .__version__ import __version__
 from .debug import debug
-from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
+from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
 
 
 def warn(*args):
@@ -584,16 +584,16 @@ def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]], *, r
     return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE | NEGATEALL | (REALPATH if root else 0), root_dir = root)
 
 
-def runner_tests_ok(tests: RunnerTestResults) -> bool:
+def setup_tests_ok(tests: SetupTestResults) -> bool:
     """
-    Returns True iff none of a runner's ``test_setup()`` results failed.
+    Returns True iff none of a runner's or pathogen's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
 
 
-def print_runner_tests(tests: RunnerTestResults):
+def print_setup_tests(tests: SetupTestResults):
     """
-    Prints a formatted version of the return value of a runner's
+    Prints a formatted version of the return value of a runner's or pathogen's
     ``test_setup()``.
     """
     success = partial(colored, "green")
@@ -622,7 +622,7 @@ def print_runner_tests(tests: RunnerTestResults):
         print(status.get(result, str(result)) + ":", formatted_description)
 
 
-def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
+def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> SetupTestResults:
     """
     Check if Rosetta 2 is enabled (installed and active) on macOS aarch64
     systems.
@@ -630,7 +630,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
         return []
 
-    status: RunnerTestResultStatus = ... # unknown
+    status: SetupTestResultStatus = ... # unknown
 
     try:
         subprocess.run(

@@ -16,7 +16,7 @@ from textwrap import dedent
 
 from .. import console
 from ..errors import UserError
-from ..util import colored, runner_module, runner_name, runner_tests_ok, print_runner_tests
+from ..util import colored, runner_module, runner_name, setup_tests_ok, print_setup_tests
 from ..types import Options
 from ..runner import all_runners_by_name, configured_runner, default_runner # noqa: F401 (it's wrong; we use it in run())
 from ..workflows import PathogenWorkflows, pathogen_default_version

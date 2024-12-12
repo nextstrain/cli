@@ -14,7 +14,7 @@ from urllib.parse import quote as urlquote
 from . import config
 from .errors import UserError
 from .paths import WORKFLOWS
-from .types import RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from .types import SetupStatus, SetupTestResults, UpdateStatus
 from .url import URL
 from .util import parse_version
 
@@ -251,11 +251,11 @@ class PathogenWorkflows:
         return b32decode(version_b32, casefold = True).decode("utf-8")
 
 
-    def setup(self, dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    def setup(self, dry_run: bool = False, force: bool = False) -> SetupStatus:
         ...
 
 
-    def test_setup(self) -> RunnerTestResults:
+    def test_setup(self) -> SetupTestResults:
         ...
 
 
@@ -263,7 +263,7 @@ class PathogenWorkflows:
         ...
 
 
-    def update(self) -> RunnerUpdateStatus:
+    def update(self) -> UpdateStatus:
         raise NotImplementedError
 
 

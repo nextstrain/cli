@@ -38,7 +38,7 @@ import shutil
 from subprocess import CalledProcessError
 from typing import Iterable
 from .. import config
-from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
+from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
 from ..util import capture_output, exec_or_return, runner_name
 
 
@@ -60,14 +60,14 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     return exec_or_return(argv, extra_env)
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     """
     Not supported.
     """
     return None
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     def runnable(*argv) -> bool:
         try:
             capture_output(argv)
@@ -95,7 +95,7 @@ def set_default_config() -> None:
     config.set("core", "runner", runner_name(__name__))
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Not supported.  Updating the ambient environment isn't reasonably possible.
     """
