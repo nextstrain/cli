@@ -38,7 +38,7 @@ from functools import partial
 from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
-from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, print_runner_tests
+from ..util import colored, check_for_new_version, runner_name, setup_tests_ok, print_setup_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -90,7 +90,7 @@ def run(opts: Options) -> int:
     ]
 
     runner_status = {
-        runner: runner_tests_ok(tests)
+        runner: setup_tests_ok(tests)
             for runner, tests in runner_tests
     }
 
@@ -105,7 +105,7 @@ def run(opts: Options) -> int:
             supported = failure("not supported")
 
         print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
-        print_runner_tests(tests)
+        print_setup_tests(tests)
         print()
 
     # Print overall status.
