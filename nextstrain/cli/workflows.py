@@ -118,16 +118,16 @@ class PathogenWorkflows:
 
         if url and not new_setup:
             raise UserError(f"""
-                Source URL specified in {name_version_url!r}.
+                URL specified in {name_version_url!r}.
 
-                Pathogen source URLs may only be specified for `nextstrain setup`.
+                Pathogen setup URLs may only be specified for `nextstrain setup`.
                 """)
 
         if url and not version:
             raise UserError(f"""
-                Source URL specified without version in {name_version_url!r}.
+                URL specified without version in {name_version_url!r}.
 
-                A version must be specified when a source URL is specified,
+                A version must be specified when a setup URL is specified,
                 e.g. as in NAME@VERSION=URL.
                 """)
 
@@ -176,17 +176,17 @@ class PathogenWorkflows:
 
             if not url:
                 raise UserError(f"""
-                    No source URL specified in {name_version_url!r}.
+                    No setup URL specified in {name_version_url!r}.
 
-                    A default can not be determined, so a source URL must be
+                    A default can not be determined, so a setup URL must be
                     specified explicitly, e.g. as in NAME@VERSION=URL.
                     """)
 
             if url.scheme != "https":
                 raise UserError(f"""
-                    Source URL scheme is {url.scheme!r}, not {"https"!r}.
+                    URL scheme is {url.scheme!r}, not {"https"!r}.
 
-                    Pathogen setup source must be an https:// URL.
+                    Pathogen setup URLs must be https://.
                     """)
 
         self.name    = name
@@ -279,8 +279,57 @@ class PathogenWorkflows:
             if not dry_run:
                 rmtree(str(self.path))
 
-        response = requests.get(self.url, stream = True)
-        response.raise_for_status()
+        try:
+            response = requests.get(self.url, stream = True)
+            response.raise_for_status()
+
+        except requests.exceptions.ConnectionError as err:
+            raise UserError(f"""
+                Could not connect to {self.url.netloc!r} to download
+                pathogen for setup:
+
+                    {type(err).__name__}: {err}
+
+                The URL may be invalid or you may be experiencing network
+                connectivity issues.
+                """) from err
+
+        except requests.exceptions.HTTPError as err:
+            def redirect_list(response, initial_indent = "    ", redirect_indent = "  ⮡ ") -> str:
+                return "\n".join(
+                    initial_indent + (redirect_indent * i) + r.url
+                        for i, r in enumerate([*response.history, response]) )
+
+            if 400 <= err.response.status_code <= 499:
+                raise UserError(f"""
+                    Failed to download pathogen setup URL:
+
+                    {{urls}}
+
+                    The server responded with an error:
+
+                        {type(err).__name__}: {err}
+
+                    The URL may be incorrect (e.g. misspelled) or no longer
+                    accessible.
+                    """, urls = redirect_list(err.response)) from err
+
+            elif 500 <= err.response.status_code <= 599:
+                raise UserError(f"""
+                    Failed to download pathogen setup URL:
+
+                    {{urls}}
+
+                    The server responded with an error:
+
+                        {type(err).__name__}: {err}
+
+                    This may be a permanent error or a temporary failure, so it
+                    may be worth waiting a little bit and trying again a few
+                    more times.
+                    """, urls = redirect_list(err.response)) from err
+
+
         content_type = response.headers["Content-Type"]
 
         if content_type != "application/zip":
@@ -436,23 +485,30 @@ def read_pathogen_registration(path: Path) -> Dict:
     return registration
 
 
-def github_repo_latest_ref(repo: str) -> str:
+def github_repo_latest_ref(repo: str) -> Optional[str]:
     # XXX FIXME
     """
     TKTK
     """
     with requests.Session() as http:
-        # XXX TODO: tktk pagination
-        response = http.get(f"https://api.github.com/repos/{urlquote(repo)}/tags?per_page=100")
-        response.raise_for_status()
+        repo = http.get(f"https://api.github.com/repos/{urlquote(repo)}")
 
-        if tags := sorted(response.json(), key = parse_version, reverse = True):
+        if repo.status_code == 404:
+            return None
+        else:
+            repo.raise_for_status()
+
+        repo = repo.json()
+
+        # XXX TODO: tktk pagination
+        tags_url = URL(repo["tags_url"])
+        tags = http.get(tags_url._replace(query = "per_page=100&" + tags_url.query))
+        tags.raise_for_status()
+
+        if tags := sorted(tags.json(), key = parse_version, reverse = True):
             return tags[0]
 
-        response = http.get(f"https://api.github.com/repos/{urlquote(repo)}")
-        response.raise_for_status()
-
-        return response.json().get("default_branch")
+        return repo["default_branch"]
 
 
 def github_repo_ref_zipball_url(repo: str, ref: str) -> URL:
