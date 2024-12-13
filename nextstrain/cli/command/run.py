@@ -97,7 +97,7 @@ def run(opts):
     # Resolve pathogen and workflow names to a local workflow directory.
     pathogen = PathogenWorkflows(opts.pathogen)
 
-    pathogen_directory = pathogen.path()
+    pathogen_directory = pathogen.path
     workflow_directory = pathogen.workflow_path(opts.workflow)
 
     if not pathogen_directory.is_dir():

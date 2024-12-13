@@ -168,6 +168,7 @@ class PathogenWorkflows:
 
                         nextstrain setup --set-default {shquote(name)}@VERSION
 
+                    if you don't want to specify an explicit version every time.
                     """, versions = indent("\n".join(pathogen_versions(name)), "    "))
 
         if new_setup:
@@ -268,13 +269,13 @@ class PathogenWorkflows:
         assert self.url
 
         # XXX FIXME: dry_run
-        # XXX FIXME: force
         if not force and self.path.exists():
-            print(f"Using existing set up in {str(self.path)!r}.")
+            print(f"Using existing setup in {str(self.path)!r}.")
             print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
             return True
 
         if self.path.exists():
+            assert force
             print(f"Removing existing directory {str(self.path)!r} to start fresh…")
             if not dry_run:
                 rmtree(str(self.path))
@@ -295,11 +296,6 @@ class PathogenWorkflows:
                 """) from err
 
         except requests.exceptions.HTTPError as err:
-            def redirect_list(response, initial_indent = "    ", redirect_indent = "  ⮡ ") -> str:
-                return "\n".join(
-                    initial_indent + (redirect_indent * i) + r.url
-                        for i, r in enumerate([*response.history, response]) )
-
             if 400 <= err.response.status_code <= 499:
                 raise UserError(f"""
                     Failed to download pathogen setup URL:
@@ -334,10 +330,13 @@ class PathogenWorkflows:
 
         if content_type != "application/zip":
             raise UserError(f"""
-                Unexpected Content-Type for {self.url!r}: {content_type!r}
+                Unexpected Content-Type {content_type!r} when downloading
+                pathogen setup URL:
+
+                {{urls}}
 
                 Expected 'application/zip', i.e. a ZIP file (.zip).
-                """)
+                """, urls = redirect_list(response))
 
         # Write remote ZIP file to a temporary local file so its seekable…
         with TemporaryFile("w+b") as zipfh:
@@ -357,6 +356,9 @@ class PathogenWorkflows:
                 except ValueError:
                     prefix = PurePath("")
 
+                debug("common path prefix of archive members:", repr(prefix))
+                debug("mkdir:", self.path)
+
                 if not dry_run:
                     self.path.mkdir(parents = True)
 
@@ -367,10 +369,10 @@ class PathogenWorkflows:
                     member.filename = str(filename.relative_to(prefix)) \
                                     + (os.path.sep if member.is_dir() else '')
 
+                    debug("extracting:", member.filename)
+
                     if not dry_run:
-                        debug(zipfile.extract(member, self.path))
-                    else:
-                        debug(member.filename)
+                        debug("extracted:", zipfile.extract(member, self.path))
 
                 print(f"Extracted {len(safe_members):,} files and directories to {str(self.path)!r}.")
 
@@ -513,3 +515,9 @@ def github_repo_latest_ref(repo: str) -> Optional[str]:
 
 def github_repo_ref_zipball_url(repo: str, ref: str) -> URL:
     return URL(f"https://api.github.com/repos/{urlquote(repo)}/zipball/{urlquote(ref)}")
+
+
+def redirect_list(response: requests.Response, initial_indent = "    ", redirect_indent = "  ⮡ ") -> str:
+    return "\n".join(
+        initial_indent + (redirect_indent * i) + r.url
+            for i, r in enumerate([*response.history, response]) )
