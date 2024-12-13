@@ -113,7 +113,7 @@ class PathogenWorkflows:
 
         if disallowed := set([os.path.sep, os.path.altsep]) & set(name):
             raise UserError(f"""
-                Disallowed character(s) {disallowed!r} in name {name!r}.
+                Disallowed character(s) {"".join(disallowed)!r} in name {name!r}.
                 """)
 
         if url and not new_setup:
@@ -409,14 +409,12 @@ class PathogenWorkflows:
 
 
     def set_default_config(self) -> None:
+        # XXX FIXME
         raise NotImplementedError
 
 
     def update(self) -> UpdateStatus:
-        raise NotImplementedError
-
-
-    def versions(self) -> Iterable[str]:
+        # XXX FIXME
         raise NotImplementedError
 
 

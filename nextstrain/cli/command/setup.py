@@ -12,7 +12,7 @@ Exits with an error code if automated set up fails or if setup checks fail.
 """
 # XXX FIXME doc above
 from functools import partial
-from textwrap import dedent
+from textwrap import dedent, indent
 
 from .. import console
 from ..errors import UserError
@@ -82,13 +82,20 @@ def run(opts: Options) -> int:
             else:
                 default = None
 
-        except ValueError as e2:
+        except Exception as e2:
             raise UserError(f"""
-                No valid runtime nor pathogen given:
+                Unable to set up {opts.thing!r}.
 
-                  • {e1}
-                  • {e2}
-                """)
+                It's not a valid runtime:
+
+                {{e1}}
+
+                nor pathogen:
+
+                {{e2}}
+
+                as specified.  Double check your spelling and syntax?
+                """, e1 = indent(str(e1), "    "), e2 = indent(str(e2), "    "))
 
     # Setup
     print(heading(f"Setting up {nameof(thing)}…"))
