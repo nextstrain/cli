@@ -4,17 +4,23 @@ Pathogen workflows.
 import os.path
 import re
 import requests
+import traceback
+import yaml
 from base64 import b32encode, b32decode
+from tempfile import TemporaryFile
 from textwrap import indent
-from pathlib import Path
+from pathlib import Path, PurePath
 from shlex import quote as shquote
-from typing import Iterable, List, NamedTuple, Optional, Tuple
+from shutil import copyfileobj, rmtree
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Tuple
 from urllib.parse import quote as urlquote
+from zipfile import ZipFile
 
 from . import config
+from .debug import DEBUGGING, debug
 from .errors import UserError
 from .paths import WORKFLOWS
-from .types import SetupStatus, SetupTestResults, UpdateStatus
+from .types import SetupStatus, SetupTestResults, SetupTestResult, UpdateStatus
 from .url import URL
 from .util import parse_version
 
@@ -196,10 +202,17 @@ class PathogenWorkflows:
 
 
     def __eq__(self, other) -> bool:
+        if self.__class__ != other.__class__:
+            return False
+
         return self.name    == other.name \
            and self.version == other.version \
            and (self.url    == other.url or self.url is None or other.url is None)
 
+
+    @property
+    def registration_path(self) -> Path:
+        return self.path / "nextstrain-pathogen.yaml"
 
     def workflow_path(self, workflow: str) -> Path:
         return self.path / workflow
@@ -252,15 +265,100 @@ class PathogenWorkflows:
 
 
     def setup(self, dry_run: bool = False, force: bool = False) -> SetupStatus:
-        ...
+        assert self.url
+
+        # XXX FIXME: dry_run
+        # XXX FIXME: force
+        if not force and self.path.exists():
+            print(f"Using existing set up in {str(self.path)!r}.")
+            print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
+            return True
+
+        if self.path.exists():
+            print(f"Removing existing directory {str(self.path)!r} to start fresh…")
+            if not dry_run:
+                rmtree(str(self.path))
+
+        response = requests.get(self.url, stream = True)
+        response.raise_for_status()
+        content_type = response.headers["Content-Type"]
+
+        if content_type != "application/zip":
+            raise UserError(f"""
+                Unexpected Content-Type for {self.url!r}: {content_type!r}
+
+                Expected 'application/zip', i.e. a ZIP file (.zip).
+                """)
+
+        # Write remote ZIP file to a temporary local file so its seekable…
+        with TemporaryFile("w+b") as zipfh:
+            copyfileobj(response.raw, zipfh)
+
+            # …and extract its contents.
+            with ZipFile(zipfh) as zipfile:
+                safe_members = [
+                    (filename, member)
+                        for filename, member
+                         in ((PurePath(m.filename), m) for m in zipfile.infolist())
+                         if not filename.is_absolute()
+                        and os.path.pardir not in filename.parts ]
+
+                try:
+                    prefix = PurePath(os.path.commonpath([filename for filename, member in safe_members]))
+                except ValueError:
+                    prefix = PurePath("")
+
+                if not dry_run:
+                    self.path.mkdir(parents = True)
+
+                for filename, member in safe_members:
+                    if filename == prefix:
+                        continue
+
+                    member.filename = str(filename.relative_to(prefix)) \
+                                    + (os.path.sep if member.is_dir() else '')
+
+                    if not dry_run:
+                        debug(zipfile.extract(member, self.path))
+                    else:
+                        debug(member.filename)
+
+                print(f"Extracted {len(safe_members):,} files and directories to {str(self.path)!r}.")
+
+        return True
 
 
     def test_setup(self) -> SetupTestResults:
-        ...
+        def test_compatibility() -> SetupTestResult:
+            msg = "nextstrain-pathogen.yaml declares `nextstrain run` compatibility"
+
+            try:
+                registration = read_pathogen_registration(self.registration_path)
+            except (OSError, yaml.YAMLError, ValueError):
+                if DEBUGGING:
+                    traceback.print_exc()
+                return msg + "\n(couldn't read registration)", False
+
+            try:
+                compatibility = registration["compatibility"]["nextstrain run"]
+            except (KeyError, IndexError, TypeError) as err:
+                return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
+
+            return msg, bool(compatibility)
+
+        return [
+            ('downloaded',
+                self.path.exists()),
+
+            ('contains nextstrain-pathogen.yaml',
+                self.registration_path.is_file()),
+
+            test_compatibility(),
+        ]
 
 
     def set_default_config(self) -> None:
-        ...
+        raise NotImplementedError
 
 
     def update(self) -> UpdateStatus:
@@ -324,6 +422,18 @@ def pathogen_default_version(name: str, implicit: bool = True) -> Optional[str]:
             default = versions[0]
 
     return default or None
+
+
+def read_pathogen_registration(path: Path) -> Dict:
+    with path.open("r", encoding = "utf-8") as f:
+        registration = yaml.safe_load(f)
+
+    # XXX TODO: Consider doing actual schema validation here in the future.
+    #   -trs, 12 Dec 2024
+    if not isinstance(registration, dict):
+        raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
+
+    return registration
 
 
 def github_repo_latest_ref(repo: str) -> str:

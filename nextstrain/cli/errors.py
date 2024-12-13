@@ -12,6 +12,10 @@ class InternalError(NextstrainCliError):
     pass
 
 class UserError(NextstrainCliError):
+    """
+    Error intended for display to the user, e.g. an error aiming to be clear,
+    friendly, and, if possible, actionable.
+    """
     def __init__(self, message, *args, **kwargs):
         # Remove leading newlines, trailing whitespace, and then indentation
         # to better support nicely-formatted """multi-line strings""".
