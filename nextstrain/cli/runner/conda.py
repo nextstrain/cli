@@ -84,10 +84,11 @@ from packaging.version import Version, InvalidVersion
 from pathlib import Path, PurePosixPath
 from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
+from .. import config
 from ..errors import InternalError
 from ..paths import RUNTIMES
-from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, runner_tests_ok, test_rosetta_enabled, warn
+from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
+from ..util import capture_output, colored, exec_or_return, parse_version, runner_name, setup_tests_ok, test_rosetta_enabled, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -170,7 +171,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     return exec_or_return(argv, {**extra_env, **EXEC_ENV})
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     if not setup_micromamba(dry_run, force):
         return False
 
@@ -391,7 +392,7 @@ def micromamba(*args, add_prefix: bool = True) -> None:
         raise InternalError(f"Error running {argv!r}") from err
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     def which_finds_our(cmd) -> bool:
         # which() checks executability and also handles PATHEXT, e.g. the
         # ".exe" extension on Windows, which is why we don't just naively test
@@ -422,7 +423,7 @@ def test_setup() -> RunnerTestResults:
 
     support = test_support()
 
-    if not runner_tests_ok(support):
+    if not setup_tests_ok(support):
         return support
 
     if not PREFIX_BIN.exists():
@@ -448,7 +449,7 @@ def test_setup() -> RunnerTestResults:
     ]
 
 
-def test_support() -> RunnerTestResults:
+def test_support() -> SetupTestResults:
     def supported_os() -> bool:
         machine = platform.machine()
         system = platform.system()
@@ -480,12 +481,12 @@ def test_support() -> RunnerTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``conda``).
     """
-    pass
+    config.set("core", "runner", runner_name(__name__))
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
@@ -639,66 +640,6 @@ def latest_package_label_version(channel: str, package: str, label: str) -> Opti
     # See https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering
     latest_file: dict = max(label_files, default={}, key=lambda file: parse_version(file.get('version', '0-dev')))
     return latest_file.get("version")
-
-
-def parse_version(version: str) -> Version:
-    """
-    Parse *version* into a PEP-440-compliant :cls:`Version` object, by hook or
-    by crook.
-
-    If *version* isn't already PEP-440 compliant, then it is parsed as a
-    PEP-440 local version label after replacing with ``.`` any characters not
-    matching ``a-z``, ``A-Z``, ``0-9``, ``.``, ``_``, or ``-``.  The comparison
-    semantics for local version labels amount to a string- and integer-based
-    comparison by parts ("segments"), which is super good enough for our
-    purposes here.  The full local version identifier produced for versions
-    parsed in this way always contains a public version identifier component of
-    ``0.dev0`` so it compares lowest against other public version identifiers.
-
-    >>> parse_version("1.2.3")
-    <Version('1.2.3')>
-    >>> parse_version("1.2.3-nope")
-    <Version('0.dev0+1.2.3.nope')>
-    >>> parse_version("20221019T172207Z")
-    <Version('0.dev0+20221019t172207z')>
-    >>> parse_version("@invalid+@")
-    <Version('0.dev0+invalid')>
-    >>> parse_version("not@@ok")
-    <Version('0.dev0+not.ok')>
-    >>> parse_version("20221019T172207Z") < parse_version("20230525T143814Z")
-    True
-    """
-    try:
-        return Version(version)
-    except InvalidVersion:
-        # Per PEP-440
-        #
-        # > …local version labels MUST be limited to the following set of
-        # > permitted characters:
-        # >
-        # >   ASCII letters ([a-zA-Z])
-        # >   ASCII digits ([0-9])
-        # >   periods (.)
-        # >
-        # > Local version labels MUST start and end with an ASCII letter or
-        # > digit.
-        #
-        # and
-        #
-        # > With a local version, in addition to the use of . as a separator of
-        # > segments, the use of - and _ is also acceptable. The normal form is
-        # > using the . character.
-        #
-        # and empty segments (x..z) aren't allowed either.
-        #
-        # c.f. <https://peps.python.org/pep-0440/#local-version-identifiers>
-        #      <https://peps.python.org/pep-0440/#local-version-segments>
-        remove_invalid_start_end_chars = partial(re.sub, r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '')
-        replace_invalid_with_separators = partial(re.sub, r'[^a-zA-Z0-9._-]+', '.')
-
-        as_local_segment = lambda v: replace_invalid_with_separators(remove_invalid_start_end_chars(v))
-
-        return Version(f"0.dev0+{as_local_segment(version)}")
 
 
 class PackageSpec(NamedTuple):

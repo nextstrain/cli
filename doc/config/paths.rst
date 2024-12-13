@@ -46,3 +46,10 @@ If necessary, the defaults can be overridden by environment variables.
     File for preserving command history across :doc:`/commands/shell` invocations.
 
     Default is :file:`{${NEXTSTRAIN_HOME}}/shell-history`.
+
+.. envvar:: NEXTSTRAIN_WORKFLOWS
+
+    Directory for pathogen workflow data, e.g. local copies of pathogen repos
+    like `nextstrain/measles <https://github.com/nextstrain/measles>`__.
+
+    Default is :file:`{${NEXTSTRAIN_HOME}}/workflows/`.

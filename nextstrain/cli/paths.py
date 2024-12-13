@@ -35,6 +35,9 @@ NEXTSTRAIN_HOME = from_env("NEXTSTRAIN_HOME", HOME / ".nextstrain/")
 # Path to runtime data dirs
 RUNTIMES = from_env("NEXTSTRAIN_RUNTIMES", NEXTSTRAIN_HOME / "runtimes/")
 
+# Path to pathogen workflow data dirs
+WORKFLOWS = from_env("NEXTSTRAIN_WORKFLOWS", NEXTSTRAIN_HOME / "workflows/")
+
 # Path to our config file
 CONFIG = from_env("NEXTSTRAIN_CONFIG", NEXTSTRAIN_HOME / "config")
 
