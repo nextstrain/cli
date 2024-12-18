@@ -5,6 +5,7 @@ build:
   tools:
     python: "3.10"
 sphinx:
+  configuration: doc/conf.py
   builder: dirhtml
 python:
   install:
