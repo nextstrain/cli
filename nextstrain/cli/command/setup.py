@@ -11,7 +11,7 @@ Exits with an error code if automated set up fails or if setup checks fail.
 from functools import partial
 from textwrap import dedent
 
-from .. import config, console
+from .. import console
 from ..argparse import runner_module_argument
 from ..util import colored, runner_name, print_and_check_setup_tests
 from ..types import Options, SetupTestResults
@@ -88,7 +88,6 @@ def run(opts: Options) -> int:
         print("Setting default runtime to %s." % runner_name(default_runner))
 
         if not opts.dry_run:
-            config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
 
     # Warn if this isn't the default runner.

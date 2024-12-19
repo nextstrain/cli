@@ -85,16 +85,17 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from functools import lru_cache
 from packaging.version import Version, InvalidVersion
 from pathlib import Path
-from typing import Iterable, List, Optional
+from typing import Iterable, List, Optional, cast
 from urllib.parse import urlsplit
 from .. import config
 from ..errors import UserError
 from ..paths import RUNTIMES
-from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
-from ..util import capture_output, colored, exec_or_return, split_image_name, warn
+from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
+from ..util import capture_output, colored, exec_or_return, runner_name, split_image_name, warn
 from . import docker
 
 flatten = itertools.chain.from_iterable
@@ -345,9 +346,12 @@ def test_setup() -> SetupTestResults:
 
 def set_default_config() -> None:
     """
+    Sets ``core.runner`` to this runner's name (``singularity``).
+
     Sets ``singularity.image``, if it isn't already set, to the latest
     ``build-*`` image.
     """
+    config.set("core", "runner", runner_name(cast(RunnerModule, sys.modules[__name__])))
     config.setdefault("singularity", "image", latest_build_image(DEFAULT_IMAGE))
 
 

@@ -80,16 +80,17 @@ defaults set by `config file variables`_.
 import botocore.exceptions
 import os
 import shlex
+import sys
 from datetime import datetime
 from pathlib import Path
 from signal import signal, Signals, SIGINT
 from sys import exit, stdin
 from textwrap import dedent
 from time import sleep, time
-from typing import Iterable, Optional
+from typing import Iterable, Optional, cast
 from uuid import uuid4
-from ...types import Env, SetupStatus, SetupTestResults, UpdateStatus
-from ...util import colored, prose_list, warn
+from ...types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
+from ...util import colored, prose_list, runner_name, warn
 from ... import config
 from .. import docker
 from . import jobs, s3
@@ -582,9 +583,9 @@ def test_setup() -> SetupTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``aws-batch``).
     """
-    pass
+    config.set("core", "runner", runner_name(cast(RunnerModule, sys.modules[__name__])))
 
 
 def update() -> UpdateStatus:

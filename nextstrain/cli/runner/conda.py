@@ -77,15 +77,17 @@ import re
 import requests
 import shutil
 import subprocess
+import sys
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable, NamedTuple, Optional
+from typing import Iterable, NamedTuple, Optional, cast
 from urllib.parse import urljoin, quote as urlquote
+from .. import config
 from ..errors import InternalError
 from ..paths import RUNTIMES
-from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
-from ..util import capture_output, colored, exec_or_return, parse_version_lax, setup_tests_ok, test_rosetta_enabled, warn
+from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
+from ..util import capture_output, colored, exec_or_return, parse_version_lax, runner_name, setup_tests_ok, test_rosetta_enabled, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -473,9 +475,9 @@ def test_support() -> SetupTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``conda``).
     """
-    pass
+    config.set("core", "runner", runner_name(cast(RunnerModule, sys.modules[__name__])))
 
 
 def update() -> UpdateStatus:
