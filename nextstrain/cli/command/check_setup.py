@@ -44,6 +44,9 @@ from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F4
 __doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runner))
 
 
+# XXX FIXME: this whole file
+
+
 def register_parser(subparser):
     """
     %(prog)s [--set-default] [<runtime> [<runtime> ...]]

@@ -586,14 +586,14 @@ def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]], *, r
 
 def setup_tests_ok(tests: SetupTestResults) -> bool:
     """
-    Returns True iff none of a runner's ``test_setup()`` results failed.
+    Returns True iff none of a runner's or pathogen's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
 
 
 def print_setup_tests(tests: SetupTestResults):
     """
-    Prints a formatted version of the return value of a runner's
+    Prints a formatted version of the return value of a runner's or pathogen's
     ``test_setup()``.
     """
     success = partial(colored, "green")
