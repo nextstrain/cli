@@ -35,7 +35,6 @@ checked runtimes are supported.
 """
 
 from functools import partial
-from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
 from ..util import colored, check_for_new_version, runner_name, setup_tests_ok, print_setup_tests
@@ -122,7 +121,6 @@ def run(opts: Options) -> int:
             default_runner = supported_runners[0]
             print()
             print("Setting default runtime to %s." % runner_name(default_runner))
-            config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
     else:
         if set(opts.runners) == set(all_runners):
