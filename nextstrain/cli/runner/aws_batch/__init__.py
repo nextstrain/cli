@@ -88,8 +88,8 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable, Optional
 from uuid import uuid4
-from ...types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ...util import colored, prose_list, warn
+from ...types import Env, SetupStatus, SetupTestResults, UpdateStatus
+from ...util import colored, prose_list, runner_name, warn
 from ... import config
 from .. import docker # type: ignore[no-redef] # for mypy
 from . import jobs, s3
@@ -549,14 +549,14 @@ def generate_run_id() -> str:
     return str(uuid4())
 
 
-def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
     """
     Not supported.
     """
     return None
 
 
-def test_setup() -> RunnerTestResults:
+def test_setup() -> SetupTestResults:
     """
     Check that necessary AWS resources exist.
     """
@@ -574,12 +574,12 @@ def test_setup() -> RunnerTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``aws-batch``).
     """
-    pass
+    config.set("core", "runner", runner_name(__name__))
 
 
-def update() -> RunnerUpdateStatus:
+def update() -> UpdateStatus:
     """
     Not supported.  Updating the AWS Batch runtime isn't meaningful.
     """
