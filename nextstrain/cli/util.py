@@ -338,11 +338,27 @@ def exec_or_return(argv: List[str], extra_env: Mapping = {}) -> int:
             sys.exit(process.returncode)
 
 
-def runner_name(runner: RunnerModule) -> str:
+def runner_name(runner: Union[RunnerModule, str]) -> str:
     """
-    Return a friendly name suitable for display for the given runner module.
+    Return a friendly name suitable for display for the given *runner* module
+    or fully-qualified module name.
+
+    >>> import nextstrain.cli.runner.docker
+    >>> runner_name(nextstrain.cli.runner.docker)
+    'docker'
+    >>> runner_name("nextstrain.cli.runner.conda")
+    'conda'
+    >>> runner_name("nextstrain.cli.runner.aws_batch")
+    'aws-batch'
     """
-    return module_basename(runner).replace("_", "-")
+    if isinstance(runner, str):
+        fullname = runner
+    else:
+        fullname = runner.__name__
+
+    basename = fullname.split(".")[-1]
+
+    return basename.replace("_", "-")
 
 
 def runner_module(name: str) -> RunnerModule:
@@ -407,13 +423,6 @@ def runner_help(runner: RunnerModule) -> str:
         return runner.__doc__.strip().splitlines()[0]
     else:
         return "(undocumented)"
-
-
-def module_basename(module: Any) -> str:
-    """
-    Return the final portion of the given module's name, akin to a file's basename.
-    """
-    return module.__name__.split(".")[-1]
 
 
 def format_usage(doc: str) -> str:

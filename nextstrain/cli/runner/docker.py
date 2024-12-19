@@ -87,7 +87,7 @@ from typing import Iterable, List
 from .. import config, env
 from ..errors import UserError
 from ..types import Env, SetupStatus, SetupTestResults, SetupTestResultStatus, UpdateStatus
-from ..util import warn, colored, capture_output, exec_or_return, split_image_name, test_rosetta_enabled
+from ..util import warn, colored, capture_output, exec_or_return, runner_name, split_image_name, test_rosetta_enabled
 from ..volume import store_volume, NamedVolume
 from ..__version__ import __version__
 
@@ -398,9 +398,12 @@ def test_setup() -> SetupTestResults:
 
 def set_default_config() -> None:
     """
+    Sets ``core.runner`` to this runner's name (``docker``).
+
     Sets ``docker.image``, if it isn't already set, to the latest ``build-*``
     image.
     """
+    config.set("core", "runner", runner_name(__name__))
     config.setdefault("docker", "image", latest_build_image(DEFAULT_IMAGE))
 
 

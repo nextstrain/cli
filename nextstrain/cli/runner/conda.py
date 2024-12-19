@@ -84,10 +84,11 @@ from packaging.version import Version, InvalidVersion
 from pathlib import Path, PurePosixPath
 from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
+from .. import config
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import Env, SetupStatus, SetupTestResults, UpdateStatus
-from ..util import capture_output, colored, exec_or_return, parse_version, setup_tests_ok, test_rosetta_enabled, warn
+from ..util import capture_output, colored, exec_or_return, parse_version, runner_name, setup_tests_ok, test_rosetta_enabled, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -480,9 +481,9 @@ def test_support() -> SetupTestResults:
 
 def set_default_config() -> None:
     """
-    No-op.
+    Sets ``core.runner`` to this runner's name (``conda``).
     """
-    pass
+    config.set("core", "runner", runner_name(__name__))
 
 
 def update() -> UpdateStatus:

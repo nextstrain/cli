@@ -56,6 +56,8 @@ S3Object = Any
 
 
 class RunnerModule(Protocol):
+    __name__: str
+
     @staticmethod
     def register_arguments(parser: argparse.ArgumentParser) -> None: ...
 
