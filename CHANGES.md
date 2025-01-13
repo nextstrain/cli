@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain version` now reports itself as "Nextstrain CLI" (instead of
+  "nextstrain.cli").
+  ([#419][])
+
 ## Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain
