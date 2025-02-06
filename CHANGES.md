@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The Conda runtime now supports native installation for Apple silicon (e.g. M1
+  chip) devices, which improves performance when using the runtime. To take full
+  advantage of this feature, force a fresh installation with `nextstrain setup
+  --force conda`.
 
 # 8.5.4 (1 November 2024)
 
