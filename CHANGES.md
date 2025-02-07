@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* The Conda runtime no longer requires Rosetta 2 for macOS running on aarch64
+  (aka arm64, Apple Silicon, M1/M2) hardware.  This improves performance when
+  using the runtime.  To take advantage of this feature, force a fresh
+  installation with `nextstrain setup --force conda`.
 
 # 8.5.4 (1 November 2024)
 
