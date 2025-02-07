@@ -82,6 +82,7 @@ import traceback
 from functools import partial
 from packaging.version import Version, InvalidVersion
 from pathlib import Path, PurePosixPath
+from textwrap import dedent
 from typing import Iterable, NamedTuple, Optional
 from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
@@ -291,7 +292,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def micromamba(*args, add_prefix: bool = True) -> None:
+def micromamba(*args, add_prefix: bool = True, add_install_options = True, return_stdout = False):
     """
     Runs our installed Micromamba with appropriate global options and options
     for prefix and channel selection.
@@ -327,7 +328,10 @@ def micromamba(*args, add_prefix: bool = True) -> None:
         argv += (
             # Path-based env
             "--prefix", str(PREFIX),
+        )
 
+    if add_install_options:
+        argv += (
             # BioConda config per <https://bioconda.github.io/#usage>, plus our
             # own channel.
             "--override-channels",
@@ -385,8 +389,15 @@ def micromamba(*args, add_prefix: bool = True) -> None:
         "HOME": str(RUNTIME_ROOT),
     }
 
+    subprocess_run_kwargs = {}
+    if return_stdout:
+        subprocess_run_kwargs['stdout'] = subprocess.PIPE
+        subprocess_run_kwargs['text'] = True
+
     try:
-        subprocess.run(argv, env = env, check = True)
+        process = subprocess.run(argv, env = env, check = True, **subprocess_run_kwargs)
+        if return_stdout:
+            return process.stdout
     except (OSError, subprocess.CalledProcessError) as err:
         raise InternalError(f"Error running {argv!r}") from err
 
@@ -480,10 +491,30 @@ def set_default_config() -> None:
     pass
 
 
+def check_platforms():
+    """Check whether installed packages match the host platform."""
+    packages = micromamba("list", "--json", add_install_options = False, return_stdout = True)
+
+    package_platforms = {p['platform'] for p in json.loads(packages)}
+
+    system = platform.system()
+    machine = platform.machine()
+
+    if (system, machine) == ("Darwin", "arm64") and "osx-64" in package_platforms:
+        warn(dedent("""
+            Your Conda runtime was created before Nextstrain CLI version X.X.X
+            and is using is using Rosetta 2 for emulation. In a future major
+            version release, Nextstrain CLI will stop supporting Conda runtimes
+            created before version X.X.X. To re-create your runtime, force a
+            fresh installation with `nextstrain setup conda --force`."""))
+
+
 def update() -> RunnerUpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
+    check_platforms()
+
     current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
 
     # We accept a package match spec, which one to three space-separated parts.¹
@@ -530,7 +561,7 @@ def update() -> RunnerUpdateStatus:
     # Clean up unnecessary caches
     print("Cleaning up…")
     try:
-        micromamba("clean", "--all", add_prefix = False)
+        micromamba("clean", "--all", add_prefix = False, add_install_options = False)
     except InternalError as err:
         warn(err)
         warn(f"Continuing anyway.")
