@@ -401,7 +401,8 @@ jobs:
       - test-standalone
       - doc
       - release
-    uses: nextstrain/.github/.github/workflows/report-failure.yaml
+    # FIXME: drop the branch tag after merging https://github.com/nextstrain/.github/pull/121
+    uses: nextstrain/.github/.github/workflows/report-failure.yaml@victorlin/report-failure
     with:
       failure: ${{ contains(needs.*.result, 'failure') }}
 
