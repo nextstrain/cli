@@ -389,3 +389,29 @@ jobs:
       - run: ./devel/create-github-release "${{github.ref_name}}" dist/* nextstrain-cli-*-standalone-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  report-failure:
+    if: ${{ always() && github.ref_name == github.event.repository.default_branch }}
+    needs:
+      - lint
+      - test-source
+      - build-dist
+      - build-standalone
+      - test-dist
+      - test-standalone
+      - doc
+      - release
+    uses: nextstrain/.github/.github/workflows/report-failure.yaml
+    with:
+      failure: ${{ contains(needs.*.result, 'failure') }}
+
+      # The condition evaluates to true when all results are 'success',
+      # 'cancelled', or 'skipped'¹. This is not ideal, since a workflow that is
+      # cancelled before there are any successes will still signal a success to
+      # this job, however the chance of that happening should be very low given
+      # that this is job is conditioned on the default branch.
+      # ¹ <https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/accessing-contextual-information-about-workflow-runs#jobs-context>
+      success: ${{ !contains(needs.*.result, 'failure') }}
+      title: CI failure
+    secrets:
+      token: ${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_REPO }}
