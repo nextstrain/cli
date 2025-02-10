@@ -390,11 +390,19 @@ def resolve(host: str, port: str) -> Tuple[str, int]:
     addrs = [AddressInfo(*a) for a in getaddrinfo(host, port, proto = IPPROTO_TCP)]
 
     ip4 = [a for a in addrs if a.family is AF_INET]
-    ip6 = [a for a in addrs if a.family is AF_INET6]
 
-    return (ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 \
-      else (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6 \
-      else (str(host), int(port))
+    # Ignore raw data in the form of sockaddr = (int, bytes).
+    # <https://github.com/python/cpython/pull/128547>
+    ip6 = [a for a in addrs if a.family is AF_INET6 and isinstance(a.sockaddr[1], int)]
+
+    if ip4:
+        # Type signatures do not indicate that IPv4 will always be (address, port).
+        return (ip4[0].sockaddr[0], ip4[0].sockaddr[1]) # type: ignore
+    elif ip6:
+        # Type signatures do not indicate that IPv6 will always be (address, port, …).
+        return (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) # type: ignore
+    else:
+        return (str(host), int(port))
 
 
 class AddressInfo(NamedTuple):
@@ -402,7 +410,7 @@ class AddressInfo(NamedTuple):
     type: SocketKind
     proto: int
     canonname: str
-    sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int]] # (ip, addr, ...)
+    sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int], Tuple[int, bytes]] # (ip, addr, ...)
 
 
 def open_browser(url: str) -> bool:
