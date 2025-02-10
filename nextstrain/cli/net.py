@@ -33,6 +33,11 @@ def resolve_host(host: str, family: AddressFamily = AF_UNSPEC) -> Set[Union[IPv4
     specific address family can be chosen by providing *family*.
     """
     return {
-        ip_address(getnameinfo(sockaddr, NI_NUMERICHOST)[0])
+        ip_address(
+            # TODO: Remove ignore if getnameinfo type signature is updated to
+            # handle all possible sockaddr types.
+            # <https://github.com/python/typeshed/issues/13472>
+            getnameinfo(sockaddr, NI_NUMERICHOST)[0] # type: ignore
+        )
             for _, _, _, _, sockaddr
              in getaddrinfo(host, None, family = family) }
