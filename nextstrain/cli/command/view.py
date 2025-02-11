@@ -49,6 +49,7 @@ from multiprocessing import Process, ProcessError
 import re
 import requests
 from inspect import cleandoc
+from itertools import starmap
 from os import environ
 from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
@@ -387,14 +388,25 @@ def resolve(host: str, port: str) -> Tuple[str, int]:
     IPv4 addresses are preferred, but IPv6 addresses be returned if no IPv4
     addresses are available.
     """
-    addrs = [AddressInfo(*a) for a in getaddrinfo(host, port, proto = IPPROTO_TCP)]
+    # The isinstance() checks filter out IPv6 addresses when Python lacks
+    # support.¹  They also make it clear by inspection that our return types
+    # check-out even though we're using "type: ignore" comments because it's
+    # not clear to the type checker.
+    #   -trs, 11 Feb 2025
+    #
+    # ¹ See <https://github.com/python/cpython/issues/60412>
+    #   and <https://github.com/python/cpython/issues/128546>.
+    addrs = [
+        a for a in starmap(AddressInfo, getaddrinfo(host, port, proto = IPPROTO_TCP))
+           if isinstance(a.sockaddr[0], str)
+          and isinstance(a.sockaddr[1], int) ]
 
     ip4 = [a for a in addrs if a.family is AF_INET]
     ip6 = [a for a in addrs if a.family is AF_INET6]
 
-    return (ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 \
-      else (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6 \
-      else (str(host), int(port))
+    return ((ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 # type: ignore
+      else  (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6 # type: ignore
+      else  (str(host), int(port)))
 
 
 class AddressInfo(NamedTuple):
@@ -402,7 +414,10 @@ class AddressInfo(NamedTuple):
     type: SocketKind
     proto: int
     canonname: str
-    sockaddr: Union[Tuple[str, int], Tuple[str, int, int, int]] # (ip, addr, ...)
+    sockaddr: Union[
+        Tuple[str, int],            # IPv4
+        Tuple[str, int, int, int],  # IPv6
+        Tuple[int, bytes] ]         # IPv6 but Python's compiled with --disable-ipv6
 
 
 def open_browser(url: str) -> bool:

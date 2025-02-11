@@ -32,7 +32,17 @@ def resolve_host(host: str, family: AddressFamily = AF_UNSPEC) -> Set[Union[IPv4
     depending on the local IP stack and DNS records for the named host.  A
     specific address family can be chosen by providing *family*.
     """
+    # The isinstance() checks filter out IPv6 addresses when Python lacks
+    # support.¹  They also make it clear by inspection that our argument types
+    # check-out even though we're using a "type: ignore" comment because it's
+    # not clear to the type checker.
+    #   -trs, 11 Feb 2025
+    #
+    # ¹ See <https://github.com/python/cpython/issues/60412>
+    #   and <https://github.com/python/cpython/issues/128546>.
     return {
-        ip_address(getnameinfo(sockaddr, NI_NUMERICHOST)[0])
+        ip_address(getnameinfo(sockaddr, NI_NUMERICHOST)[0]) # type: ignore
             for _, _, _, _, sockaddr
-             in getaddrinfo(host, None, family = family) }
+             in getaddrinfo(host, None, family = family)
+             if isinstance(sockaddr[0], str)
+            and isinstance(sockaddr[1], int) }
