@@ -233,6 +233,10 @@ def run(opts):
     # earlier always listen on 0.0.0.0 or ::.
     host, port = resolve(opts.host, opts.port)
 
+    # Surround IPv6 addresses with square brackets for the URL and other places
+    # where colons are used after the address.
+    host_bracketed = f"[{host}]" if ":" in host else host
+
     # Inside a Docker container, always bind to all interfaces.  This is
     # required for Docker to forward a port from the container's host into
     # the container because of how it does port publishing.  Note that
@@ -257,7 +261,7 @@ def run(opts):
         "--init",
 
         # Publish the port
-        "--publish=[%s]:%d:%d" % (host, port, port),
+        "--publish=%s:%d:%d" % (host_bracketed, port, port),
     ]
 
     # XXX TODO: Find the best remote address if we're allowing remote access.
@@ -282,10 +286,10 @@ def run(opts):
     #   -trs, 17 Dec 2021
 
     # Show a helpful message about where to connect
-    print_url(host, port, available_paths)
+    print_url(host_bracketed, port, available_paths)
 
     if opts.open:
-        open_browser(f"http://{host}:{port}/{default_path or ''}")
+        open_browser(f"http://{host_bracketed}:{port}/{default_path or ''}")
 
     return runner.run(opts, working_volume = working_volume, extra_env = env)
 
@@ -348,10 +352,6 @@ def print_url(host, port, available_paths):
     Prints a list of available dataset and narrative URLs, if any.  Otherwise,
     prints a generic URL.
     """
-    # Surround IPv6 addresses with square brackets for the URL.
-    if ":" in host:
-        host = f"[{host}]"
-
     def url(path = None):
         return colored(
             "blue",
