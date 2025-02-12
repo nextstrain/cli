@@ -13,6 +13,13 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* Fixed a rare but possible error case in `nextstrain view` and `nextstrain
+  login` when running under a copy of Python with IPv6 disabled on a system
+  with IPv6 enabled.  In such situations, IPv6 addresses will now be ignored.
+  ([#415](https://github.com/nextstrain/cli/pull/415))
+
 
 # 8.5.4 (1 November 2024)
 
