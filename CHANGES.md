@@ -20,6 +20,11 @@ development source code and as such may not be routinely kept up to date.
   with IPv6 enabled.  In such situations, IPv6 addresses will now be ignored.
   ([#415](https://github.com/nextstrain/cli/pull/415))
 
+* An authentication callback URL containing an unresolvable hostname is no
+  longer considered to have a loopback (local-only) address, i.e. is not
+  considered safe/suitable for use.
+  ([#416](https://github.com/nextstrain/cli/pull/416))
+
 
 # 8.5.4 (1 November 2024)
 
