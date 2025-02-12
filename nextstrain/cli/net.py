@@ -21,6 +21,9 @@ def is_loopback(host: Optional[str]) -> Optional[bool]:
     except gaierror:
         return None
 
+    if not ips:
+        return None
+
     return all(ip.is_loopback for ip in ips)
 
 
