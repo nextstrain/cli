@@ -381,19 +381,20 @@ def test_setup() -> RunnerTestResults:
 
         return [(msg, status)]
 
-    return [
-        ('docker is installed',
-            shutil.which("docker") is not None),
-        ('docker run works',
-            test_run()),
-        *test_memory_limit(),
-        *test_image_version(),
+    yield ('docker is installed',
+        shutil.which("docker") is not None)
 
-        # Rosetta 2 is optional, so convert False (fail) → None (warning)
-        *[(msg, None if status is False else status)
-            for msg, status
-             in test_rosetta_enabled("Rosetta 2 is enabled for faster execution (optional)")],
-    ]
+    yield ('docker run works',
+        test_run())
+
+    yield from test_memory_limit()
+
+    yield from test_image_version()
+
+    # Rosetta 2 is optional, so convert False (fail) → None (warning)
+    yield from ((msg, None if status is False else status)
+                  for msg, status
+                   in test_rosetta_enabled("Rosetta 2 is enabled for faster execution (optional)"))
 
 
 def set_default_config() -> None:
