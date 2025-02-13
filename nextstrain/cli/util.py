@@ -598,10 +598,12 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     return False not in [result for test, result in tests]
 
 
-def print_runner_tests(tests: RunnerTestResults):
+def passthru_and_print_runner_tests(tests: RunnerTestResults) -> RunnerTestResults:
     """
-    Prints a formatted version of the return value of a runner's
-    ``test_setup()``.
+    Iterates through and prints runner test results while streaming them
+    forward.
+
+    Messages will only be printed if the generator is consumed downstream.
     """
     success = partial(colored, "green")
     failure = partial(colored, "red")
@@ -626,6 +628,8 @@ def print_runner_tests(tests: RunnerTestResults):
         formatted_description = \
             remove_prefix("  ", indent(description, "  "))
 
+        yield (description, result)
+
         print(status.get(result, str(result)) + ":", formatted_description)
 
 
@@ -635,7 +639,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     systems.
     """
     if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
-        return []
+        return
 
     status: RunnerTestResultStatus = ... # unknown
 
@@ -667,7 +671,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     else:
         status = True
 
-    return [(msg, status)]
+    yield (msg, status)
 
 
 # Copied without modification from lib/id3c/api/utils/__init__.py in the ID3C

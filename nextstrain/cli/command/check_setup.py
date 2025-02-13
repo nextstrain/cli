@@ -38,7 +38,7 @@ from functools import partial
 from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
-from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, print_runner_tests
+from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, passthru_and_print_runner_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -84,37 +84,32 @@ def run(opts: Options) -> int:
     # Run and collect our runners' self-tests
     print("Testing your setup…")
 
-    runner_tests = [
+    runner_tests = (
         (runner, runner.test_setup())
             for runner in opts.runners
-    ]
+    )
 
-    runner_status = {
-        runner: runner_tests_ok(tests)
-            for runner, tests in runner_tests
-    }
+    supported_runners = []
 
     # Print test results.  The first print() separates results from the
     # previous header or stderr output, making it easier to read.
     print()
 
     for runner, tests in runner_tests:
-        if runner_status[runner]:
+        print(colored("blue", "#"), "Checking %s…" % (runner_name(runner)))
+
+        tests = passthru_and_print_runner_tests(tests)
+
+        if runner_tests_ok(tests):
             supported = success("supported")
+            supported_runners.append(runner)
         else:
             supported = failure("not supported")
 
         print(colored("blue", "#"), "%s is %s" % (runner_name(runner), supported))
-        print_runner_tests(tests)
         print()
 
     # Print overall status.
-    supported_runners = [
-        runner
-            for runner, status_ok in runner_status.items()
-             if status_ok
-    ]
-
     if supported_runners:
         print("Supported Nextstrain runtimes:", ", ".join(success(runner_name(r)) for r in supported_runners))
 

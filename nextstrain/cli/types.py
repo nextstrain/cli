@@ -42,7 +42,7 @@ Options = argparse.Namespace
 
 RunnerSetupStatus = Optional[bool]
 
-RunnerTestResults = List['RunnerTestResult']
+RunnerTestResults = Iterable['RunnerTestResult']
 RunnerTestResult  = Tuple[str, 'RunnerTestResultStatus']
 RunnerTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
 

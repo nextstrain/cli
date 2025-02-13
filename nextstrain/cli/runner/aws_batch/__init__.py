@@ -570,16 +570,14 @@ def test_setup() -> RunnerTestResults:
     """
     Check that necessary AWS resources exist.
     """
-    return [
-        ('job description "%s" exists' % DEFAULT_JOB,
-            jobs.definition_exists(DEFAULT_JOB)),
+    yield ('job description "%s" exists' % DEFAULT_JOB,
+            jobs.definition_exists(DEFAULT_JOB))
 
-        ('job queue "%s" exists' % DEFAULT_QUEUE,
-            jobs.queue_exists(DEFAULT_QUEUE)),
+    yield ('job queue "%s" exists' % DEFAULT_QUEUE,
+            jobs.queue_exists(DEFAULT_QUEUE))
 
-        ('S3 bucket "%s" exists' % DEFAULT_S3_BUCKET,
-            s3.bucket_exists(DEFAULT_S3_BUCKET)),
-    ]
+    yield ('S3 bucket "%s" exists' % DEFAULT_S3_BUCKET,
+            s3.bucket_exists(DEFAULT_S3_BUCKET))
 
 
 def set_default_config() -> None:

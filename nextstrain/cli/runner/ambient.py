@@ -75,16 +75,14 @@ def test_setup() -> RunnerTestResults:
             return False
 
 
-    return [
-        ('snakemake is installed and runnable',
-            shutil.which("snakemake") is not None and runnable("snakemake", "--version")),
+    yield ('snakemake is installed and runnable',
+            shutil.which("snakemake") is not None and runnable("snakemake", "--version"))
 
-        ('augur is installed and runnable',
-            shutil.which("augur") is not None and runnable("augur", "--version")),
+    yield ('augur is installed and runnable',
+            shutil.which("augur") is not None and runnable("augur", "--version"))
 
-        ('auspice is installed and runnable',
-            shutil.which("auspice") is not None and runnable("auspice", "--version")),
-    ]
+    yield ('auspice is installed and runnable',
+            shutil.which("auspice") is not None and runnable("auspice", "--version"))
 
 
 def set_default_config() -> None:
