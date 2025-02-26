@@ -10,9 +10,6 @@ environment*
 /dist/
 /nextstrain_cli.egg-info/
 
-# mypy cache
-/.mypy_cache/
-
 # OS generated files #
 ######################
 .DS_Store

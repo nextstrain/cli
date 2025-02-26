@@ -217,7 +217,7 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         assert content_type == "application/x-tar", \
             f"unknown content-type for micromamba dist: {content_type}"
 
-        with tarfile.open(fileobj = response.raw, mode = "r|*") as tar: # type: ignore
+        with tarfile.open(fileobj = response.raw, mode = "r|*") as tar: # pyright: ignore[reportArgumentType, reportCallIssue]
             # Ignore archive members starting with "/" and or including ".." parts,
             # as these can be used (maliciously or accidentally) to overwrite
             # unintended files (e.g. files outside of MICROMAMBA_ROOT).

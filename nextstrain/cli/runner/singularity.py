@@ -95,7 +95,7 @@ from ..errors import UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
 from ..util import capture_output, colored, exec_or_return, split_image_name, warn
-from . import docker # type: ignore[no-redef] # for mypy
+from . import docker
 
 flatten = itertools.chain.from_iterable
 
@@ -142,8 +142,7 @@ SINGULARITY_CONFIG_ENV = {
     "SINGULARITYENV_PROMPT_COMMAND": "unset PROMPT_COMMAND; #",
 }
 
-# Not "… = lambda: [" due to mypy.  See commit history.
-def SINGULARITY_EXEC_ARGS(): return [
+SINGULARITY_EXEC_ARGS = lambda: [
     # Increase isolation.
     #
     # In the future, we may find we want to use additional related flags to

@@ -395,7 +395,7 @@ def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
     debug(f"Using {working_volume.src} as working ({working_volume.name}) volume")
 
     assert build_volume.src <= working_volume.src
-    assert docker.mount_point(build_volume) <= docker.mount_point(working_volume) # type: ignore[attr-defined] # for mypy
+    assert docker.mount_point(build_volume) <= docker.mount_point(working_volume)
 
     return build_volume, working_volume
 

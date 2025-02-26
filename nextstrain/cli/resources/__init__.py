@@ -17,7 +17,7 @@ import sys
 if sys.version_info >= (3, 11):
     from importlib.resources import files as _files, as_file as _as_file
 else:
-    from importlib_resources import files as _files, as_file as _as_file  # type: ignore[import]
+    from importlib_resources import files as _files, as_file as _as_file
 
 from pathlib import Path
 from typing import ContextManager

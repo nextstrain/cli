@@ -29,6 +29,17 @@ development source code and as such may not be routinely kept up to date.
   in a browser (if any).
   ([#417](https://github.com/nextstrain/cli/pull/417))
 
+## Development
+
+* Goodbye, Mypy!  We now use only Pyright for type checking.  Both type
+  checkers used to contribute to our development in their own way, but over
+  time Pyright's become more sophisticated and Mypy's required more workarounds
+  to appease it than issues it caught.  So long, and thanks for all the ~fish~
+  type checks!
+  ([#419][])
+
+[#419]: https://github.com/nextstrain/cli/pull/419
+
 
 # 8.5.4 (1 November 2024)
 

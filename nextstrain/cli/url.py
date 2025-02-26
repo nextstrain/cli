@@ -41,7 +41,7 @@ class URL(SplitResult):
     __slots__ = ()
 
     def __new__(cls, url: str) -> 'URL':
-        return super().__new__(cls, *urlsplit(url)) # type: ignore # for mypy
+        return super().__new__(cls, *urlsplit(url))
 
     # This is for the type checkers, which otherwise consider URL.__init__ to
     # have a signature based on SplitResult.__new__ instead of our own __new__.

@@ -153,15 +153,6 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # point to.  (They're probably unchanged, but ya never know.)
     stdio_isatty = all(os.isatty(fd) for fd in [0, 1, 2])
 
-    # The getuid()/getgid() functions are documented to be only available on
-    # Unix systems, not, for example, Windows.
-    #
-    # We use this weird getattr() construction in order to appease Mypy, which
-    # otherwise has trouble with platform-specific attributes on the "os"
-    # module.
-    uid = getattr(os, "getuid", lambda: None)()
-    gid = getattr(os, "getgid", lambda: None)()
-
     # If the image supports /nextstrain/env.d, then pass any env vars using it
     # so values aren't visible in the container's config (e.g. visible via
     # `docker inspect`).
@@ -209,7 +200,9 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         # On Unix (POSIX) systems, run the process in the container with the same
         # UID/GID so that file ownership is correct in the bind mount directories.
-        *(["--user=%d:%d" % (uid, gid)] if uid and gid else []),
+        # The getuid()/getgid() functions are documented to be only available on
+        # Unix systems, not, for example, Windows.
+        *(["--user=%d:%d" % (os.getuid(), os.getgid())] if os.name == "posix" else []),
 
         # Map directories to bind mount into the container.
         *["--volume=%s:%s:%s" % (v.src.resolve(strict = True), mount_point(v), "rw" if v.writable else "ro")

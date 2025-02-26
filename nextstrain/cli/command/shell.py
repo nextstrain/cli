@@ -62,7 +62,7 @@ def run(opts):
         # will always be small so some special-casing seems ok.
         #   -trs, 5 Jan 2023 (updated from 25 Sept 2018)
         for volume in opts.volumes:
-            print("  %s is from %s" % (docker.mount_point(volume), volume.src.resolve(strict = True))) # type: ignore
+            print("  %s is from %s" % (docker.mount_point(volume), volume.src.resolve(strict = True)))
 
         print()
 
@@ -95,7 +95,7 @@ def run(opts):
             opts.volumes.append(NamedVolume("bashrc", bashrc, dir = False, writable = False))
 
             history_volume = NamedVolume("bash_history", history_file, dir = False)
-            history_file = docker.mount_point(history_volume) # type: ignore[attr-defined] # for mypy
+            history_file = docker.mount_point(history_volume)
             opts.volumes.append(history_volume)
 
         extra_env = {

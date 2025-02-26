@@ -11,7 +11,7 @@ npx = which("npx")
 if pyright:
     pyright = [pyright]
 elif npx:
-    pyright = [npx, "pyright@<1.1.217 || >1.1.218"]
+    pyright = [npx, "pyright@>=1.1.396"]
 else:
     pyright = None
 

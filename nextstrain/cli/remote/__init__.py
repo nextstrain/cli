@@ -4,42 +4,13 @@ Remote destinations and sources for Nextstrain datasets and narratives.
 
 import os
 import re
-from typing import cast, Tuple, TYPE_CHECKING
+from typing import Tuple
 from ..errors import UserError
 from ..net import is_loopback
 from ..rst import doc_url
 from ..types import RemoteModule
 from ..url import URL
-from . import (
-    s3 as __s3,
-    nextstrain_dot_org as __nextstrain_dot_org,
-)
-
-
-# While PEP-0544 allows for modules to serve as implementations of Protocols¹,
-# Mypy doesn't currently support it².  Pyright does³, however, so we tell Mypy
-# to "trust us", but let Pyright actually check our work.  Mypy considers the
-# MYPY variable to always be True when evaluating the code, regardless of the
-# assignment below.
-#
-# This bit of type checking chicanery is not ideal, but the benefit of having
-# our module interfaces actually checked by Pyright is worth it.  In the
-# future, we should maybe ditch Mypy in favor of Pyright alone, but I didn't
-# want to put in the due diligence for a full switchover right now.
-#
-#   -trs, 12 August 2021
-#
-# ¹ https://www.python.org/dev/peps/pep-0544/#modules-as-implementations-of-protocols
-# ² https://github.com/python/mypy/issues/5018
-# ³ https://github.com/microsoft/pyright/issues/1341
-#
-MYPY = False
-if TYPE_CHECKING and MYPY:
-    s3 = cast(RemoteModule, __s3)
-    nextstrain_dot_org = cast(RemoteModule, __nextstrain_dot_org)
-else:
-    s3 = __s3
-    nextstrain_dot_org = __nextstrain_dot_org
+from . import s3, nextstrain_dot_org
 
 
 NEXTSTRAIN_DOT_ORG = os.environ.get("NEXTSTRAIN_DOT_ORG") \

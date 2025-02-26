@@ -20,6 +20,8 @@
   "reportSelfClsParameterName": true,
   "reportInvalidStubStatement": true,
   "reportIncompleteStub": true,
+  "reportUnnecessaryCast": true,
+  "reportUnnecessaryTypeIgnoreComment": true,
   "reportUnsupportedDunderAll": true,
   "strictParameterNoneValue": false
 }

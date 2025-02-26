@@ -24,8 +24,8 @@ Now test that you can run:
 
 The development environment includes our dev tools (described below):
 
-    pytest           # runs doctests as well as mypy and flake8
-    mypy -p nextstrain.cli
+    pytest           # runs doctests as well as pyright and flake8
+    pyright
     flake8
     make -C doc livehtml
 
@@ -147,12 +147,7 @@ catch errors earlier and be explicit about the interfaces expected and
 provided.  Annotation pairs well with the functional approach taken by the
 package.
 
-During development you can run static type checks using [mypy][]:
-
-    $ mypy nextstrain
-    # No output is good!
-
-and [pyright][]:
+During development you can run static type checks using [pyright][]:
 
     $ npx pyright
     ...
@@ -160,8 +155,7 @@ and [pyright][]:
     0 errors, 0 warnings, 0 infos
     Completed in 2sec
 
-There are also many [editor integrations for mypy][], and Pyright is integrated
-into VS Code's Python support.
+There are also many [editor integrations for Pyright][].
 
 The [`typing_extensions`][] module should be used for features not yet available
 in the the standard `typings` module of supported Python versions.
@@ -210,9 +204,8 @@ which may be helpful during development; see `--help` for details.
 [source distributions]: https://packaging.python.org/en/latest/glossary/#term-Source-Distribution
 [built distributions]: https://packaging.python.org/en/latest/glossary/#term-Built-Distribution
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
-[mypy]: http://mypy-lang.org/
 [pyright]: https://github.com/microsoft/pyright
-[editor integrations for mypy]: https://github.com/python/mypy#integrations
+[editor integrations for Pyright]: https://microsoft.github.io/pyright/#/installation
 [`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
 [post-release version]: https://peps.python.org/pep-0440/#post-releases

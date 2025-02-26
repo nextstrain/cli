@@ -38,7 +38,7 @@ class Session:
                 cls = CognitoSession
             else:
                 cls = OpenIDSession
-        return super().__new__(cls) # type: ignore
+        return super().__new__(cls) # pyright: ignore[reportArgumentType]
 
     def authenticate_with_password(self, username: str, password: str) -> None:
         raise NotImplementedError
