@@ -16,7 +16,8 @@ development source code and as such may not be routinely kept up to date.
 ## Improvements
 
 * `nextstrain version` now reports itself as "Nextstrain CLI" (instead of
-  "nextstrain.cli").
+  "nextstrain.cli") and indicates if it is a "standalone" installation
+  (self-contained, bundles Python) or not.
   ([#419][])
 
 ## Bug fixes
