@@ -57,6 +57,18 @@ class HelpFormatter(ArgumentDefaultsHelpFormatter):
         # Render to rST here so rST gets control over wrapping/line breaks.
         return rst_to_text(text, width).splitlines()
 
+    # Emit blank lines between arguments for better readability.  It might seem
+    # simpler to override _join_parts() instead, but that's called from two
+    # places and we only want to join on newlines for one of those places.
+    def add_arguments(self, actions):
+        for i, action in enumerate(actions):
+            if i != 0:
+                # Use " \n" to avoid a completely empty line (e.g. "\n") for
+                # the sake ShowBriefHelp.truncate_help()'s heuristic.
+                self._add_item(str, [" \n"])
+
+            self.add_argument(action)
+
 
 def register_default_command(parser):
     """

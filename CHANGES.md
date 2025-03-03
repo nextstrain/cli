@@ -26,6 +26,10 @@ development source code and as such may not be routinely kept up to date.
   non-empty value.
   ([#419][])
 
+* The readability of `--help` output is improved by the addition of blank lines
+  between argument/option descriptions.
+  ([#419][])
+
 ## Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain
