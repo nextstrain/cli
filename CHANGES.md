@@ -46,6 +46,13 @@ development source code and as such may not be routinely kept up to date.
   in a browser (if any).
   ([#417](https://github.com/nextstrain/cli/pull/417))
 
+* `nextstrain login` now correctly handles OAuth 2.0 authorization endpoint
+  URLs (which are obtained automatically from OpenID Connect 1.0 metadata
+  discovery) with existing query parameters in them.  This bug likely affected
+  approximately no one; logging into nextstrain.org was unaffected and all
+  known users of non-nextstrain.org remotes were also unaffected.
+  ([#419][])
+
 ## Development
 
 * Goodbye, Mypy!  We now use only Pyright for type checking.  Both type

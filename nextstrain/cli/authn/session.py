@@ -392,7 +392,7 @@ class OpenIDSession(Session):
         # The endpoint URI MAY include an "application/x-www-form-urlencoded"
         # formatted […] query component […], which MUST be retained when
         # adding additional query parameters.
-        auth_url = auth_endpoint._replace(query = auth_endpoint.query + query(auth_params))
+        auth_url = auth_endpoint._replace(query = auth_endpoint.query + (auth_endpoint.query and "&") + query(auth_params))
         assert auth_url.scheme == "https"
 
 
