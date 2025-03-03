@@ -210,7 +210,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
              if v.src is not None],
 
         # Change the default working directory if requested
-        *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
+        *(["--workdir=%s" % mount_point(working_volume)] if working_volume else []),
 
         # Pass thru any extra environment variables provided by us (not via an env.d)
         *["--env=%s" % name for name, value in extra_env.items() if value is not None],

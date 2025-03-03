@@ -266,7 +266,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
              if v.src is not None),
 
         # Change the default working directory if requested
-        *(("--pwd", "/nextstrain/%s" % working_volume.name) if working_volume else ()),
+        *(("--pwd", str(docker.mount_point(working_volume))) if working_volume else ()),
 
         str(image_path(image)),
         *argv,
