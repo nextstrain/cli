@@ -12,7 +12,7 @@ nextstrain version
 
 .. code-block:: none
 
-    usage: nextstrain version [-h] [--verbose]
+    usage: nextstrain version [-h] [--verbose] [--pathogens] [--runtimes]
 
 
 Prints the version of the Nextstrain CLI.
@@ -28,5 +28,13 @@ options
 
 .. option:: --verbose
 
-    Show versions of individual Nextstrain components in each runtime
+    Show versions of each runtime, plus select individual Nextstrain components within, and versions of each pathogen, including URLs
+
+.. option:: --pathogens
+
+    Show pathogen versions; implied by --verbose
+
+.. option:: --runtimes
+
+    Show runtime versions; implied by --verbose
 

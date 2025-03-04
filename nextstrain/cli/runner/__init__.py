@@ -23,15 +23,22 @@ all_runners: List[RunnerModule] = [
 
 all_runners_by_name = dict((runner_name(r), r) for r in all_runners)
 
-default_runner = docker
-configured_runner = config.get("core", "runner")
+def runner_defaults():
+    default_runner = docker
+    configured_runner = None
 
-if configured_runner:
-    try:
-        default_runner = runner_module(configured_runner)
-    except ValueError:
-        warn("WARNING: Default runner from config file (%s) is invalid.  Using %s.\n"
-            % (configured_runner, runner_name(default_runner)))
+    if configured := config.get("core", "runner"):
+        try:
+            configured_runner = runner_module(configured)
+        except ValueError:
+            warn("WARNING: Default runner from config file (%s) is invalid.  Using %s.\n"
+                % (configured, runner_name(default_runner)))
+        else:
+            default_runner = configured_runner
+
+    return default_runner, configured_runner
+
+default_runner, configured_runner = runner_defaults()
 
 
 RunnerExec: TypeAlias = List[Union[str, EllipsisType]]

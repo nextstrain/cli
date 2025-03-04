@@ -12,14 +12,17 @@ nextstrain update
 
 .. code-block:: none
 
-    usage: nextstrain update [-h] [<runtime>]
+    usage: nextstrain update [<pathogen-name>[@<version>] | <runtime-name> […]]
+           nextstrain update
+           nextstrain update --help
 
 
-Updates a Nextstrain runtime to the latest available version, if any.
+Updates Nextstrain pathogens and runtimes to the latest available versions, if any.
 
-The default runtime (docker) is updated when this command is run
-without arguments.  Provide a runtime name as an argument to update a specific
-runtime instead.
+When this command is run without arguments, the default version for each set up
+pathogen (none) and the default runtime (docker)
+are updated.  Provide one or more pathogens and/or runtimes as arguments to
+update a select list instead.
 
 Three runtimes currently support updates: Docker, Conda, and Singularity.
 Updates may take several minutes as new software versions are downloaded.
@@ -33,9 +36,19 @@ positional arguments
 
 
 
-.. option:: <runtime>
+.. option:: <pathogen>|<runtime>
 
-    The Nextstrain runtime to check. One of {docker, conda, singularity, ambient, aws-batch}. (default: docker)
+    The Nextstrain pathogens and/or runtimes to update.
+
+    A pathogen is the name (and optionally, version) of a previously
+    set up pathogen.  See :command-reference:`nextstrain setup`.  If no
+    version is specified, then the default version will be updated to
+    the latest available version.
+
+    A runtime is one of {docker, conda, singularity, ambient, aws-batch}.
+
+
+
 
 options
 =======
