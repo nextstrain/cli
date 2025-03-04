@@ -593,14 +593,14 @@ def glob_match(path: Union[str, Path, PurePath], patterns: Union[str, Sequence[s
 
 def setup_tests_ok(tests: SetupTestResults) -> bool:
     """
-    Returns True iff none of a runner's ``test_setup()`` results failed.
+    Returns True iff none of a runner's or pathogen's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
 
 
 def print_and_check_setup_tests(tests: SetupTestResults) -> bool:
     """
-    Iterates through and prints runner test results.
+    Iterates through and prints a runner's or pathogen's setup test results.
     Returns True if there are no failures.
     """
     success = partial(colored, "green")
@@ -692,6 +692,18 @@ def prose_list(iterable: Iterable[str], conjunction: str = "or") -> str:
         return ", ".join([*values[:-1], f"{conjunction} " + values[-1]])
     else:
         return f" {conjunction} ".join(values)
+
+
+def request_list(response: requests.Response, initial_indent = "    ", redirect_indent = "  ⮡ ") -> str:
+    """
+    Formats the requested URLs (including redirects) that led to *response* as
+    a multi-line text-snippet.
+
+    Intended for use in user-facing messages.
+    """
+    return "\n".join(
+        initial_indent + (redirect_indent * i) + r.url
+            for i, r in enumerate([*response.history, response]) )
 
 
 def parse_version_lax(version: str) -> 'LaxVersion':

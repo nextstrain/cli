@@ -44,6 +44,11 @@ from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F4
 __doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runner))
 
 
+# XXX TODO: Add support for checking pathogen setups too?  Not sure this makes
+# much sense.
+#   -trs, 3 March 2025
+
+
 def register_parser(subparser):
     """
     %(prog)s [--set-default] [<runtime> [<runtime> ...]]

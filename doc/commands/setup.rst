@@ -12,15 +12,24 @@ nextstrain setup
 
 .. code-block:: none
 
-    usage: nextstrain setup [-h] [--dry-run] [--force] [--set-default] <runtime>
+    usage: nextstrain setup [--dry-run] [--force] [--set-default] <pathogen-name>[@<version>[=<url>]]
+           nextstrain setup [--dry-run] [--force] [--set-default] <runtime-name>
+           nextstrain setup --help
 
 
-Sets up a Nextstrain runtime for use with `nextstrain build`, `nextstrain
-view`, etc.
+Sets up a Nextstrain pathogen for use with `nextstrain run` or a Nextstrain
+runtime for use with `nextstrain run`, `nextstrain build`, `nextstrain view`,
+etc.
 
-Only the Conda runtime currently supports automated set up, but this command
-may still be used with other runtimes to check an existing (manual) setup and
-set the runtime as the default on success.
+For pathogens, set up involves downloading a specific version of the pathogen's
+Nextstrain workflows.  By convention, this download is from Nextstrain's
+repositories.  More than one version of the same pathogen may be set up and
+used independently.  This can be useful for comparing analyses across workflow
+versions.  A default version can be set.
+
+For runtimes, only the Conda runtime currently supports fully-automated set up,
+but this command may still be used with other runtimes to check an existing
+(manual) setup and set the runtime as the default on success.
 
 Exits with an error code if automated set up fails or if setup checks fail.
 
@@ -29,9 +38,24 @@ positional arguments
 
 
 
-.. option:: <runtime>
+.. option:: <pathogen>|<runtime>
 
-    The Nextstrain runtime to set up. One of {docker, conda, singularity, ambient, aws-batch}.
+    The Nextstrain pathogen or runtime to set up.
+
+    A pathogen is usually the plain name of a Nextstrain-maintained
+    pathogen (e.g. ``measles``), optionally with an ``@<version>``
+    specifier (e.g. ``measles@v42``).  If ``<version>`` is specified in
+    this case, it must be a tag name (i.e. a release name), development
+    branch name, or a development commit id.
+
+    A pathogen may also be fully-specified as ``<name>@<version>=<url>``
+    where ``<name>`` and ``<version>`` in this case are (mostly)
+    arbitrary and ``<url>`` points to a ZIP file containing the
+    pathogen repository contents (e.g.
+    ``https://github.com/nextstrain/measles/zipball/83b446d67fc03de2ce1c72bb1345b4c4eace7231``).
+
+    A runtime is one of {docker, conda, singularity, ambient, aws-batch}.
+
 
 options
 =======
@@ -52,5 +76,5 @@ options
 
 .. option:: --set-default
 
-    Use the runtime as the default if set up is successful.
+    Use this pathogen version or runtime as the default if set up is successful.
 

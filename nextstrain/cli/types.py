@@ -6,7 +6,7 @@ import argparse
 import builtins
 import sys
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING, runtime_checkable
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
 
@@ -55,6 +55,7 @@ S3Bucket = Any
 S3Object = Any
 
 
+@runtime_checkable
 class RunnerModule(Protocol):
     @staticmethod
     def register_arguments(parser: argparse.ArgumentParser) -> None: ...
