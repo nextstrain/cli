@@ -1,1 +1,4 @@
 # Nextstrain CLI config file used in tests, via NEXTSTRAIN_HOME=tests/data/home/.
+
+[pathogen from-config]
+default_version = v1

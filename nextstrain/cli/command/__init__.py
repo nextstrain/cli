@@ -1,4 +1,5 @@
 from . import (
+    run,
     build,
     view,
     deploy,
@@ -25,6 +26,7 @@ from . import (
 # in various user interfaces, e.g. `nextstrain --help`.
 #
 all_commands = [
+    run,
     build,
     view,
     deploy,

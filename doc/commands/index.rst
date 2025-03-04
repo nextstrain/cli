@@ -14,7 +14,7 @@ nextstrain
 
 .. code-block:: none
 
-    usage: nextstrain [-h] {build,view,deploy,remote,shell,update,setup,check-setup,login,logout,whoami,version,init-shell,authorization,debugger} ...
+    usage: nextstrain [-h] {run,build,view,deploy,remote,shell,update,setup,check-setup,login,logout,whoami,version,init-shell,authorization,debugger} ...
 
 
 Nextstrain command-line interface (CLI)
@@ -41,6 +41,10 @@ commands
 
 
 
+.. option:: run
+
+    Run pathogen workflow. See :doc:`/commands/run`.
+
 .. option:: build
 
     Run pathogen build. See :doc:`/commands/build`.
@@ -63,11 +67,11 @@ commands
 
 .. option:: update
 
-    Update a runtime. See :doc:`/commands/update`.
+    Update a pathogen or runtime. See :doc:`/commands/update`.
 
 .. option:: setup
 
-    Set up a runtime. See :doc:`/commands/setup`.
+    Set up a pathogen or runtime. See :doc:`/commands/setup`.
 
 .. option:: check-setup
 

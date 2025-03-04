@@ -1,9 +1,10 @@
 """
-Updates a Nextstrain runtime to the latest available version, if any.
+Updates Nextstrain pathogens and runtimes to the latest available versions, if any.
 
-The default runtime ({default_runner_name}) is updated when this command is run
-without arguments.  Provide a runtime name as an argument to update a specific
-runtime instead.
+When this command is run without arguments, the default version for each set up
+pathogen ({default_pathogens}) and the default runtime ({default_runner_name})
+are updated.  Provide one or more pathogens and/or runtimes as arguments to
+update a select list instead.
 
 Three runtimes currently support updates: Docker, Conda, and Singularity.
 Updates may take several minutes as new software versions are downloaded.
@@ -12,28 +13,61 @@ This command also checks for newer versions of the Nextstrain CLI (the
 `nextstrain` program) itself and will suggest upgrade instructions if an
 upgrade is available.
 """
+
+import traceback
 from functools import partial
-from ..argparse import runner_module_argument, SKIP_AUTO_DEFAULT_IN_HELP
-from ..util import colored, check_for_new_version, runner_name
-from ..runner import all_runners_by_name, default_runner
+from textwrap import dedent, indent
+from typing import Callable, List, Tuple
+
+from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP
+from ..debug import DEBUGGING
+from ..errors import UserError
+from ..util import colored, check_for_new_version, prose_list, runner_name, warn
+from ..pathogens import every_pathogen_default_by_name, PathogenVersion
+from ..runner import all_runners_by_name, default_runner, runner_module
+from ..types import UpdateStatus
 
 
-__doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runner))
+# Intentionally re-instantiate PathogenVersion objects without a version in the
+# spec, for update().
+default_pathogens = [
+    PathogenVersion(name)
+        for name in every_pathogen_default_by_name().keys() ]
+
+__doc__ = (__doc__ or "").format(
+    default_pathogens = (
+        prose_list([f"``{p.name}``" for p in default_pathogens], "and")
+            if default_pathogens else
+        "none"
+    ),
+    default_runner_name = runner_name(default_runner),
+)
 
 
 def register_parser(subparser):
-    parser = subparser.add_parser("update", help = "Update a runtime")
+    """
+    %(prog)s [<pathogen-name>[@<version>] | <runtime-name> […]]
+    %(prog)s
+    %(prog)s --help
+    """
+    parser = subparser.add_parser("update", help = "Update a pathogen or runtime")
 
     parser.add_argument(
-        "runner",
-        help     = "The Nextstrain runtime to check. "
-                   f"One of {{{', '.join(all_runners_by_name)}}}. "
-                   f"(default: {runner_name(default_runner)})"
-                   f"{SKIP_AUTO_DEFAULT_IN_HELP}",
-        metavar  = "<runtime>",
-        nargs    = "?",
-        type     = runner_module_argument,
-        default  = default_runner)
+        "args",
+        help = dedent(f"""\
+            The Nextstrain pathogens and/or runtimes to update.
+
+            A pathogen is the name (and optionally, version) of a previously
+            set up pathogen.  See :command-reference:`nextstrain setup`.  If no
+            version is specified, then the default version will be updated to
+            the latest available version.
+
+            A runtime is one of {{{', '.join(all_runners_by_name)}}}.
+
+            {SKIP_AUTO_DEFAULT_IN_HELP}
+            """),
+        metavar = "<pathogen>|<runtime>",
+        nargs   = "*")
 
     return parser
 
@@ -44,31 +78,88 @@ def run(opts):
     failure = partial(colored, "red")
     notice  = partial(colored, "yellow")
 
+    updates: List[Tuple[Callable[[], UpdateStatus], str]] = []
+
+    if opts.args:
+        for arg in opts.args:
+            try:
+                runner = runner_module(arg)
+            except ValueError as e1:
+                try:
+                    pathogen = PathogenVersion(arg)
+                except Exception as e2:
+                    raise UserError(f"""
+                        Unable to update {arg!r}.
+
+                        It's not a valid runtime:
+
+                        {{e1}}
+
+                        nor pathogen:
+
+                        {{e2}}
+
+                        as specified.  Double check your spelling and syntax?
+                        """, e1 = indent(str(e1), "    "), e2 = indent(str(e2), "    "))
+                else:
+                    if pathogen.spec.version:
+                        updates += [(pathogen.update, f"{pathogen} pathogen version")]
+                    else:
+                        updates += [(pathogen.update, f"{pathogen.name} pathogen default version")]
+            else:
+                updates += [(runner.update, f"{runner_name(runner)} runtime")]
+    else:
+        # Pathogen default versions and default runtime.
+        updates = [(p.update, f"{p.name} pathogen default version") for p in default_pathogens] \
+                + [(default_runner.update, f"{runner_name(default_runner)} default runtime")]
+
     # Check our own version for updates
     print(heading(f"Checking for newer versions of Nextstrain CLI…"))
     print()
     newer_version = check_for_new_version()
 
-    # Perform update
-    print(heading(f"Updating {runner_name(opts.runner)} runtime…"))
-    ok = opts.runner.update()
+    # Perform updates
+    if not updates:
+        print("Nothing to update!")
+        return 0
+
+    oks: List[UpdateStatus] = []
+
+    for update, description in updates:
+        print(heading(f"Updating {description}…"))
+
+        try:
+            ok = update()
+        except Exception as err:
+            ok = False
+
+            if str(err):
+                warn(str(err))
+            if DEBUGGING:
+                traceback.print_exc()
+
+        oks.append(ok)
+
+        if ok:
+            print(success(f"Updated {description}!"))
+        else:
+            if ok is None:
+                print(failure(f"Updating {description} is unsupported."))
+            else:
+                print(failure(f"Updating {description} failed!"))
+        print()
 
     # Print overall status
-    if ok:
-        print()
-        print(success("Runtime updated!"))
+    if all(oks):
+        print(success("All updates successful!"))
         if newer_version:
             print()
             print(notice("…but consider upgrading Nextstrain CLI too, as noted above."))
     else:
-        print()
-        if ok is None:
-            print(failure("Runtime doesn't support updating."))
-        else:
-            print(failure("Updating failed!"))
+        print(failure("Some updates failed!  See above for details."))
         if newer_version:
             print()
             print(notice("Maybe upgrading Nextstrain CLI, as noted above, will help?"))
 
     # Return a 1 or 0 exit code
-    return int(not ok)
+    return int(not all(oks))
