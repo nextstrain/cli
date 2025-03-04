@@ -30,6 +30,16 @@ development source code and as such may not be routinely kept up to date.
   between argument/option descriptions.
   ([#419][])
 
+* AWS Batch builds now support development overlays such as [`--augur`][] and
+  [`--auspice`][].  To use this functionality, you'll need at least
+  `nextstrain/base:build-20250304T041009Z` or newer of the Nextstrain Docker
+  runtime image.  Compatibility of the runtime image is checked automatically
+  when overlays are used with AWS Batch.
+  ([#419][])
+
+[`--augur`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-augur
+[`--auspice`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-auspice
+
 ## Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain

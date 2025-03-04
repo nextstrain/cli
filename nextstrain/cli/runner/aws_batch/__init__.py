@@ -164,7 +164,14 @@ def register_arguments(parser) -> None:
 
 
 def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None, memory: int = None) -> int:
+    docker.assert_volumes_exist(opts.volumes)
+
+    # "build" is a special-cased volume for AWS Batch, as /nextstrain/build is
+    # the fixed initial working directory and what we'll populate by extracting
+    # a ZIP file.
     build_volume = next((v for v in opts.volumes if v and v.name == "build"), None)
+
+    opts.volumes = [v for v in opts.volumes if v is not build_volume]
 
     # Unlike other runners, the AWS Batch runner currently *requires* a working
     # dir in most usages.  This is ok as we only provide the AWS Batch runner
@@ -213,8 +220,11 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         # Upload workdir to S3 so it can be fetched at the start of the Batch job.
         print_stage("Uploading %s to S3" % local_workdir)
 
+        for volume in opts.volumes:
+            print("      and %s as %s" % (volume.src.resolve(strict = True), volume.name))
+
         bucket = s3.bucket(opts.s3_bucket)
-        remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id, opts.exclude_from_upload)
+        remote_workdir = s3.upload_workdir(local_workdir, bucket, run_id, opts.exclude_from_upload, opts.volumes)
 
         print("uploaded:", s3.object_url(remote_workdir))
 

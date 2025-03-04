@@ -9,7 +9,7 @@ from functools import partial
 from importlib.metadata import distribution as distribution_info, PackageNotFoundError
 from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, Union, overload
 from packaging.version import parse as parse_version
-from pathlib import Path
+from pathlib import Path, PurePath
 from shlex import quote as shquote
 from shutil import which
 from textwrap import dedent, indent
@@ -553,7 +553,7 @@ def split_image_name(name: str, implicit_latest: bool = True) -> Tuple[str, Opti
     return (repository, tag)
 
 
-def glob_matcher(patterns: Sequence[str], *, root: Path = None) -> Callable[[Union[str, Path]], bool]:
+def glob_matcher(patterns: Sequence[str], *, root: Path = None) -> Callable[[Union[str, Path, PurePath]], bool]:
     """
     Generate a function which matches a string or path-like object against the
     list of Bash-like glob *patterns*.
@@ -563,13 +563,13 @@ def glob_matcher(patterns: Sequence[str], *, root: Path = None) -> Callable[[Uni
 
     See :func:`glob_match` for supported pattern features.
     """
-    def matcher(path: Union[str, Path]) -> bool:
+    def matcher(path: Union[str, Path, PurePath]) -> bool:
         return glob_match(path, patterns, root = root)
 
     return matcher
 
 
-def glob_match(path: Union[str, Path], patterns: Union[str, Sequence[str]], *, root: Path = None) -> bool:
+def glob_match(path: Union[str, Path, PurePath], patterns: Union[str, Sequence[str]], *, root: Path = None) -> bool:
     """
     Test if *path* matches any of the glob *patterns*.
 

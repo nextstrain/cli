@@ -112,6 +112,10 @@ class IMAGE_FEATURE(Enum):
     # /nextstrain/env.d support first present.
     envd = "build-20230613T204512Z"
 
+    # AWS Batch: support for volume overlays (i.e. ../ in archive members and
+    # file overwriting) in ZIP extraction.
+    aws_batch_overlays = "build-20250304T041009Z"
+
 
 def register_arguments(parser) -> None:
     # Docker development options
