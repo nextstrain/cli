@@ -19,6 +19,20 @@ from .debug import debug
 from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
 
 
+NO_COLOR = bool(
+    # <https://no-color.org>
+    os.environ.get("NO_COLOR")
+
+    or
+
+    # XXX TODO: This assumes our return value is being printed to stdout.
+    # That's true for all callers currently but may not always be.  Rather than
+    # fix it properly, move away from our colored() function to the rich
+    # library instead.
+    #   -trs, 4 March 2025
+    not sys.stdout.isatty())
+
+
 def warn(*args):
     print(*args, file = sys.stderr)
 
@@ -27,6 +41,8 @@ def colored(color, text):
     """
     Returns a string of text suitable for colored output on a terminal.
     """
+    if NO_COLOR:
+        return text
 
     # These magic numbers are standard ANSI terminal escape codes for
     # formatting text.

@@ -20,6 +20,12 @@ development source code and as such may not be routinely kept up to date.
   (self-contained, bundles Python) or not.
   ([#419][])
 
+* Colorized and bolded output is disabled when stdout is not attached to a
+  terminal (e.g. is redirected to a file, piped to another program, etc.) or
+  when the [`NO_COLOR` environment variable](https://no-color.org) is set to a
+  non-empty value.
+  ([#419][])
+
 ## Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain
