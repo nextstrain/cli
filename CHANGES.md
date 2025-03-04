@@ -53,6 +53,12 @@ development source code and as such may not be routinely kept up to date.
   known users of non-nextstrain.org remotes were also unaffected.
   ([#419][])
 
+* File timestamps for results files downloaded from an AWS Batch build are now
+  correctly restored even if the expected extraction path differs from the
+  actual extraction path due to ZIP security precautions.  This bug likely
+  affected approximately no one.
+  ([#419][])
+
 ## Development
 
 * Goodbye, Mypy!  We now use only Pyright for type checking.  Both type

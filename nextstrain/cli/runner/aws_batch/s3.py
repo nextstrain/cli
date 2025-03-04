@@ -152,13 +152,13 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
                     if member.CRC != crc32(workdir / path):
                         print("unzipping:", workdir / path)
 
-                        zipfile.extract(member, str(workdir))
+                        extracted = zipfile.extract(member, str(workdir))
 
                         # Update atime and mtime from the zip member; it's a
                         # bit boggling that .extract() doesn't handle this,
                         # even optionally.
                         mtime = zipinfo_mtime(member)
-                        utime(str(workdir / path), (mtime, mtime))
+                        utime(extracted, (mtime, mtime))
 
 
 def walk(path: Path, excluded: PathMatcher = lambda x: False) -> Generator[Path, None, None]:
