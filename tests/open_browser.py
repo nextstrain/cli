@@ -9,6 +9,7 @@ state in each function.
 import multiprocessing
 import os
 import pytest
+from nextstrain.cli.command.view import open_browser
 
 if os.name != "posix":
     pytest.skip("@pytest.mark.forked requires a POSIX platform", allow_module_level = True)
@@ -17,18 +18,10 @@ if os.name != "posix":
 @pytest.mark.forked
 def pytest_open_browser_fork():
     multiprocessing.set_start_method("fork")
-    _open_browser()
+    assert open_browser("https://nextstrain.org")
 
 
 @pytest.mark.forked
 def pytest_open_browser_spawn():
     multiprocessing.set_start_method("spawn")
-    _open_browser()
-
-
-def _open_browser():
-    # Must do this early, before nextstrain.cli.command.view is loaded
-    os.environ["BROWSER"] = "echo"
-
-    from nextstrain.cli.command.view import open_browser
     assert open_browser("https://nextstrain.org")

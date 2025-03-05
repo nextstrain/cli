@@ -53,6 +53,9 @@ development source code and as such may not be routinely kept up to date.
   local user's personal config and data.
   ([#419][])
 
+* Running tests no longer opens a browser. \o/
+  ([#419][])
+
 [#419]: https://github.com/nextstrain/cli/pull/419
 
 

@@ -4,3 +4,6 @@
 
 export NEXTSTRAIN_RST_STRICT=1
 export NEXTSTRAIN_HOME=tests/data/home/
+
+# Must do this early, before nextstrain.cli.command.view is loaded
+export BROWSER=echo
