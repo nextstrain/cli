@@ -694,7 +694,7 @@ def prose_list(iterable: Iterable[str], conjunction: str = "or") -> str:
         return f" {conjunction} ".join(values)
 
 
-def parse_version_lax(version: str) -> Version:
+def parse_version_lax(version: str) -> 'LaxVersion':
     """
     Parse *version* into a PEP-440-compliant :cls:`Version` object, by hook or
     by crook.  Dubbed "lax" because a non-compliant *version* will not raise an
@@ -724,7 +724,7 @@ def parse_version_lax(version: str) -> Version:
     True
     """
     try:
-        return Version(version)
+        return LaxVersion(version, compliant = True)
     except InvalidVersion:
         # Per PEP-440
         #
@@ -753,4 +753,30 @@ def parse_version_lax(version: str) -> Version:
 
         as_local_segment = lambda v: replace_invalid_with_separators(remove_invalid_start_end_chars(v))
 
-        return Version(f"0.dev0+{as_local_segment(version)}")
+        return LaxVersion(f"0.dev0+{as_local_segment(version)}", compliant = False, original = version)
+
+
+class LaxVersion(Version):
+    """
+    A :cls:`Version` object produced by :func:`parse_version_lax`, with some
+    additional attributes to preserve parse-time information.
+    """
+
+    compliant: bool
+    """
+    Whether :func:`parse_version_lax` found the version string
+    PEP-440-compliant or not (i.e. whether it had to munge it or not).
+    """
+
+    original: str
+    """
+    The original version string that was parsed by :func:`parse_version_lax`.
+
+    Useful even for :attr:`.compliant` versions, as stringification will return
+    a normalized representation that may not string compare identically.
+    """
+
+    def __init__(self, version: str, *, compliant: bool, original: str = None):
+        super().__init__(version)
+        self.compliant = compliant
+        self.original = original if original is not None else version
