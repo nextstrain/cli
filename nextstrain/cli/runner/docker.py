@@ -88,7 +88,7 @@ from .. import config, env
 from ..errors import UserError
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name, test_rosetta_enabled
-from ..volume import store_volume, NamedVolume
+from ..volume import NamedVolume
 from ..__version__ import __version__
 
 
@@ -119,25 +119,8 @@ class IMAGE_FEATURE(Enum):
 
 def register_arguments(parser) -> None:
     # Docker development options
-    #
-    # XXX TODO: Consider prefixing all of these with --docker-* at some point,
-    # depending on how other image-based runners (like Singularity) pan out.
-    # For now, I think it's better to do nothing than to prospectively rename.
-    # Renaming means maintaining the old names as deprecated alternatives for a
-    # while anyway, so we might as well just keep using what we have until
-    # we're forced to change.
-    #   -trs, 15 August 2018
     development = parser.add_argument_group(
         "development options for --docker")
-
-    development.set_defaults(volumes = [])
-
-    for name in COMPONENTS:
-        development.add_argument(
-            "--" + name,
-            help    = "Replace the image's copy of %s with a local copy" % name,
-            metavar = "<dir>",
-            action  = store_volume(name))
 
     development.set_defaults(docker_args = [])
     development.add_argument(

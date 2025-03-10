@@ -10,7 +10,7 @@ from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
 from ..types import EllipsisType, Env, Options, RunnerModule
 from ..util import prose_list, runner_name, runner_module, runner_help, warn
-from ..volume import NamedVolume
+from ..volume import store_volume, NamedVolume
 
 
 all_runners: List[RunnerModule] = [
@@ -155,6 +155,15 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
                   f"(default: %(default)s for Docker and AWS Batch, {singularity.DEFAULT_IMAGE} for Singularity)",
         metavar = "<image>",
         default = docker.DEFAULT_IMAGE)
+
+    development.set_defaults(volumes = [])
+
+    for name in docker.COMPONENTS:
+        development.add_argument(
+            "--" + name,
+            help    = "Replace the image's copy of %s with a local copy" % name,
+            metavar = "<dir>",
+            action  = store_volume(name))
 
     # Program to execute
     #
