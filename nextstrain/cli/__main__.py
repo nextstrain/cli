@@ -13,8 +13,8 @@ def main():
     # rest of the codebase.  Avoids needing to instruct folks to set
     # PYTHONIOENCODING=UTF-8 or use Python's UTF-8 mode (-X utf8 or
     # PYTHONUTF8=1).
-    reconfigure_stdio(sys.stdout) # type: ignore[arg-type]
-    reconfigure_stdio(sys.stderr) # type: ignore[arg-type]
+    reconfigure_stdio(sys.stdout) # pyright: ignore[reportArgumentType]
+    reconfigure_stdio(sys.stderr) # pyright: ignore[reportArgumentType]
 
     return cli.run( argv[1:] )
 

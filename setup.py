@@ -127,12 +127,17 @@ setup(
         # error described in https://github.com/fsspec/s3fs/issues/790
         "fsspec !=2023.9.1",
         "s3fs[boto3] >=2021.04.0, !=2023.9.1",
+
+        # From 2.0.0 onwards, urllib3 is better typed, but not usable (given
+        # our dep tree) on 3.8 and 3.9 so we use types-urllib3 there (see
+        # below).
+        "urllib3 >=2.0.0; python_version >= '3.10'",
     ],
 
     extras_require = {
         "dev": [
+            "cram >=0.7",
             "flake8 >=4.0.0",
-            "mypy <1.6",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
@@ -144,9 +149,10 @@ setup(
             "sphinx_rtd_theme",
             "types-boto3",
             "types-botocore",
-            "types-docutils",
-            "types-setuptools",
-            "types-requests",
+
+            # Only necessary for urllib3 <2.0.0, which we only have to use on
+            # Python 3.8 and 3.9.
+            "types-urllib3; python_version < '3.10'"
         ],
     },
 )

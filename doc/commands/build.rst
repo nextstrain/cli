@@ -210,15 +210,6 @@ These should generally be unnecessary unless you're developing Nextstrain.
 
     Container image name to use for the Nextstrain runtime (default: nextstrain/base for Docker and AWS Batch, docker://nextstrain/base for Singularity)
 
-.. option:: --exec <prog>
-
-    Program to run inside the runtime
-
-development options for --docker
-================================
-
-
-
 .. option:: --augur <dir>
 
     Replace the image's copy of augur with a local copy
@@ -231,9 +222,14 @@ development options for --docker
 
     Replace the image's copy of fauna with a local copy
 
-.. option:: --sacra <dir>
+.. option:: --exec <prog>
 
-    Replace the image's copy of sacra with a local copy
+    Program to run inside the runtime
+
+development options for --docker
+================================
+
+
 
 .. option:: --docker-arg ...
 

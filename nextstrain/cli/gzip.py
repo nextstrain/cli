@@ -115,7 +115,7 @@ class GzipDecompressingWriter(BufferedIOBase):
     def writable(self):
         return True
 
-    def write(self, data: bytes): # type: ignore[override]
+    def write(self, data: bytes): # pyright: ignore[reportIncompatibleMethodOverride]
         assert self.stream and self.__gunzip
         return self.stream.write(self.__gunzip.decompress(data))
 

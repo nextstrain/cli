@@ -13,6 +13,46 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release contains a **potentially-breaking change** for any usages of the
+`--sacra` option, though we expect no one is using it.  The change is described
+below.
+
+## Improvements
+
+* `nextstrain version` now reports itself as "Nextstrain CLI" (instead of
+  "nextstrain.cli") and indicates if it is a "standalone" installation
+  (self-contained, bundles Python) or not.
+  ([#419][])
+
+* Colorized and bolded output is disabled when stdout is not attached to a
+  terminal (e.g. is redirected to a file, piped to another program, etc.) or
+  when the [`NO_COLOR` environment variable](https://no-color.org) is set to a
+  non-empty value.
+  ([#419][])
+
+* The readability of `--help` output is improved by the addition of blank lines
+  between argument/option descriptions.
+  ([#419][])
+
+* AWS Batch builds now support development overlays such as [`--augur`][] and
+  [`--auspice`][].  To use this functionality, you'll need at least
+  `nextstrain/base:build-20250304T041009Z` or newer of the Nextstrain Docker
+  runtime image.  Compatibility of the runtime image is checked automatically
+  when overlays are used with AWS Batch.
+  ([#419][])
+
+[`--augur`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-augur
+[`--auspice`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-auspice
+
+* The `--sacra` option, intended for use during development, is no longer
+  supported by `nextstrain build`, `nextstrain view`, or `nextstrain shell`.
+  [Sacra](https://github.com/nextstrain/sacra), long-defunct and never used,
+  was removed from the Nextstrain runtime image itself over 4 years ago (first
+  absent in `nextstrain/base:build-20201213T084302Z`, last present in
+  `nextstrain/base:build-20201212T165623Z`).  This is technically a
+  **potentially-breaking change**, although almost certainly affects no one.
+  ([#419][])
+
 ## Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain
@@ -28,6 +68,41 @@ development source code and as such may not be routinely kept up to date.
 * `nextstrain view` now correctly handles IPv6 host addresses in the URL opened
   in a browser (if any).
   ([#417](https://github.com/nextstrain/cli/pull/417))
+
+* `nextstrain login` now correctly handles OAuth 2.0 authorization endpoint
+  URLs (which are obtained automatically from OpenID Connect 1.0 metadata
+  discovery) with existing query parameters in them.  This bug likely affected
+  approximately no one; logging into nextstrain.org was unaffected and all
+  known users of non-nextstrain.org remotes were also unaffected.
+  ([#419][])
+
+* File timestamps for results files downloaded from an AWS Batch build are now
+  correctly restored even if the expected extraction path differs from the
+  actual extraction path due to ZIP security precautions.  This bug likely
+  affected approximately no one.
+  ([#419][])
+
+## Development
+
+* Goodbye, Mypy!  We now use only Pyright for type checking.  Both type
+  checkers used to contribute to our development in their own way, but over
+  time Pyright's become more sophisticated and Mypy's required more workarounds
+  to appease it than issues it caught.  So long, and thanks for all the ~fish~
+  type checks!
+  ([#419][])
+
+* [Cram](https://bitheap.org/cram/) test files are now supported, with one
+  example file for now.
+  ([#419][])
+
+* `NEXTSTRAIN_HOME` is now set for tests so as to avoid interference with the
+  local user's personal config and data.
+  ([#419][])
+
+* Running tests no longer opens a browser. \o/
+  ([#419][])
+
+[#419]: https://github.com/nextstrain/cli/pull/419
 
 
 # 8.5.4 (1 November 2024)

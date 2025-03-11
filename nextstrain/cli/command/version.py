@@ -5,9 +5,8 @@ Prints the version of the Nextstrain CLI.
 import sys
 from textwrap import indent
 from ..__version__ import __version__
-from .. import __package__ as __top_package__
 from ..runner import all_runners, default_runner
-from ..util import runner_name
+from ..util import runner_name, standalone_installation
 
 def register_parser(subparser):
     parser = subparser.add_parser("version", help = "Show version information")
@@ -21,7 +20,7 @@ def register_parser(subparser):
 
 
 def run(opts):
-    print(__top_package__, __version__)
+    print("Nextstrain CLI", __version__, "(standalone)" if standalone_installation() else "")
 
     if opts.verbose:
         print()

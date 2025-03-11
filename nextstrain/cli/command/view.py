@@ -404,8 +404,8 @@ def resolve(host: str, port: str) -> Tuple[str, int]:
     ip4 = [a for a in addrs if a.family is AF_INET]
     ip6 = [a for a in addrs if a.family is AF_INET6]
 
-    return ((ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 # type: ignore
-      else  (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6 # type: ignore
+    return ((ip4[0].sockaddr[0], ip4[0].sockaddr[1]) if ip4 # pyright: ignore[reportReturnType]
+      else  (ip6[0].sockaddr[0], ip6[0].sockaddr[1]) if ip6
       else  (str(host), int(port)))
 
 

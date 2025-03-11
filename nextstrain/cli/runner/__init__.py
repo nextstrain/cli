@@ -1,54 +1,16 @@
 import argparse
 import os
 from argparse import ArgumentParser, ArgumentTypeError
-from typing import cast, List, Union, TYPE_CHECKING
+from typing import List, Union
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
-from . import (
-    docker as __docker,
-    conda as __conda,
-    singularity as __singularity,
-    ambient as __ambient,
-    aws_batch as __aws_batch,
-)
+from . import docker, conda, singularity, ambient, aws_batch
 from .. import config, env, hostenv
 from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..errors import UserError
 from ..types import EllipsisType, Env, Options, RunnerModule
 from ..util import prose_list, runner_name, runner_module, runner_help, warn
-from ..volume import NamedVolume
-
-
-# While PEP-0544 allows for modules to serve as implementations of Protocols¹,
-# Mypy doesn't currently support it².  Pyright does³, however, so we tell Mypy
-# to "trust us", but let Pyright actually check our work.  Mypy considers the
-# MYPY variable to always be True when evaluating the code, regardless of the
-# assignment below.
-#
-# This bit of type checking chicanery is not ideal, but the benefit of having
-# our module interfaces actually checked by Pyright is worth it.  In the
-# future, we should maybe ditch Mypy in favor of Pyright alone, but I didn't
-# want to put in the due diligence for a full switchover right now.
-#
-#   -trs, 12 August 2021
-#
-# ¹ https://www.python.org/dev/peps/pep-0544/#modules-as-implementations-of-protocols
-# ² https://github.com/python/mypy/issues/5018
-# ³ https://github.com/microsoft/pyright/issues/1341
-#
-MYPY = False
-if TYPE_CHECKING and MYPY:
-    docker = cast(RunnerModule, __docker)
-    conda = cast(RunnerModule, __conda)
-    singularity = cast(RunnerModule, __singularity)
-    ambient = cast(RunnerModule, __ambient)
-    aws_batch = cast(RunnerModule, __aws_batch)
-else:
-    docker = __docker
-    conda = __conda
-    singularity = __singularity
-    ambient = __ambient
-    aws_batch = __aws_batch
+from ..volume import store_volume, NamedVolume
 
 
 all_runners: List[RunnerModule] = [
@@ -189,10 +151,19 @@ def register_arguments(parser: ArgumentParser, runners: List[RunnerModule], exec
     # Image to use; shared by Docker, AWS Batch, and Singularity runners
     development.add_argument(
         "--image",
-        help    = "Container image name to use for the Nextstrain runtime "                                         # type: ignore
-                  f"(default: %(default)s for Docker and AWS Batch, {singularity.DEFAULT_IMAGE} for Singularity)",  # type: ignore
+        help    = "Container image name to use for the Nextstrain runtime "
+                  f"(default: %(default)s for Docker and AWS Batch, {singularity.DEFAULT_IMAGE} for Singularity)",
         metavar = "<image>",
-        default = docker.DEFAULT_IMAGE) # type: ignore
+        default = docker.DEFAULT_IMAGE)
+
+    development.set_defaults(volumes = [])
+
+    for name in docker.COMPONENTS:
+        development.add_argument(
+            "--" + name,
+            help    = "Replace the image's copy of %s with a local copy" % name,
+            metavar = "<dir>",
+            action  = store_volume(name))
 
     # Program to execute
     #
@@ -246,7 +217,7 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
         )
     ]
 
-    if (opts.image is not docker.DEFAULT_IMAGE # type: ignore
+    if (opts.image is not docker.DEFAULT_IMAGE
     and opts.__runner__ in {conda, ambient}):
         why_runner = "the configured default" if default_runner in {conda, ambient} else f"selected by --{runner_name(opts.__runner__)}"
         raise UserError(f"""
@@ -263,8 +234,8 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
 
     # Account for potentially different defaults for --image depending on the
     # selected runner.
-    if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE: # type: ignore
-        opts.image = singularity.DEFAULT_IMAGE # type: ignore
+    if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE:
+        opts.image = singularity.DEFAULT_IMAGE
 
     if envdirs := os.environ.get("NEXTSTRAIN_RUNTIME_ENVDIRS"):
         try:

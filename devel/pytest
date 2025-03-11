@@ -4,4 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 set -x
-NEXTSTRAIN_RST_STRICT=1 pytest "$@"
+source tests/env
+exec pytest "$@"

@@ -44,7 +44,7 @@ def resolve_host(host: str, family: AddressFamily = AF_UNSPEC) -> Set[Union[IPv4
     # ¹ See <https://github.com/python/cpython/issues/60412>
     #   and <https://github.com/python/cpython/issues/128546>.
     return {
-        ip_address(getnameinfo(sockaddr, NI_NUMERICHOST)[0]) # type: ignore
+        ip_address(getnameinfo(sockaddr, NI_NUMERICHOST)[0]) # pyright: ignore[reportArgumentType]
             for _, _, _, _, sockaddr
              in getaddrinfo(host, None, family = family)
              if isinstance(sockaddr[0], str)

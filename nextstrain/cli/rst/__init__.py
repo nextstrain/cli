@@ -18,11 +18,11 @@ import docutils.readers.standalone
 import docutils.transforms
 import os
 import re
-from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree   # type: ignore
+from docutils.core import publish_string as convert_rst_to_string, publish_doctree as convert_rst_to_doctree
 from docutils.parsers.rst import Directive
 from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import register_local_role
-from docutils.utils import unescape                         # type: ignore
+from docutils.utils import unescape
 from ..__version__ import __version__ as cli_version
 from ..util import remove_suffix
 from .sphinx import TextWriter

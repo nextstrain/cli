@@ -5,21 +5,24 @@ S3 handling for AWS Batch jobs.
 import binascii
 import boto3
 import fsspec
+import os.path
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
-from pathlib import Path
+from pathlib import Path, PurePath
 from time import struct_time
-from typing import Callable, Generator, Iterable, List, Optional, Any
+from typing import Callable, Generator, Iterable, List, Optional, Any, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ... import env
+from ...debug import DEBUGGING
 from ...types import Env, S3Bucket, S3Object
 from ...util import glob_matcher
+from ...volume import NamedVolume
 
 
-PathMatcher = Callable[[Path], bool]
+PathMatcher = Callable[[Union[Path, PurePath]], bool]
 
 
 def object_url(object: S3Object) -> str:
@@ -38,10 +41,10 @@ def object_from_url(s3url: str) -> S3Object:
     return bucket(url.netloc).Object(key)
 
 
-def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str, patterns: List[str] = None) -> S3Object:
+def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str, patterns: List[str] = None, volumes: List[NamedVolume] = []) -> S3Object:
     """
-    Upload a ZIP archive of the local *workdir* to the remote S3 *bucket* for
-    the given *run_id*.
+    Upload a ZIP archive of the local *workdir* (and optional *volumes*) to the
+    remote S3 *bucket* for the given *run_id*.
 
     An optional list of *patterns* (shell-style advanced globs) can be passed
     to selectively exclude part of the local *workdir* from being uploaded.
@@ -80,8 +83,23 @@ def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str, patterns: List[
     with fsspec.open(object_url(remote_workdir), "wb", auto_mkdir = False) as remote_file:
         with ZipFile(remote_file, "w") as zipfile:
             for path in walk(workdir, excluded):
-                print("zipping:", path)
-                zipfile.write(str(path), str(path.relative_to(workdir)))
+                dst = path.relative_to(workdir)
+                print(f"zipping: {path}" + (f" (as {dst})" if DEBUGGING else ""))
+                zipfile.write(str(path), dst)
+
+            for volume in volumes:
+                # XXX TODO: Use the "walk_up" argument to Path.relative_to()
+                # once we require Python 3.12.
+                #   -trs, 10 Feb 2025
+                try:
+                    prefix = PurePath(volume.name).relative_to("build")
+                except ValueError:
+                    prefix = PurePath("..", volume.name)
+
+                for path in walk(volume.src, always_excluded):
+                    dst = prefix / path.relative_to(volume.src)
+                    print(f"zipping: {path}" + (f" (as {dst})" if DEBUGGING else ""))
+                    zipfile.write(str(path), dst)
 
     return remote_workdir
 
@@ -138,9 +156,19 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
 
         # …and extract its contents to the workdir.
         with ZipFile(remote_file) as zipfile:
-            for member in zipfile.infolist():
-                path = Path(member.filename)
+            # Completely ignore archive members with unsafe paths (absolute or
+            # upwards-traversing) instead of relying on zipfile.extract()'s
+            # default of munging them to be "safe".  Munging seems more
+            # confusing than skipping, and skipping is essential in the case of
+            # additional volumes being uploaded in the workdir initially.
+            safe_members = [
+                (filename, member)
+                    for filename, member
+                     in ((PurePath(m.filename), m) for m in zipfile.infolist())
+                     if not filename.is_absolute()
+                    and os.path.pardir not in filename.parts ]
 
+            for path, member in safe_members:
                 # Inclusions negate exclusions but aren't an exhaustive
                 # list of what is included.
                 if selected(path) and (included(path) or not excluded(path)):
@@ -152,13 +180,13 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
                     if member.CRC != crc32(workdir / path):
                         print("unzipping:", workdir / path)
 
-                        zipfile.extract(member, str(workdir))
+                        extracted = zipfile.extract(member, str(workdir))
 
                         # Update atime and mtime from the zip member; it's a
                         # bit boggling that .extract() doesn't handle this,
                         # even optionally.
                         mtime = zipinfo_mtime(member)
-                        utime(str(workdir / path), (mtime, mtime))
+                        utime(extracted, (mtime, mtime))
 
 
 def walk(path: Path, excluded: PathMatcher = lambda x: False) -> Generator[Path, None, None]:
@@ -179,7 +207,7 @@ def path_matcher(patterns: Iterable[str]) -> PathMatcher:
     Generate a function which matches a Path object against the list of glob
     *patterns*.
     """
-    def matches(path: Path) -> bool:
+    def matches(path: Union[Path, PurePath]) -> bool:
         return any(map(path.match, patterns))
 
     return matches

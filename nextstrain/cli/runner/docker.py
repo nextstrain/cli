@@ -88,7 +88,7 @@ from .. import config, env
 from ..errors import UserError
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerTestResultStatus, RunnerUpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, split_image_name, test_rosetta_enabled
-from ..volume import store_volume, NamedVolume
+from ..volume import NamedVolume
 from ..__version__ import __version__
 
 
@@ -100,7 +100,7 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
              or config.get("docker", "image") \
              or "nextstrain/base"
 
-COMPONENTS = ["augur", "auspice", "fauna", "sacra"]
+COMPONENTS = ["augur", "auspice", "fauna"]
 
 
 class IMAGE_FEATURE(Enum):
@@ -112,28 +112,15 @@ class IMAGE_FEATURE(Enum):
     # /nextstrain/env.d support first present.
     envd = "build-20230613T204512Z"
 
+    # AWS Batch: support for volume overlays (i.e. ../ in archive members and
+    # file overwriting) in ZIP extraction.
+    aws_batch_overlays = "build-20250304T041009Z"
+
 
 def register_arguments(parser) -> None:
     # Docker development options
-    #
-    # XXX TODO: Consider prefixing all of these with --docker-* at some point,
-    # depending on how other image-based runners (like Singularity) pan out.
-    # For now, I think it's better to do nothing than to prospectively rename.
-    # Renaming means maintaining the old names as deprecated alternatives for a
-    # while anyway, so we might as well just keep using what we have until
-    # we're forced to change.
-    #   -trs, 15 August 2018
     development = parser.add_argument_group(
         "development options for --docker")
-
-    development.set_defaults(volumes = [])
-
-    for name in COMPONENTS:
-        development.add_argument(
-            "--" + name,
-            help    = "Replace the image's copy of %s with a local copy" % name,
-            metavar = "<dir>",
-            action  = store_volume(name))
 
     development.set_defaults(docker_args = [])
     development.add_argument(
@@ -152,15 +139,6 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # care about; not whatever the Python sys.stdin/stdout/stderr filehandles
     # point to.  (They're probably unchanged, but ya never know.)
     stdio_isatty = all(os.isatty(fd) for fd in [0, 1, 2])
-
-    # The getuid()/getgid() functions are documented to be only available on
-    # Unix systems, not, for example, Windows.
-    #
-    # We use this weird getattr() construction in order to appease Mypy, which
-    # otherwise has trouble with platform-specific attributes on the "os"
-    # module.
-    uid = getattr(os, "getuid", lambda: None)()
-    gid = getattr(os, "getgid", lambda: None)()
 
     # If the image supports /nextstrain/env.d, then pass any env vars using it
     # so values aren't visible in the container's config (e.g. visible via
@@ -209,7 +187,9 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
         # On Unix (POSIX) systems, run the process in the container with the same
         # UID/GID so that file ownership is correct in the bind mount directories.
-        *(["--user=%d:%d" % (uid, gid)] if uid and gid else []),
+        # The getuid()/getgid() functions are documented to be only available on
+        # Unix systems, not, for example, Windows.
+        *(["--user=%d:%d" % (os.getuid(), os.getgid())] if os.name == "posix" else []),
 
         # Map directories to bind mount into the container.
         *["--volume=%s:%s:%s" % (v.src.resolve(strict = True), mount_point(v), "rw" if v.writable else "ro")
@@ -217,7 +197,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
              if v.src is not None],
 
         # Change the default working directory if requested
-        *(["--workdir=/nextstrain/%s" % working_volume.name] if working_volume else []),
+        *(["--workdir=%s" % mount_point(working_volume)] if working_volume else []),
 
         # Pass thru any extra environment variables provided by us (not via an env.d)
         *["--env=%s" % name for name, value in extra_env.items() if value is not None],

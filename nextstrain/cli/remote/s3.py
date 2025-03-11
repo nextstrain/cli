@@ -95,7 +95,7 @@ def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable
             meta = { "ContentType": content_type, "ContentEncoding": "gzip" }
         else:
             # Already compressed; don't compress it again.
-            data = local_file.open("rb")                    # type: ignore
+            data = local_file.open("rb")
             meta = { "ContentType": encoding_type }
 
         with data:

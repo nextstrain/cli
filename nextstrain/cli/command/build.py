@@ -24,8 +24,8 @@ from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..debug import debug
 from ..errors import UsageError, UserError
-from ..runner import docker, singularity
-from ..util import byte_quantity, runner_name, warn
+from ..runner import docker, singularity, aws_batch
+from ..util import byte_quantity, runner_name, split_image_name, warn
 from ..volume import NamedVolume
 
 
@@ -306,10 +306,36 @@ def assert_overlay_volumes_support(opts):
     """
     overlay_volumes = opts.volumes
 
-    if overlay_volumes and opts.__runner__ not in {docker, singularity}:
+    if not overlay_volumes:
+        return
+
+    if opts.__runner__ not in {docker, singularity, aws_batch}:
         raise UserError(f"""
             The {runner_name(opts.__runner__)} runtime does not support overlays (e.g. of {overlay_volumes[0].name}).
-            Use the Docker or Singularity runtimes (via --docker or --singularity) if overlays are necessary.
+            Use the Docker, Singularity, or AWS Batch runtimes (via --docker,
+            --singularity, or --aws-batch) if overlays are necessary.
+            """)
+
+    if opts.__runner__ is aws_batch and not docker.image_supports(docker.IMAGE_FEATURE.aws_batch_overlays, opts.image):
+        raise UserError(f"""
+            The Nextstrain runtime image version in use
+
+                {opts.image}
+
+            is too old to support overlays (e.g. of {overlay_volumes[0].name}) with AWS Batch.
+
+            If overlays are necessary, please use at least version
+
+                {split_image_name(opts.image)[0]}:{docker.IMAGE_FEATURE.aws_batch_overlays.value}
+
+            of the runtime image.  The image used by AWS Batch can be changed
+            using the --image option, the NEXTSTRAIN_DOCKER_IMAGE environment
+            variable, or, if you also use the Docker runtime, by running
+            `nextstrain update docker`.
+
+            Alternatively, instead of AWS Batch you may use the Docker or
+            Singularity runtime (via --docker or --singularity) which always
+            support overlays regardless of image version.
             """)
 
 
@@ -395,7 +421,7 @@ def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
     debug(f"Using {working_volume.src} as working ({working_volume.name}) volume")
 
     assert build_volume.src <= working_volume.src
-    assert docker.mount_point(build_volume) <= docker.mount_point(working_volume) # type: ignore[attr-defined] # for mypy
+    assert docker.mount_point(build_volume) <= docker.mount_point(working_volume)
 
     return build_volume, working_volume
 

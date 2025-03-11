@@ -1,0 +1,9 @@
+#!/bin/bash
+# Shebang is not strictly necessary—we only source this file—but it lets our
+# GitHub Action for ShellCheck to find it properly.
+
+export NEXTSTRAIN_RST_STRICT=1
+export NEXTSTRAIN_HOME=tests/data/home/
+
+# Must do this early, before nextstrain.cli.command.view is loaded
+export BROWSER=echo

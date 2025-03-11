@@ -240,7 +240,7 @@ def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable
                 try:
                     response = http.put(
                         endpoint,
-                        data = data, # type: ignore
+                        data = data,
                         headers = {
                             "Content-Type": media_type,
                             "Content-Encoding": "gzip" })
@@ -803,7 +803,7 @@ class auth(requests.auth.AuthBase):
             request.headers["Authorization"] = self.user.http_authorization
 
             # Used in error handling for more informative error messages
-            request._user = self.user # type: ignore
+            request._user = self.user # pyright: ignore[reportAttributeAccessIssue]
 
         return request
 
@@ -852,7 +852,7 @@ def raise_for_status(origin: Origin, response: requests.Response) -> None:
 
         elif status in {401, 403}:
             try:
-                user = response.request._user # type: ignore
+                user = response.request._user # pyright: ignore[reportAttributeAccessIssue]
             except AttributeError:
                 user = None
 

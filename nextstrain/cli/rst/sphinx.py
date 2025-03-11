@@ -71,7 +71,7 @@ class SphinxTranslator(nodes.NodeVisitor):
                 method(node)
                 break
         else:
-            super().dispatch_visit(node) # type: ignore
+            super().dispatch_visit(node)
 
     def dispatch_departure(self, node: Node) -> None:
         """
@@ -88,7 +88,7 @@ class SphinxTranslator(nodes.NodeVisitor):
                 method(node)
                 break
         else:
-            super().dispatch_departure(node) # type: ignore
+            super().dispatch_departure(node)
 
 
 # Originally from sphinx/writers/text.py (version 4.3.2)
