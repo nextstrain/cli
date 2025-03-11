@@ -15,10 +15,9 @@ import sys
 import traceback
 from argparse import ArgumentParser, Action, SUPPRESS
 from textwrap import dedent
-from types    import SimpleNamespace
 
 from .argparse    import HelpFormatter, register_commands, register_default_command
-from .command     import all_commands, version
+from .command     import all_commands
 from .debug       import DEBUGGING
 from .errors      import NextstrainCliError, UsageError
 from .util        import warn
@@ -87,8 +86,11 @@ def register_version_alias(parser):
 
     class run_version_command(Action):
         def __call__(self, *args, **kwargs):
-            opts = SimpleNamespace(verbose = False)
-            sys.exit( version.run(opts) )
+            # Go thru parse_args() rather than creating an opts Namespace
+            # ourselves and passing it directly to version.run() so that the
+            # version command's options pick up their normal defaults.
+            opts = parser.parse_args(["version"])
+            sys.exit( opts.__command__.run(opts) )
 
     parser.add_argument(
         "--version",
