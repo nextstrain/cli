@@ -159,10 +159,6 @@ These should generally be unnecessary unless you're developing Nextstrain.
 
     Replace the image's copy of fauna with a local copy
 
-.. option:: --sacra <dir>
-
-    Replace the image's copy of sacra with a local copy
-
 .. option:: --exec <prog>
 
     Program to run inside the runtime

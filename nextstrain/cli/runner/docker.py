@@ -100,7 +100,7 @@ DEFAULT_IMAGE = os.environ.get("NEXTSTRAIN_DOCKER_IMAGE") \
              or config.get("docker", "image") \
              or "nextstrain/base"
 
-COMPONENTS = ["augur", "auspice", "fauna", "sacra"]
+COMPONENTS = ["augur", "auspice", "fauna"]
 
 
 class IMAGE_FEATURE(Enum):

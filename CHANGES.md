@@ -13,6 +13,10 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release contains a **potentially-breaking change** for any usages of the
+`--sacra` option, though we expect no one is using it.  The change is described
+below.
+
 ## Improvements
 
 * `nextstrain version` now reports itself as "Nextstrain CLI" (instead of
@@ -39,6 +43,15 @@ development source code and as such may not be routinely kept up to date.
 
 [`--augur`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-augur
 [`--auspice`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-auspice
+
+* The `--sacra` option, intended for use during development, is no longer
+  supported by `nextstrain build`, `nextstrain view`, or `nextstrain shell`.
+  [Sacra](https://github.com/nextstrain/sacra), long-defunct and never used,
+  was removed from the Nextstrain runtime image itself over 4 years ago (first
+  absent in `nextstrain/base:build-20201213T084302Z`, last present in
+  `nextstrain/base:build-20201212T165623Z`).  This is technically a
+  **potentially-breaking change**, although almost certainly affects no one.
+  ([#419][])
 
 ## Bug fixes
 
