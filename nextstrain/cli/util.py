@@ -598,10 +598,12 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     return False not in [result for test, result in tests]
 
 
-def print_runner_tests(tests: RunnerTestResults):
+def stream_and_print_results(tests: RunnerTestResults) -> RunnerTestResults:
     """
-    Prints a formatted version of the return value of a runner's
-    ``test_setup()``.
+    Iterates through and prints runner test results while streaming them
+    forward.
+
+    Messages will only be printed if the generator is consumed downstream.
     """
     success = partial(colored, "green")
     failure = partial(colored, "red")
@@ -627,6 +629,8 @@ def print_runner_tests(tests: RunnerTestResults):
             remove_prefix("  ", indent(description, "  "))
 
         print(status.get(result, str(result)) + ":", formatted_description)
+
+        yield (description, result)
 
 
 def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:

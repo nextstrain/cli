@@ -333,14 +333,14 @@ def test_setup() -> RunnerTestResults:
         else:
             return True
 
-    return [
-        ("singularity is installed",
-            shutil.which("singularity") is not None),
-        (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION} ({APPTAINER_MINIMUM_VERSION} for Apptainer)",
-            singularity_version_at_least(SINGULARITY_MINIMUM_VERSION, apptainer=APPTAINER_MINIMUM_VERSION)),
-        ("singularity works",
-            test_run()),
-    ]
+    yield ("singularity is installed",
+            shutil.which("singularity") is not None)
+
+    yield (f"singularity version {singularity_version()} ≥ {SINGULARITY_MINIMUM_VERSION} ({APPTAINER_MINIMUM_VERSION} for Apptainer)",
+             singularity_version_at_least(SINGULARITY_MINIMUM_VERSION, apptainer=APPTAINER_MINIMUM_VERSION))
+
+    yield ("singularity works",
+            test_run())
 
 
 def set_default_config() -> None:
