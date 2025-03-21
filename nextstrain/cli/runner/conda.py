@@ -62,6 +62,8 @@ Environment variables
 
 .. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
 
+    .. XXX FIXME for channel alias/conda mirror
+
     Version of Micromamba to use for setup and upgrade of the Conda runtime
     env.  Must be a version available from the `conda-forge channel
     <https://anaconda.org/conda-forge/micromamba/>`__, or the special string
@@ -202,6 +204,8 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         return False
 
     assert dist, f"unable to find micromamba dist"
+
+    # XXX FIXME: for channel alias/conda mirror; switch to using full_name
 
     # download_url is scheme-less, so add our preferred scheme but in a way
     # that won't break if it starts including a scheme later.
@@ -571,6 +575,7 @@ def package_version(spec: str) -> str:
     build   = meta.get("build",   "unknown")
     channel = meta.get("channel", "unknown")
 
+    # XXX FIXME for channel alias/conda mirror
     anaconda_channel = re.search(r'^https://conda[.]anaconda[.]org/(?P<repo>.+?)/(?:linux|osx)-64$', channel)
 
     if anaconda_channel:
@@ -600,6 +605,7 @@ def package_distribution(channel: str, package: str, version: str = None, label:
                  "\nUsing 'latest' version instead, which will be the latest version of the package regardless of label.")
             version = "latest"
 
+    # XXX FIXME: for channel alias/conda mirror
     response = requests.get(f"https://api.anaconda.org/release/{urlquote(channel)}/{urlquote(package)}/{urlquote(version)}")
     response.raise_for_status()
 
@@ -631,6 +637,7 @@ def package_name(spec: str) -> str:
 
 
 def latest_package_label_version(channel: str, package: str, label: str) -> Optional[str]:
+    # XXX FIXME: for channel alias/conda mirror
     response = requests.get(f"https://api.anaconda.org/package/{urlquote(channel)}/{urlquote(package)}/files")
     response.raise_for_status()
 
