@@ -36,10 +36,10 @@ below.
 
 * AWS Batch builds now support development overlays such as [`--augur`][] and
   [`--auspice`][].  To use this functionality, you'll need at least
-  `nextstrain/base:build-20250304T041009Z` or newer of the Nextstrain Docker
+  `nextstrain/base:build-20250321T184358Z` or newer of the Nextstrain Docker
   runtime image.  Compatibility of the runtime image is checked automatically
   when overlays are used with AWS Batch.
-  ([#419][])
+  ([#419][], [#423](https://github.com/nextstrain/cli/pull/423))
 
 [`--augur`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-augur
 [`--auspice`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-auspice
