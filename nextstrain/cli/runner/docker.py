@@ -114,7 +114,7 @@ class IMAGE_FEATURE(Enum):
 
     # AWS Batch: support for volume overlays (i.e. ../ in archive members and
     # file overwriting) in ZIP extraction.
-    aws_batch_overlays = "build-20250304T041009Z"
+    aws_batch_overlays = "build-20250321T184358Z"
 
 
 def register_arguments(parser) -> None:
