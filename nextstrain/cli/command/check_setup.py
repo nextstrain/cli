@@ -38,7 +38,7 @@ from functools import partial
 from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
-from ..util import colored, check_for_new_version, runner_name, runner_tests_ok, passthru_and_print_runner_tests
+from ..util import colored, check_for_new_version, runner_name, print_and_check_runner_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
@@ -98,9 +98,9 @@ def run(opts: Options) -> int:
     for runner, tests in runner_tests:
         print(colored("blue", "#"), "Checking %s…" % (runner_name(runner)))
 
-        tests = passthru_and_print_runner_tests(tests)
+        ok = print_and_check_runner_tests(tests)
 
-        if runner_tests_ok(tests):
+        if ok:
             supported = success("supported")
             supported_runners.append(runner)
         else:

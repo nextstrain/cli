@@ -598,12 +598,10 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     return False not in [result for test, result in tests]
 
 
-def passthru_and_print_runner_tests(tests: RunnerTestResults) -> RunnerTestResults:
+def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
     """
-    Iterates through and prints runner test results while streaming them
-    forward.
-
-    Messages will only be printed if the generator is consumed downstream.
+    Iterates through and prints runner test results.
+    Returns True if there are no failures.
     """
     success = partial(colored, "green")
     failure = partial(colored, "red")
@@ -622,15 +620,19 @@ def passthru_and_print_runner_tests(tests: RunnerTestResults) -> RunnerTestResul
         ...:   unknown("? unknown"),
     }
 
+    results = []
+
     for description, result in tests:
         # Indent subsequent lines of any multi-line descriptions so it
         # lines up under the status marker.
         formatted_description = \
             remove_prefix("  ", indent(description, "  "))
 
-        yield (description, result)
+        results.append((description, result))
 
         print(status.get(result, str(result)) + ":", formatted_description)
+
+    return runner_tests_ok(results)
 
 
 def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
