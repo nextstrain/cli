@@ -420,32 +420,29 @@ def test_setup() -> RunnerTestResults:
             return False
 
 
-    support = test_support()
+    support = list(test_support())
+
+    yield from support
 
     if not runner_tests_ok(support):
-        return support
+        return
 
-    if not PREFIX_BIN.exists():
-        return [
-            *support,
-            ("runtime appears set up\n\n"
-             "The Conda runtime appears supported but not yet set up.\n"
-             "Try running `nextstrain setup conda` first.", False),
-        ]
+    elif not PREFIX_BIN.exists():
+        yield ("runtime appears set up\n\n"
+               "The Conda runtime appears supported but not yet set up.\n"
+               "Try running `nextstrain setup conda` first.", False)
 
-    return [
-        *support,
-        ("runtime appears set up", True),
+    else:
+        yield ("runtime appears set up", True)
 
-        ('snakemake is installed and runnable',
-            which_finds_our("snakemake") and runnable("snakemake", "--version")),
+        yield ('snakemake is installed and runnable',
+                which_finds_our("snakemake") and runnable("snakemake", "--version"))
 
-        ('augur is installed and runnable',
-            which_finds_our("augur") and runnable("augur", "--version")),
+        yield ('augur is installed and runnable',
+                which_finds_our("augur") and runnable("augur", "--version"))
 
-        ('auspice is installed and runnable',
-            which_finds_our("auspice") and runnable("auspice", "--version")),
-    ]
+        yield ('auspice is installed and runnable',
+                which_finds_our("auspice") and runnable("auspice", "--version"))
 
 
 def test_support() -> RunnerTestResults:
@@ -467,15 +464,13 @@ def test_support() -> RunnerTestResults:
         else:
             return False
 
-    return [
-        ('operating system is supported',
-            supported_os()),
+    yield ('operating system is supported',
+            supported_os())
 
-        *test_rosetta_enabled(),
+    yield from test_rosetta_enabled()
 
-        ("runtime data dir doesn't have spaces",
-            " " not in str(RUNTIME_ROOT)),
-    ]
+    yield ("runtime data dir doesn't have spaces",
+            " " not in str(RUNTIME_ROOT))
 
 
 def set_default_config() -> None:

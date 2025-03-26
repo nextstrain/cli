@@ -598,10 +598,10 @@ def runner_tests_ok(tests: RunnerTestResults) -> bool:
     return False not in [result for test, result in tests]
 
 
-def print_runner_tests(tests: RunnerTestResults):
+def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
     """
-    Prints a formatted version of the return value of a runner's
-    ``test_setup()``.
+    Iterates through and prints runner test results.
+    Returns True if there are no failures.
     """
     success = partial(colored, "green")
     failure = partial(colored, "red")
@@ -620,13 +620,19 @@ def print_runner_tests(tests: RunnerTestResults):
         ...:   unknown("? unknown"),
     }
 
+    results = []
+
     for description, result in tests:
         # Indent subsequent lines of any multi-line descriptions so it
         # lines up under the status marker.
         formatted_description = \
             remove_prefix("  ", indent(description, "  "))
 
+        results.append((description, result))
+
         print(status.get(result, str(result)) + ":", formatted_description)
+
+    return runner_tests_ok(results)
 
 
 def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
@@ -635,7 +641,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     systems.
     """
     if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
-        return []
+        return
 
     status: RunnerTestResultStatus = ... # unknown
 
@@ -667,7 +673,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     else:
         status = True
 
-    return [(msg, status)]
+    yield (msg, status)
 
 
 # Copied without modification from lib/id3c/api/utils/__init__.py in the ID3C
