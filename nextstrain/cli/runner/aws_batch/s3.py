@@ -188,6 +188,15 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
                         mtime = zipinfo_mtime(member)
                         utime(extracted, (mtime, mtime))
 
+                        # XXX TODO: Preserve/restore Unix mode (e.g. executable
+                        # bit).  Currently not handled by this routine, though
+                        # we could if need be; see nextstrain/cli/pathogens.py
+                        # for an example.  It doesn't seem necessary for
+                        # pathogen builds, however, as 1) we've gone this long
+                        # without it and 2) pathogen workflows aren't producing
+                        # executables as their primary output.
+                        #   -trs, 10 Feb 2025
+
 
 def walk(path: Path, excluded: PathMatcher = lambda x: False) -> Generator[Path, None, None]:
     """

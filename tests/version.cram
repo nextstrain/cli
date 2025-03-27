@@ -2,10 +2,18 @@ Cram setup.
 
     $ source "$TESTDIR"/env
 
-Version.
+Version command.
 
     $ nextstrain version
     Nextstrain CLI [0-9]+[.][0-9]+[.][0-9]+\S*  (re)
 
     $ python3 -Xnextstrain-cli-is-standalone -m nextstrain.cli version
+    Nextstrain CLI [0-9]+[.][0-9]+[.][0-9]+\S* \(standalone\) (re)
+
+Conventional --version flag.
+
+    $ nextstrain --version
+    Nextstrain CLI [0-9]+[.][0-9]+[.][0-9]+\S*  (re)
+
+    $ python3 -Xnextstrain-cli-is-standalone -m nextstrain.cli --version
     Nextstrain CLI [0-9]+[.][0-9]+[.][0-9]+\S* \(standalone\) (re)
