@@ -171,10 +171,47 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
 
 def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    """
+    The runner's setup function.
+    """
+    # We accept a package match spec, which one to three space-separated parts.¹
+    # If we got a spec, then we use it as-is.
+    #
+    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
+    #
+    if " " in NEXTSTRAIN_BASE.strip():
+        spec = NEXTSTRAIN_BASE
+    else:
+        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
+
+        if latest_version:
+            spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
+        else:
+            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
+
+            spec = NEXTSTRAIN_BASE
+    
+    return setup_spec(spec, dry_run, force)
+
+
+def setup_spec(spec: str, dry_run: bool, force: bool) -> RunnerSetupStatus:
+    """
+    Set up using a package match spec.
+    """
     if not setup_micromamba(dry_run, force):
         return False
 
-    if not setup_prefix(dry_run, force):
+    if not force and (PREFIX_BIN / "augur").exists():
+        print(f"Using existing Conda packages in {PREFIX}.")
+        print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
+        return True
+
+    if PREFIX.exists():
+        print(f"Removing existing directory {PREFIX} to start fresh…")
+        if not dry_run:
+            shutil.rmtree(str(PREFIX))
+
+    if not create_environment(spec, dry_run):
         return False
 
     return True
@@ -235,44 +272,16 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
+def create_environment(spec: str, dry_run: bool) -> bool:
     """
-    Install Conda packages with Micromamba into our ``PREFIX``.
+    Create a Conda environment at ``PREFIX``.
     """
-    if not force and (PREFIX_BIN / "augur").exists():
-        print(f"Using existing Conda packages in {PREFIX}.")
-        print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
-        return True
-
-    if PREFIX.exists():
-        print(f"Removing existing directory {PREFIX} to start fresh…")
-        if not dry_run:
-            shutil.rmtree(str(PREFIX))
-
-    # We accept a package match spec, which one to three space-separated parts.¹
-    # If we got a spec, then we use it as-is.
-    #
-    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
-    #
-    if " " in NEXTSTRAIN_BASE.strip():
-        install_spec = NEXTSTRAIN_BASE
-    else:
-        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
-
-        if latest_version:
-            install_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
-        else:
-            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
-
-            install_spec = NEXTSTRAIN_BASE
-
-    # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
-    print(f"  - {install_spec}")
+    print(f"  - {spec}")
 
     if not dry_run:
         try:
-            micromamba("create", install_spec)
+            micromamba("create", spec)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
