@@ -79,6 +79,7 @@ import shutil
 import subprocess
 import tarfile
 import traceback
+from enum import Enum
 from functools import partial
 from packaging.version import Version, InvalidVersion
 from pathlib import Path, PurePosixPath
@@ -138,6 +139,22 @@ EXEC_ENV = {
     "PYTHONUSERBASE": str(PYTHONUSERBASE),
     "PYTHONNOUSERSITE": "1",
 }
+
+
+class VERSION_FEATURE(Enum):
+    # First version published to the osx-arm64 channel.
+    osx_arm64 = "20250203T212457Z"
+
+
+def version_supports(feature: VERSION_FEATURE, version: str) -> bool:
+    """
+    Test if the given *version* supports a *feature*, i.e. by tag comparison
+    against the feature's first release.
+
+    If *version* is empty, it is assumed to have support for all features.
+    """
+    return version == "" \
+        or version >= feature.value
 
 
 def register_arguments(parser) -> None:
@@ -524,6 +541,13 @@ def update() -> RunnerUpdateStatus:
     print(f"Updating Conda packages in {PREFIX}…")
     print(f"  - {update_spec}")
 
+    if osx_arm64_emulated():
+        requested_version = PackageSpec.parse(update_spec).version_spec or ""
+    
+        if version_supports(VERSION_FEATURE.osx_arm64, requested_version):
+            print("Updating to a version optimized for Apple silicon by recreating the runtime. This make take some time.")
+            return setup_spec(update_spec, dry_run=False, force=True)
+
     try:
         micromamba("update", update_spec)
     except InternalError as err:
@@ -724,3 +748,17 @@ class PackageSpec(NamedTuple):
                 return PackageSpec(parts[0], parts[1], None)
             except IndexError:
                 return PackageSpec(parts[0], None, None)
+
+
+def osx_arm64_emulated() -> bool:
+    """
+    Returns ``True`` if the machine is Apple silicon and the installed subdir is
+    osx-64, indicating use of emulation.
+    """
+    machine = platform.machine()
+    system = platform.system()
+
+    meta = package_meta(NEXTSTRAIN_BASE) or {}
+    installed_subdir = meta.get("subdir", "unknown")
+
+    return (system, machine) == ("Darwin", "arm64") and installed_subdir == "osx-64"
