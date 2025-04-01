@@ -79,6 +79,7 @@ import shutil
 import subprocess
 import tarfile
 import traceback
+from enum import Enum
 from functools import partial
 from packaging.version import Version, InvalidVersion
 from pathlib import Path, PurePosixPath
@@ -87,7 +88,7 @@ from urllib.parse import urljoin, quote as urlquote
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerSetupStatus, RunnerTestResults, RunnerUpdateStatus
-from ..util import capture_output, colored, exec_or_return, runner_tests_ok, test_rosetta_enabled, warn
+from ..util import capture_output, colored, exec_or_return, runner_tests_ok, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -140,6 +141,22 @@ EXEC_ENV = {
 }
 
 
+class VERSION_FEATURE(Enum):
+    # First version published to the osx-arm64 channel.
+    osx_arm64 = "20250203T212457Z"
+
+
+def version_supports(feature: VERSION_FEATURE, version: str) -> bool:
+    """
+    Test if the given *version* supports a *feature*, i.e. by tag comparison
+    against the feature's first release.
+
+    If *version* is empty, it is assumed to have support for all features.
+    """
+    return version == "" \
+        or version >= feature.value
+
+
 def register_arguments(parser) -> None:
     """
     No-op.  No arguments necessary.
@@ -171,10 +188,47 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
 
 def setup(dry_run: bool = False, force: bool = False) -> RunnerSetupStatus:
+    """
+    The runner's setup function.
+    """
+    # We accept a package match spec, which one to three space-separated parts.¹
+    # If we got a spec, then we use it as-is.
+    #
+    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
+    #
+    if " " in NEXTSTRAIN_BASE.strip():
+        spec = NEXTSTRAIN_BASE
+    else:
+        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
+
+        if latest_version:
+            spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
+        else:
+            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
+
+            spec = NEXTSTRAIN_BASE
+    
+    return setup_spec(spec, dry_run, force)
+
+
+def setup_spec(spec: str, dry_run: bool, force: bool) -> RunnerSetupStatus:
+    """
+    Set up using a package match spec.
+    """
     if not setup_micromamba(dry_run, force):
         return False
 
-    if not setup_prefix(dry_run, force):
+    if not force and (PREFIX_BIN / "augur").exists():
+        print(f"Using existing Conda packages in {PREFIX}.")
+        print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
+        return True
+
+    if PREFIX.exists():
+        print(f"Removing existing directory {PREFIX} to start fresh…")
+        if not dry_run:
+            shutil.rmtree(str(PREFIX))
+
+    if not create_environment(spec, dry_run):
         return False
 
     return True
@@ -235,44 +289,16 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
+def create_environment(spec: str, dry_run: bool) -> bool:
     """
-    Install Conda packages with Micromamba into our ``PREFIX``.
+    Create a Conda environment at ``PREFIX``.
     """
-    if not force and (PREFIX_BIN / "augur").exists():
-        print(f"Using existing Conda packages in {PREFIX}.")
-        print(f"  Hint: if you want to ignore this existing installation, re-run `nextstrain setup` with --force.")
-        return True
-
-    if PREFIX.exists():
-        print(f"Removing existing directory {PREFIX} to start fresh…")
-        if not dry_run:
-            shutil.rmtree(str(PREFIX))
-
-    # We accept a package match spec, which one to three space-separated parts.¹
-    # If we got a spec, then we use it as-is.
-    #
-    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
-    #
-    if " " in NEXTSTRAIN_BASE.strip():
-        install_spec = NEXTSTRAIN_BASE
-    else:
-        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
-
-        if latest_version:
-            install_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
-        else:
-            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
-
-            install_spec = NEXTSTRAIN_BASE
-
-    # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
-    print(f"  - {install_spec}")
+    print(f"  - {spec}")
 
     if not dry_run:
         try:
-            micromamba("create", install_spec)
+            micromamba("create", spec)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
@@ -453,9 +479,6 @@ def test_support() -> RunnerTestResults:
         if system == "Linux":
             return machine == "x86_64"
 
-        # Note even on arm64 (e.g. aarch64, Apple Silicon M1) we use x86_64
-        # binaries because of current ecosystem compatibility, but Rosetta will
-        # make it work.
         elif system == "Darwin":
             return machine in {"x86_64", "arm64"}
 
@@ -466,8 +489,6 @@ def test_support() -> RunnerTestResults:
 
     yield ('operating system is supported',
             supported_os())
-
-    yield from test_rosetta_enabled()
 
     yield ("runtime data dir doesn't have spaces",
             " " not in str(RUNTIME_ROOT))
@@ -519,6 +540,13 @@ def update() -> RunnerUpdateStatus:
     print()
     print(f"Updating Conda packages in {PREFIX}…")
     print(f"  - {update_spec}")
+
+    if osx_arm64_emulated():
+        requested_version = PackageSpec.parse(update_spec).version_spec or ""
+    
+        if version_supports(VERSION_FEATURE.osx_arm64, requested_version):
+            print("Updating to a version optimized for Apple silicon by recreating the runtime. This make take some time.")
+            return setup_spec(update_spec, dry_run=False, force=True)
 
     try:
         micromamba("update", update_spec)
@@ -605,9 +633,10 @@ def package_distribution(channel: str, package: str, version: str = None, label:
 
     if (system, machine) == ("Linux", "x86_64"):
         subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+    elif (system, machine) == ("Darwin", "x86_64"):
         subdir = "osx-64"
+    elif (system, machine) == ("Darwin", "arm64"):
+        subdir = "osx-arm64"
     else:
         raise InternalError(f"Unsupported system/machine: {system}/{machine}")
 
@@ -719,3 +748,17 @@ class PackageSpec(NamedTuple):
                 return PackageSpec(parts[0], parts[1], None)
             except IndexError:
                 return PackageSpec(parts[0], None, None)
+
+
+def osx_arm64_emulated() -> bool:
+    """
+    Returns ``True`` if the machine is Apple silicon and the installed subdir is
+    osx-64, indicating use of emulation.
+    """
+    machine = platform.machine()
+    system = platform.system()
+
+    meta = package_meta(NEXTSTRAIN_BASE) or {}
+    installed_subdir = meta.get("subdir", "unknown")
+
+    return (system, machine) == ("Darwin", "arm64") and installed_subdir == "osx-64"
