@@ -454,10 +454,7 @@ def image_supports(feature: IMAGE_FEATURE, image: str = DEFAULT_IMAGE) -> bool:
     If *image* is tagged ``latest``, either explicitly or implicity, it is
     assumed to have support for all features.
     """
-    repository, tag = split_image_name(image)
-
-    return tag == "latest" \
-        or (is_build_tag(tag) and tag >= feature.value)
+    True
 
 
 def is_build_tag(tag: str) -> bool:
