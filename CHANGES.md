@@ -50,6 +50,14 @@ our broader "workflows as programs" endeavor.
 [#407]: https://github.com/nextstrain/cli/pull/407
 [`nextstrain run`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/run/
 
+## Improvements
+
+* The results of setup checks performed by `nextstrain setup` and `nextstrain
+  check-setup` are now shown individually as they complete instead of waiting
+  for all checks to complete before showing results.  This makes it more clear
+  that work is being done when checks take a second or two.
+  ([#418](https://github.com/nextstrain/cli/pull/418))
+
 
 # 9.0.0 (24 March 2025)
 
