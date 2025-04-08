@@ -8,7 +8,7 @@ import sys
 from functools import partial
 from importlib.metadata import distribution as distribution_info, PackageNotFoundError
 from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, Union, overload
-from packaging.version import parse as parse_version
+from packaging.version import Version, InvalidVersion, parse as parse_version_strict
 from pathlib import Path, PurePath
 from shlex import quote as shquote
 from shutil import which
@@ -16,7 +16,7 @@ from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
 from .__version__ import __version__
 from .debug import debug
-from .types import RunnerModule, RunnerTestResults, RunnerTestResultStatus
+from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
 
 
 NO_COLOR = bool(
@@ -263,8 +263,8 @@ def new_version_available():
         intended for development and testing but can also be used to disable
         the update check by setting the value to 0.
     """
-    this_version   = parse_version(__version__)
-    latest_version = parse_version(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
+    this_version   = parse_version_strict(__version__)
+    latest_version = parse_version_strict(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
 
     return str(latest_version) if latest_version > this_version else None
 
@@ -591,16 +591,16 @@ def glob_match(path: Union[str, Path, PurePath], patterns: Union[str, Sequence[s
     return globmatch(path, patterns, flags = GLOBSTAR | BRACE | EXTGLOB | MATCHBASE | NEGATE | NEGATEALL | (REALPATH if root else 0), root_dir = root)
 
 
-def runner_tests_ok(tests: RunnerTestResults) -> bool:
+def setup_tests_ok(tests: SetupTestResults) -> bool:
     """
-    Returns True iff none of a runner's ``test_setup()`` results failed.
+    Returns True iff none of a runner's or pathogen's ``test_setup()`` results failed.
     """
     return False not in [result for test, result in tests]
 
 
-def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
+def print_and_check_setup_tests(tests: SetupTestResults) -> bool:
     """
-    Iterates through and prints runner test results.
+    Iterates through and prints a runner's or pathogen's setup test results.
     Returns True if there are no failures.
     """
     success = partial(colored, "green")
@@ -632,10 +632,10 @@ def print_and_check_runner_tests(tests: RunnerTestResults) -> bool:
 
         print(status.get(result, str(result)) + ":", formatted_description)
 
-    return runner_tests_ok(results)
+    return setup_tests_ok(results)
 
 
-def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults:
+def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> SetupTestResults:
     """
     Check if Rosetta 2 is enabled (installed and active) on macOS aarch64
     systems.
@@ -643,7 +643,7 @@ def test_rosetta_enabled(msg: str = "Rosetta 2 is enabled") -> RunnerTestResults
     if (platform.system(), platform.machine()) != ("Darwin", "arm64"):
         return
 
-    status: RunnerTestResultStatus = ... # unknown
+    status: SetupTestResultStatus = ... # unknown
 
     try:
         subprocess.run(
@@ -692,3 +692,103 @@ def prose_list(iterable: Iterable[str], conjunction: str = "or") -> str:
         return ", ".join([*values[:-1], f"{conjunction} " + values[-1]])
     else:
         return f" {conjunction} ".join(values)
+
+
+def request_list(response: requests.Response, initial_indent = "    ", redirect_indent = "  ⮡ ") -> str:
+    """
+    Formats the requested URLs (including redirects) that led to *response* as
+    a multi-line text-snippet.
+
+    Intended for use in user-facing messages.
+    """
+    return "\n".join(
+        initial_indent + (redirect_indent * i) + r.url
+            for i, r in enumerate([*response.history, response]) )
+
+
+def parse_version_lax(version: str) -> 'LaxVersion':
+    """
+    Parse *version* into a PEP-440-compliant :cls:`Version` object, by hook or
+    by crook.  Dubbed "lax" because a non-compliant *version* will not raise an
+    exception (in contrast to :func:`parse_version_strict`) but will produce a
+    :cls:`Version` object with reasonably useful comparison behaviour.
+
+    If *version* isn't already PEP-440 compliant, then it is parsed as a
+    PEP-440 local version label after replacing with ``.`` any characters not
+    matching ``a-z``, ``A-Z``, ``0-9``, ``.``, ``_``, or ``-``.  The comparison
+    semantics for local version labels amount to a string- and integer-based
+    comparison by parts ("segments"), which is super good enough for our
+    purposes here.  The full local version identifier produced for versions
+    parsed in this way always contains a public version identifier component of
+    ``0.dev0`` so it compares lowest against other public version identifiers.
+
+    >>> parse_version_lax("1.2.3")
+    <Version('1.2.3')>
+    >>> parse_version_lax("1.2.3-nope")
+    <Version('0.dev0+1.2.3.nope')>
+    >>> parse_version_lax("20221019T172207Z")
+    <Version('0.dev0+20221019t172207z')>
+    >>> parse_version_lax("@invalid+@")
+    <Version('0.dev0+invalid')>
+    >>> parse_version_lax("not@@ok")
+    <Version('0.dev0+not.ok')>
+    >>> parse_version_lax("20221019T172207Z") < parse_version_lax("20230525T143814Z")
+    True
+    """
+    try:
+        return LaxVersion(version, compliant = True)
+    except InvalidVersion:
+        # Per PEP-440
+        #
+        # > …local version labels MUST be limited to the following set of
+        # > permitted characters:
+        # >
+        # >   ASCII letters ([a-zA-Z])
+        # >   ASCII digits ([0-9])
+        # >   periods (.)
+        # >
+        # > Local version labels MUST start and end with an ASCII letter or
+        # > digit.
+        #
+        # and
+        #
+        # > With a local version, in addition to the use of . as a separator of
+        # > segments, the use of - and _ is also acceptable. The normal form is
+        # > using the . character.
+        #
+        # and empty segments (x..z) aren't allowed either.
+        #
+        # c.f. <https://peps.python.org/pep-0440/#local-version-identifiers>
+        #      <https://peps.python.org/pep-0440/#local-version-segments>
+        remove_invalid_start_end_chars = partial(re.sub, r'^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$', '')
+        replace_invalid_with_separators = partial(re.sub, r'[^a-zA-Z0-9._-]+', '.')
+
+        as_local_segment = lambda v: replace_invalid_with_separators(remove_invalid_start_end_chars(v))
+
+        return LaxVersion(f"0.dev0+{as_local_segment(version)}", compliant = False, original = version)
+
+
+class LaxVersion(Version):
+    """
+    A :cls:`Version` object produced by :func:`parse_version_lax`, with some
+    additional attributes to preserve parse-time information.
+    """
+
+    compliant: bool
+    """
+    Whether :func:`parse_version_lax` found the version string
+    PEP-440-compliant or not (i.e. whether it had to munge it or not).
+    """
+
+    original: str
+    """
+    The original version string that was parsed by :func:`parse_version_lax`.
+
+    Useful even for :attr:`.compliant` versions, as stringification will return
+    a normalized representation that may not string compare identically.
+    """
+
+    def __init__(self, version: str, *, compliant: bool, original: str = None):
+        super().__init__(version)
+        self.compliant = compliant
+        self.original = original if original is not None else version

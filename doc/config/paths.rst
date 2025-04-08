@@ -34,6 +34,14 @@ If necessary, the defaults can be overridden by environment variables.
 
     Default is :file:`{${NEXTSTRAIN_HOME}}/lock`.
 
+.. envvar:: NEXTSTRAIN_PATHOGENS
+
+    Directory for pathogen workflow data managed by :doc:`/commands/setup`,
+    e.g. local copies of pathogen repos like `nextstrain/measles
+    <https://github.com/nextstrain/measles>`__.
+
+    Default is :file:`{${NEXTSTRAIN_HOME}}/pathogens/`.
+
 .. envvar:: NEXTSTRAIN_RUNTIMES
 
     Directory for runtime-specific data, e.g. Singularity images or a Conda

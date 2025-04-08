@@ -13,6 +13,43 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release is the first to include initial support for setting up and running
+pathogen workflows without the co-mingling of our workflow source code with
+your inputs and outputs (e.g. your `config.yaml`, `data/`, and `results/`) and
+without needing to download source code or use Git yourself.  Pathogens are
+first set up with `nextstrain setup` and their workflows may then be run using
+`nextstrain run`, a new command in this release.  These features are part of
+our broader "workflows as programs" endeavor.
+
+## Features
+
+* A new command, [`nextstrain run`][], for running pathogen workflows in a more
+  managed way as part of our broader "workflows as programs" endeavor.
+
+  Workflows (e.g. `ingest`, `phylogenetic`) for a pathogen are run in a
+  Nextstrain runtime with config and input (e.g. `config.yaml`, `data/`) from
+  an analysis directory you provide and outputs (e.g. `results/`) written to
+  that same directory.
+
+  Pathogens (e.g. `measles`) are initially set up using `nextstrain setup` and
+  can be updated over time as desired using `nextstrain update`.  Multiple
+  versions of a pathogen may be set up and run independently without conflict,
+  allowing for comparisons of output across versions.  The same pathogen
+  workflow may also be concurrently run multiple times with separate analysis
+  directories (i.e. different configs, input data, etc.) without conflict,
+  allowing for independent outputs and analyses.  Set up pathogens and their
+  versions are listed by `nextstrain version --pathogens`.
+
+  Compared to `nextstrain build`, this new `nextstrain run` command is a
+  higher-level interface to running pathogen workflows that does not require
+  knowledge of Git or management of pathogen repositories and source code.  For
+  now, the `nextstrain build` command remains more suitable for active
+  authorship and development of workflows.
+  ([#407][])
+
+[#407]: https://github.com/nextstrain/cli/pull/407
+[`nextstrain run`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/run/
+
 
 # 9.0.0 (24 March 2025)
 

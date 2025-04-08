@@ -8,7 +8,8 @@ from itertools import chain, takewhile
 from pathlib import Path
 from textwrap import indent as indent_text
 from types import SimpleNamespace
-from typing import Iterable, Optional, Tuple
+from typing import Callable, Iterable, Optional, Tuple
+from .debug import debug
 from .rst import rst_to_text
 from .types import RunnerModule
 from .util import format_usage, runner_module
@@ -259,6 +260,41 @@ def DirectoryPath(value: str) -> Path:
         raise ArgumentTypeError(f"not a directory: {value}")
 
     return path
+
+
+def MkDirectoryPath(parents: bool = False, exist_ok: bool = True) -> Callable[[str], Path]:
+    """
+    Generates an argument ``type`` function which enforces a path is a
+    directory that can be made or already exists.
+
+    Takes the same *parents* and *exist_ok* arguments as :py:meth:`Path.mkdir`,
+    although *exist_ok* defaults to ``True`` instead of ``False``.
+
+    Raises :py:exc:`ArgumentTypeError` when the underlying
+    :py:meth:`Path.mkdir` call raises a :py:exc:`FileNotFoundError` or
+    :py:exc:`FileExistsError`, which lets :py:mod:`argparse` emit a nice error
+    message.
+    """
+    def mkdir(value: str) -> Path:
+        path = Path(value)
+
+        try:
+            debug(f"mkdir: {path} ({parents=}, {exist_ok=})")
+            path.mkdir(parents = parents, exist_ok = exist_ok)
+
+        except FileNotFoundError:
+            assert not parents
+            raise ArgumentTypeError(f"cannot create directory {path.name!r}: parent directory does not exist: {str(path.parent)!r}")
+
+        except FileExistsError:
+            raise ArgumentTypeError(
+                f"not a directory: {value}" if exist_ok else
+                f"already exists: {value}")
+
+        assert path.is_dir()
+        return path
+
+    return mkdir
 
 
 def walk_commands(parser: ArgumentParser, command: Optional[Tuple[str, ...]] = None) -> Iterable[Tuple[Tuple[str, ...], ArgumentParser]]:

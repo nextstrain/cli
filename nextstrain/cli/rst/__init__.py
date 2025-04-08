@@ -50,6 +50,7 @@ PREAMBLE = """
 .. role:: option(literal)
 .. role:: envvar(literal)
 .. role:: kbd(literal)
+.. role:: file(literal)
 .. default-role:: command-invocation
 """
 

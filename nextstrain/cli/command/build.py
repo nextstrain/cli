@@ -339,7 +339,7 @@ def assert_overlay_volumes_support(opts):
             """)
 
 
-def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
+def pathogen_volumes(directory: Path, *, name = "build") -> Tuple[NamedVolume, NamedVolume]:
     """
     Discern the pathogen **build volume** and **working volume** for a given
     *directory* path.
@@ -368,6 +368,15 @@ def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
     NamedVolume(name='build', src=...Path('.../tests/data'), dir=True, writable=True)
     >>> docker.mount_point(build_volume) <= docker.mount_point(working_volume)
     True
+
+    An alternative *name* for the **build volume** (and by extension the
+    initial part of the name of the **working volume**) may be passed.
+
+    >>> build_volume, working_volume = pathogen_volumes(Path("tests/data/pathogen-repo/ingest/"), name = "pathogen")
+    >>> build_volume # doctest: +ELLIPSIS
+    NamedVolume(name='pathogen', src=...Path('.../tests/data/pathogen-repo'), dir=True, writable=True)
+    >>> working_volume # doctest: +ELLIPSIS
+    NamedVolume(name='pathogen/ingest', src=...Path('.../tests/data/pathogen-repo/ingest'), dir=True, writable=True)
     """
     if not directory.is_dir():
         err = f"Build path {str(directory)!r} does not exist or is not a directory."
@@ -402,14 +411,14 @@ def pathogen_volumes(directory: Path) -> Tuple[NamedVolume, NamedVolume]:
     for marker in (d / marker_name for d in [working_dir, *working_dir.parents]):
         if marker.exists():
             debug(f"{marker}: exists")
-            build_volume = NamedVolume("build", marker.parent)
+            build_volume = NamedVolume(name, marker.parent)
             break
         else:
             debug(f"{marker}: does not exist")
     else:
-        build_volume = NamedVolume("build", working_dir)
+        build_volume = NamedVolume(name, working_dir)
 
-    debug(f"Using {build_volume.src} as build volume")
+    debug(f"Using {build_volume.src} as {name} volume")
 
     # Construct the working volume name based on its relative path within the
     # build volume we just determined.  The working volume should always be

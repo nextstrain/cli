@@ -39,6 +39,7 @@ Table of Contents
     :titlesonly:
     :maxdepth: 3
 
+    commands/run
     commands/build
     commands/view
     commands/deploy

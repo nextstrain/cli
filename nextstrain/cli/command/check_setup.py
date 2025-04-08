@@ -35,14 +35,18 @@ checked runtimes are supported.
 """
 
 from functools import partial
-from .. import config
 from ..argparse import SKIP_AUTO_DEFAULT_IN_HELP, runner_module_argument
 from ..types import Options
-from ..util import colored, check_for_new_version, runner_name, print_and_check_runner_tests
+from ..util import colored, check_for_new_version, runner_name, print_and_check_setup_tests
 from ..runner import all_runners, all_runners_by_name, default_runner # noqa: F401 (it's wrong; we use it in run())
 
 
 __doc__ = (__doc__ or "").format(default_runner_name = runner_name(default_runner))
+
+
+# XXX TODO: Add support for checking pathogen setups too?  Not sure this makes
+# much sense.
+#   -trs, 3 March 2025
 
 
 def register_parser(subparser):
@@ -98,7 +102,7 @@ def run(opts: Options) -> int:
     for runner, tests in runner_tests:
         print(colored("blue", "#"), "Checking %s…" % (runner_name(runner)))
 
-        ok = print_and_check_runner_tests(tests)
+        ok = print_and_check_setup_tests(tests)
 
         if ok:
             supported = success("supported")
@@ -117,7 +121,6 @@ def run(opts: Options) -> int:
             default_runner = supported_runners[0]
             print()
             print("Setting default runtime to %s." % runner_name(default_runner))
-            config.set("core", "runner", runner_name(default_runner))
             default_runner.set_default_config()
     else:
         if set(opts.runners) == set(all_runners):
