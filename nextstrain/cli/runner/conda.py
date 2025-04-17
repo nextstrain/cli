@@ -67,7 +67,7 @@ Environment variables
     <https://anaconda.org/conda-forge/micromamba/>`__, or the special string
     ``latest``.
 
-    Defaults to ``1.5.8``.
+    Defaults to ``2.1.0``.
 """
 
 import json
@@ -100,7 +100,7 @@ MICROMAMBA      = MICROMAMBA_ROOT / "bin/micromamba"
 
 # If you update the version pin below, please update the docstring above too.
 MICROMAMBA_VERSION = os.environ.get("NEXTSTRAIN_CONDA_MICROMAMBA_VERSION") \
-                  or "1.5.8"
+                  or "2.1.0"
 
 NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
                   or "nextstrain"
