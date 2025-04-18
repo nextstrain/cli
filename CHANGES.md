@@ -58,6 +58,11 @@ our broader "workflows as programs" endeavor.
   that work is being done when checks take a second or two.
   ([#418](https://github.com/nextstrain/cli/pull/418))
 
+* The Conda runtime now uses Micromamba 2.1.0 (upgraded from 1.5.8) to manage
+  the runtime environment. The newer version fixes the installation error for
+  packages that include the `_x86_64-microarch-level` virtual package dependency.
+  ([#430](https://github.com/nextstrain/cli/pull/430))
+
 
 # 9.0.0 (24 March 2025)
 
