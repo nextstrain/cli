@@ -3,6 +3,7 @@ URL handling.
 
 Extended forms of :mod:`urllib.parse` with an API that fits a little better.
 """
+import os
 from typing import List, Mapping, NewType, Optional, Union
 from urllib.parse import urlsplit, SplitResult, parse_qs as parse_query, urlencode as construct_query
 
@@ -117,3 +118,8 @@ def query(fields: Mapping[str, Union[str, List[str]]]) -> str:
     'x=&y=&z=123'
     """
     return construct_query(fields, doseq = True, encoding = "utf-8")
+
+
+NEXTSTRAIN_DOT_ORG = URL(
+       os.environ.get("NEXTSTRAIN_DOT_ORG")
+    or "https://nextstrain.org")

@@ -2,19 +2,14 @@
 Remote destinations and sources for Nextstrain datasets and narratives.
 """
 
-import os
 import re
 from typing import Tuple
 from ..errors import UserError
 from ..net import is_loopback
 from ..rst import doc_url
 from ..types import RemoteModule
-from ..url import URL
+from ..url import URL, NEXTSTRAIN_DOT_ORG
 from . import s3, nextstrain_dot_org
-
-
-NEXTSTRAIN_DOT_ORG = os.environ.get("NEXTSTRAIN_DOT_ORG") \
-                  or "https://nextstrain.org"
 
 
 def parse_remote_path(path: str) -> Tuple[RemoteModule, URL]:
@@ -121,8 +116,7 @@ def parse_remote_path(path: str) -> Tuple[RemoteModule, URL]:
         # user-specified path of http://nextstrain.org/… will be quietly
         # treated as https://.
         if url.netloc.lower() == "nextstrain.org":
-            org = URL(NEXTSTRAIN_DOT_ORG)
-            url = url._replace(scheme = org.scheme, netloc = org.netloc)
+            url = url._replace(scheme = NEXTSTRAIN_DOT_ORG.scheme, netloc = NEXTSTRAIN_DOT_ORG.netloc)
 
         if url.scheme == "http" and not is_loopback(url.hostname):
             raise UserError(f"""
