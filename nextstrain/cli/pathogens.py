@@ -26,7 +26,7 @@ from .errors import UserError
 from .net import is_loopback
 from .paths import PATHOGENS
 from .types import SetupStatus, SetupTestResults, SetupTestResult, UpdateStatus
-from .url import URL
+from .url import URL, NEXTSTRAIN_DOT_ORG
 from .util import parse_version_lax, print_and_check_setup_tests, request_list
 
 
@@ -189,7 +189,7 @@ class PathogenVersion:
 
         if not version:
             if new_setup:
-                version = github_repo_latest_ref(f"nextstrain/{name}")
+                version = nextstrain_repo_latest_version(name)
             else:
                 version = default_version_of(name, implicit = True)
 
@@ -281,7 +281,7 @@ class PathogenVersion:
 
         if new_setup:
             if not url:
-                url = github_repo_ref_zipball_url(f"nextstrain/{name}", version)
+                url = nextstrain_repo_zip_url(name, version)
 
             if not url:
                 raise UserError(f"""
@@ -324,7 +324,7 @@ class PathogenVersion:
                 self.setup_receipt_path.unlink(missing_ok = True)
 
         try:
-            response = requests.get(str(self.url), stream = True)
+            response = requests.get(str(self.url), headers = {"Accept": "application/zip, */*"}, stream = True)
             response.raise_for_status()
 
         except requests.exceptions.ConnectionError as err:
@@ -856,62 +856,50 @@ def read_pathogen_registration(path: Path) -> Dict:
     return registration
 
 
-# XXX TODO SOON: This logic should probably move into nextstrain.org endpoints
-# (and start us down the road of a real Nextstrain pathogen registry).  That
-# would also give us insight into usage and allows us the flexibility to move
-# away from Git-based distribution in the future.
-#   -trs, 3 Feb 2025
-def github_repo_latest_ref(repo_name: str) -> Optional[str]:
+# We query a nextstrain.org API instead of querying GitHub's API directly for a
+# few reasons.
+#
+#  1. It gives us greater flexibility to move away from Git/GitHub-based
+#     versioning and distribution in the future.
+#  2. It gives us insight into usage.
+#  3. It starts us down the road of a real Nextstrain pathogen registry.
+#
+#   -trs, 22 April 2025
+def nextstrain_repo_latest_version(name: str) -> Optional[str]:
     """
-    Queries a GitHub *repo_name* to return the name of the highest version tag,
-    if any, otherwise the name of the default branch.
+    Queries a Nextstrain pathogen repo *name* to return the latest version,
+    i.e. the name of the highest version tag, if any, otherwise the name of the
+    default branch.
     """
+    versions_url = URL(f"/pathogen-repos/{urlquote(name)}/versions", NEXTSTRAIN_DOT_ORG)
+
     with requests.Session() as http:
-        response = http.get(f"https://api.github.com/repos/{urlquote(repo_name)}", headers = github_headers())
+        response = http.get(str(versions_url), headers = {"Accept": "application/json"})
 
         if response.status_code == 404:
             return None
         else:
             response.raise_for_status()
 
-        repo = response.json()
+        versions = sorted_versions(response.json().get("versions", []))
 
-        tags_url = URL(repo["tags_url"])
-        tags_url = tags_url._replace(query = "per_page=100&" + tags_url.query)
-
-        tags = []
-
-        while tags_url:
-            response = http.get(str(tags_url), headers = github_headers())
-            response.raise_for_status()
-
-            tags += response.json()
-
-            tags_url = response.links.get("next", {}).get("url")
-
-        if tag_names := sorted_versions([t["name"] for t in tags]):
-            return tag_names[0]
-
-        return repo["default_branch"]
+        return versions[0] if versions else None
 
 
-def github_repo_ref_zipball_url(repo: str, ref: str) -> URL:
+def nextstrain_repo_zip_url(name: str, version: str) -> URL:
     """
-    Queries a GitHub *repo* to resolve *ref* (any commit-ish) to a specific
-    commit id (SHA) and returns a URL to a ZIP file of the repo contents at
-    that commit.
+    Queries a Nextstrain pathogen repo *name* to resolve *version* (i.e.
+    currently any commit-ish) to a specific revision (i.e. commit id, SHA) if
+    possible and returns a URL to a ZIP file of the repo contents at that
+    revision.
     """
+    version_url = URL(f"/pathogen-repos/{urlquote(name)}/versions/{urlquote(version)}", NEXTSTRAIN_DOT_ORG)
+
     with requests.Session() as http:
-        commit = http.get(f"https://api.github.com/repos/{urlquote(repo)}/commits/{urlquote(ref)}", headers = {**github_headers(), "Accept": "application/vnd.github.sha"})
-        commit.raise_for_status()
+        resolved_version = http.get(str(version_url), headers = {"Accept": "application/json"})
+        resolved_version.raise_for_status()
 
-        assert (sha := commit.text)
-
-    return URL(f"https://api.github.com/repos/{urlquote(repo)}/zipball/{urlquote(sha)}")
-
-
-def github_headers():
-    return {
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
+        if revision := resolved_version.json().get("revision"):
+            return URL(urlquote(revision), version_url)
+        else:
+            return version_url
