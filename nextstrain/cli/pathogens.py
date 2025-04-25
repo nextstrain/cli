@@ -23,6 +23,7 @@ from zipfile import ZipFile
 from . import config
 from .debug import DEBUGGING, debug
 from .errors import UserError
+from .net import is_loopback
 from .paths import PATHOGENS
 from .types import SetupStatus, SetupTestResults, SetupTestResult, UpdateStatus
 from .url import URL
@@ -290,7 +291,7 @@ class PathogenVersion:
                     specified explicitly, e.g. as in NAME@VERSION=URL.
                     """)
 
-            if url.scheme != "https":
+            if url.scheme != "https" and not (is_loopback(url.hostname) and url.scheme == "http"):
                 raise UserError(f"""
                     URL scheme is {url.scheme!r}, not {"https"!r}.
 
