@@ -16,7 +16,7 @@ from pathlib import Path, PurePath
 from shlex import quote as shquote
 from shutil import copyfileobj, rmtree
 from stat import S_IXUSR, S_IXGRP, S_IXOTH, S_IRGRP, S_IROTH
-from typing import Dict, List, NamedTuple, Optional, Tuple
+from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple
 from urllib.parse import quote as urlquote
 from zipfile import ZipFile
 
@@ -815,14 +815,24 @@ def versions_within(pathogen_dir: Path) -> List[str]:
     if not pathogen_dir.exists():
         return []
 
-    versions = [
-        parse_version_lax(PathogenVersion.decode_version_dir(d.name))
+    return sorted_versions(
+        PathogenVersion.decode_version_dir(d.name)
             for d in pathogen_dir.iterdir()
-             if d.is_dir() ]
+             if d.is_dir() )
 
-    # Sort newest → oldest for normal versions (e.g. 4.5.6, 1.2.3) and A → Z
-    # for non-compliant versions (e.g. branch names, commit ids, arbitrary
-    # strings, etc.), with the latter always after the former.
+
+def sorted_versions(vs: Iterable[str]) -> List[str]:
+    """
+    Sort newest → oldest for normal versions (e.g. 4.5.6, 1.2.3) and A → Z
+    for non-compliant versions (e.g. branch names, commit ids, arbitrary
+    strings, etc.), with the latter always after the former.
+
+    The versions given should be strings.  The returned list of versions will
+    be the same strings in sorted order.  Versions are parsed by
+    :func:`parse_lax_version`.
+    """
+    versions = [*map(parse_version_lax, vs)]
+
     compliant     = sorted(v for v in versions if v.compliant)
     non_compliant = sorted(v for v in versions if not v.compliant)
 
@@ -879,7 +889,7 @@ def github_repo_latest_ref(repo_name: str) -> Optional[str]:
 
             tags_url = response.links.get("next", {}).get("url")
 
-        if tag_names := sorted([t["name"] for t in tags], key = parse_version_lax, reverse = True):
+        if tag_names := sorted_versions([t["name"] for t in tags]):
             return tag_names[0]
 
         return repo["default_branch"]
