@@ -1,7 +1,6 @@
 import os
 import platform
 import re
-import requests
 import site
 import subprocess
 import sys
@@ -14,6 +13,7 @@ from shlex import quote as shquote
 from shutil import which
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
+from . import requests
 from .__version__ import __version__
 from .debug import debug
 from .types import RunnerModule, SetupTestResults, SetupTestResultStatus

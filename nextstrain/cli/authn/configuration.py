@@ -1,8 +1,8 @@
 """
 Authentication configuration.
 """
-import requests
 from functools import lru_cache
+from .. import requests
 from ..errors import UserError
 from ..url import Origin
 

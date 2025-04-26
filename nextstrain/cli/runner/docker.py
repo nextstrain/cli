@@ -76,7 +76,6 @@ defaults set by `config file variables`_.
 
 import os
 import json
-import requests
 import shutil
 import subprocess
 import sys
@@ -85,7 +84,7 @@ from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
 from textwrap import dedent
 from typing import Iterable, List, cast
-from .. import config, env
+from .. import config, env, requests
 from ..errors import UserError
 from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, SetupTestResultStatus, UpdateStatus
 from ..util import warn, colored, capture_output, exec_or_return, runner_name, split_image_name, test_rosetta_enabled

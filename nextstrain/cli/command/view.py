@@ -47,7 +47,6 @@ be ignored for the purposes of finding available narratives.
 
 from multiprocessing import Process, ProcessError
 import re
-import requests
 from inspect import cleandoc
 from itertools import starmap
 from os import environ
@@ -55,6 +54,7 @@ from pathlib import Path
 from socket import getaddrinfo, AddressFamily, SocketKind, AF_INET, AF_INET6, IPPROTO_TCP
 from time import sleep, time
 from typing import Iterable, NamedTuple, Tuple, Union
+from .. import requests
 from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
 from ..browser import BROWSER, open_browser as __open_browser
