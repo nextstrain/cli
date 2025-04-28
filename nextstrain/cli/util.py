@@ -273,7 +273,7 @@ def fetch_latest_pypi_version(project):
     """
     Return the latest version of the given project from PyPi.
     """
-    return requests.get("https://pypi.python.org/pypi/%s/json" % project).json().get("info", {}).get("version", "")
+    return requests.get("https://pypi.org/pypi/%s/json" % project).json().get("info", {}).get("version", "")
 
 
 def capture_output(argv, extra_env: Mapping = {}):
