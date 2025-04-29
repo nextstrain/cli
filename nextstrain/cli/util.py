@@ -17,6 +17,7 @@ from . import requests
 from .__version__ import __version__
 from .debug import debug
 from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
+from .url import NEXTSTRAIN_DOT_ORG, URL
 
 
 NO_COLOR = bool(
@@ -279,16 +280,16 @@ def new_version_available():
         the update check by setting the value to 0.
     """
     this_version   = parse_version_strict(__version__)
-    latest_version = parse_version_strict(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_pypi_version("nextstrain-cli"))
+    latest_version = parse_version_strict(os.environ.get("NEXTSTRAIN_CLI_LATEST_VERSION") or fetch_latest_version())
 
     return str(latest_version) if latest_version > this_version else None
 
 
-def fetch_latest_pypi_version(project):
+def fetch_latest_version():
     """
-    Return the latest version of the given project from PyPi.
+    Return the latest version of ourselves from nextstrain.org.
     """
-    return requests.get("https://pypi.org/pypi/%s/json" % project).json().get("info", {}).get("version", "")
+    return requests.get(str(URL("/cli", NEXTSTRAIN_DOT_ORG)), headers = {"Accept": "application/json"}).json().get("latest_version", "")
 
 
 def capture_output(argv, extra_env: Mapping = {}):
