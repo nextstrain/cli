@@ -1,7 +1,6 @@
 import os
 import platform
 import re
-import requests
 import site
 import subprocess
 import sys
@@ -14,6 +13,7 @@ from shlex import quote as shquote
 from shutil import which
 from textwrap import dedent, indent
 from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE, NEGATEALL, REALPATH
+from . import requests
 from .__version__ import __version__
 from .debug import debug
 from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
@@ -94,16 +94,7 @@ def check_for_new_version():
         python = next(filter(which, ["python3", "python"]), "python3")
 
     # Find our installer (e.g. pip, conda).
-    try:
-        distribution = distribution_info("nextstrain-cli")
-    except PackageNotFoundError:
-        installer = None
-    else:
-        installer = (distribution.read_text("INSTALLER") or '').strip() or None
-
-    # Determine if we're pipx or not.
-    if installer == "pip" and "/pipx/venvs/nextstrain-cli/" in python:
-        installer = "pipx"
+    installer = distribution_installer()
 
     # Find our Conda details, if applicable.
     if installer == "conda":
@@ -180,6 +171,30 @@ def check_for_new_version():
         print()
 
     return newer_version
+
+
+def distribution_installer() -> Optional[str]:
+    """
+    Report the program which installed us (i.e. our distribution), if known.
+
+    Common examples are ``pip``, ``pipx``, ``conda``, ``uv``, and
+    ``standalone``.
+    """
+    if standalone_installation():
+        return "standalone"
+
+    try:
+        distribution = distribution_info("nextstrain-cli")
+    except PackageNotFoundError:
+        installer = None
+    else:
+        installer = (distribution.read_text("INSTALLER") or '').strip() or None
+
+    # Determine if we're pipx or not.
+    if installer == "pip" and "/pipx/venvs/nextstrain-cli/" in (sys.executable or ""):
+        installer = "pipx"
+
+    return installer
 
 
 def standalone_installation():

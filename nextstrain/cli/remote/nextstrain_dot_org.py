@@ -63,18 +63,16 @@ Environment variables
 
 import json
 import os
-import requests
-import requests.auth
 from collections import defaultdict
 from email.message import EmailMessage
 from pathlib import Path, PurePosixPath
-from requests.utils import parse_dict_header
 from shlex import quote as shquote
 from tempfile import NamedTemporaryFile
 from textwrap import indent, wrap
 from typing import Dict, Iterable, List, NamedTuple, Optional, Tuple, Union
 from urllib.parse import quote as urlquote
 from .. import markdown
+from .. import requests
 
 # XXX TODO: These implement part of the RemoteModule protocol for us, which is
 # sort of a weird way to organize things.  I think fine for now, esp. as
@@ -975,7 +973,7 @@ def authn_challenge(response: requests.Response) -> Optional[Dict[str, str]]:
 
     challenge_params = remove_prefix("Bearer ", challenge).lstrip(" ")
 
-    return parse_dict_header(challenge_params)
+    return requests.utils.parse_dict_header(challenge_params)
 
 
 def content_media_type(response: requests.Response) -> str:

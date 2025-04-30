@@ -58,6 +58,32 @@ our broader "workflows as programs" endeavor.
   that work is being done when checks take a second or two.
   ([#418](https://github.com/nextstrain/cli/pull/418))
 
+* Commands which make web requests on your behalf (e.g. `nextstrain remote`,
+  `nextstrain login`, `nextstrain setup`, `nextstrain update`) now include an
+  appropriate and informative [User-Agent header][], e.g.
+
+      Nextstrain-CLI/9.0.0 (https://nextstrain.org/cli) Python/3.10.9 python-requests/2.32.3 platform/Linux-x86_64 installer/standalone tty/yes
+
+  instead of the previous generic User-Agent, e.g.
+
+      python-requests/2.32.3
+
+  The new User-Agent includes the Nextstrain CLI version as well as basic
+  information on several important software components.  This information is
+  non-identifying and useful for our troubleshooting and aggregation of usage
+  metrics.  You may opt to omit it, however, by setting the
+  `NEXTSTRAIN_CLI_USER_AGENT_MINIMAL` environment variable to `1` (or another
+  truthy value).  In that case, the User-Agent only includes the CLI version,
+  e.g.:
+
+      Nextstrain-CLI/9.0.0 (https://nextstrain.org/cli)
+
+  We recommend leaving the default User-Agent enabled unless the minimal
+  variant is necessary for your circumstances.
+  ([#432](https://github.com/nextstrain/cli/pull/432))
+
+[User-Agent header]: https://en.wikipedia.org/wiki/User-Agent_header
+
 
 # 9.0.0 (24 March 2025)
 

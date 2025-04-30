@@ -74,7 +74,6 @@ import json
 import os
 import platform
 import re
-import requests
 import shutil
 import subprocess
 import sys
@@ -84,6 +83,7 @@ from pathlib import Path, PurePosixPath
 from typing import Iterable, NamedTuple, Optional, cast
 from urllib.parse import urljoin, quote as urlquote
 from .. import config
+from .. import requests
 from ..errors import InternalError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus

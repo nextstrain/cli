@@ -4,7 +4,6 @@ Pathogen workflows.
 import json
 import os.path
 import re
-import requests
 import traceback
 import yaml
 from base64 import b32encode, b32decode
@@ -21,6 +20,7 @@ from urllib.parse import quote as urlquote
 from zipfile import ZipFile
 
 from . import config
+from . import requests
 from .debug import DEBUGGING, debug
 from .errors import UserError
 from .net import is_loopback

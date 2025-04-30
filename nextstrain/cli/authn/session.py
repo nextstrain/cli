@@ -4,7 +4,6 @@ Authentication sessions.
 import boto3
 import jwt
 import jwt.exceptions
-import requests
 import secrets
 
 from base64 import b64encode
@@ -16,6 +15,7 @@ from textwrap import fill
 from threading import Thread
 from typing import Any, Dict, Mapping, Optional, Set
 
+from .. import requests
 from ..aws.cognito.srp import CognitoSRP
 from ..browser import BROWSER, open_browser
 from ..debug import debug
