@@ -62,7 +62,7 @@ our broader "workflows as programs" endeavor.
   `nextstrain login`, `nextstrain setup`, `nextstrain update`) now include an
   appropriate and informative [User-Agent header][], e.g.
 
-      Nextstrain-CLI/9.0.0 (https://nextstrain.org/cli) Python/3.10.9 python-requests/2.32.3 platform/Linux-x86_64 installer/standalone tty/yes
+      Nextstrain-CLI/__NEXT__ (https://nextstrain.org/cli) Python/3.10.9 python-requests/2.32.3 platform/Linux-x86_64 installer/standalone tty/yes
 
   instead of the previous generic User-Agent, e.g.
 
@@ -76,7 +76,7 @@ our broader "workflows as programs" endeavor.
   truthy value).  In that case, the User-Agent only includes the CLI version,
   e.g.:
 
-      Nextstrain-CLI/9.0.0 (https://nextstrain.org/cli)
+      Nextstrain-CLI/__NEXT__ (https://nextstrain.org/cli)
 
   We recommend leaving the default User-Agent enabled unless the minimal
   variant is necessary for your circumstances.
