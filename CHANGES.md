@@ -84,6 +84,13 @@ our broader "workflows as programs" endeavor.
 
 [User-Agent header]: https://en.wikipedia.org/wiki/User-Agent_header
 
+* When checking for upgrades for Nextstrain CLI itself during `nextstrain
+  check-setup` and `nextstrain update`, the latest version is now fetched from
+  nextstrain.org instead of pypi.org.  This gives us insights into usage and
+  also more flexibility to shift how we're releasing and distributing this
+  project.
+  ([#434](https://github.com/nextstrain/cli/pull/434))
+
 
 # 9.0.0 (24 March 2025)
 
