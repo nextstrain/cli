@@ -7,11 +7,10 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 10.0.0 (7 May 2025)
 
 This release is the first to include initial support for setting up and running
 pathogen workflows without the co-mingling of our workflow source code with
@@ -48,7 +47,7 @@ our broader "workflows as programs" endeavor.
   ([#407][])
 
 [#407]: https://github.com/nextstrain/cli/pull/407
-[`nextstrain run`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/run/
+[`nextstrain run`]: https://docs.nextstrain.org/projects/cli/en/10.0.0/commands/run/
 
 ## Improvements
 
@@ -62,7 +61,7 @@ our broader "workflows as programs" endeavor.
   `nextstrain login`, `nextstrain setup`, `nextstrain update`) now include an
   appropriate and informative [User-Agent header][], e.g.
 
-      Nextstrain-CLI/__NEXT__ (https://nextstrain.org/cli) Python/3.10.9 python-requests/2.32.3 platform/Linux-x86_64 installer/standalone tty/yes
+      Nextstrain-CLI/10.0.0 (https://nextstrain.org/cli) Python/3.10.9 python-requests/2.32.3 platform/Linux-x86_64 installer/standalone tty/yes
 
   instead of the previous generic User-Agent, e.g.
 
@@ -76,7 +75,7 @@ our broader "workflows as programs" endeavor.
   truthy value).  In that case, the User-Agent only includes the CLI version,
   e.g.:
 
-      Nextstrain-CLI/__NEXT__ (https://nextstrain.org/cli)
+      Nextstrain-CLI/10.0.0 (https://nextstrain.org/cli)
 
   We recommend leaving the default User-Agent enabled unless the minimal
   variant is necessary for your circumstances.
