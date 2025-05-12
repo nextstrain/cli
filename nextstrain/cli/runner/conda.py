@@ -38,8 +38,24 @@ Linux and run the above setup command.
 Environment variables
 =====================
 
+.. envvar:: NEXTSTRAIN_CONDA_CHANNEL_ALIAS
+
+    The base URL to prepend to channel names.  Equivalent to the |channel_alias
+    Conda config setting|_.
+
+    Useful if you want to use a Conda package mirror that's not the default
+    (i.e. not Anaconda's).
+
+    Defaults to the Conda ecosystem's default of
+    `<https://conda.anaconda.org/>`__.
+
+.. |channel_alias Conda config setting| replace:: ``channel_alias`` Conda config setting
+.. _channel_alias Conda config setting: https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/settings.html#set-ch-alias
+
+
 .. warning::
-    For development only.  You don't need to set these during normal operation.
+    The remaining variables are for development only.  You don't need to set
+    these during normal operation.
 
 .. envvar:: NEXTSTRAIN_CONDA_CHANNEL
 
@@ -60,28 +76,33 @@ Environment variables
 
     .. _Conda package match spec: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
 
-.. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_VERSION
+.. envvar:: NEXTSTRAIN_CONDA_MICROMAMBA_URL
 
-    Version of Micromamba to use for setup and upgrade of the Conda runtime
-    env.  Must be a version available from the `conda-forge channel
-    <https://anaconda.org/conda-forge/micromamba/>`__, or the special string
-    ``latest``.
+    URL of a Micromamba release tarball (e.g. Conda package) to use for setup
+    and updates.
 
-    Defaults to ``1.5.8``.
+    May be a full URL or a relative URL to be joined with
+    :envvar:`NEXTSTRAIN_CONDA_CHANNEL_ALIAS`.  Any occurrence of ``{subdir}``
+    will be replaced with the current platform's Conda subdir value.
+
+    Replaces the previously-supported development environment variable
+    ``NEXTSTRAIN_CONDA_MICROMAMBA_VERSION``.
+
+    Defaults to ``conda-forge/{subdir}/micromamba-1.5.8-0.tar.bz2``.
 """
 
 import json
 import os
 import platform
-import re
 import shutil
 import subprocess
 import sys
 import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
-from typing import Iterable, NamedTuple, Optional, cast
-from urllib.parse import urljoin, quote as urlquote
+from tempfile import TemporaryFile
+from typing import IO, Iterable, NamedTuple, Optional, cast
+from urllib.parse import urljoin
 from .. import config
 from .. import requests
 from ..errors import InternalError
@@ -99,8 +120,11 @@ MICROMAMBA_ROOT = RUNTIME_ROOT / "micromamba/"
 MICROMAMBA      = MICROMAMBA_ROOT / "bin/micromamba"
 
 # If you update the version pin below, please update the docstring above too.
-MICROMAMBA_VERSION = os.environ.get("NEXTSTRAIN_CONDA_MICROMAMBA_VERSION") \
-                  or "1.5.8"
+MICROMAMBA_URL = os.environ.get("NEXTSTRAIN_CONDA_MICROMAMBA_URL") \
+              or "conda-forge/{subdir}/micromamba-1.5.8-0.tar.bz2"
+
+CHANNEL_ALIAS = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL_ALIAS") \
+             or "https://conda.anaconda.org"
 
 NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
                   or "nextstrain"
@@ -194,23 +218,18 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
-    # Query for Micromamba release
     try:
-        dist = package_distribution("conda-forge", "micromamba", MICROMAMBA_VERSION)
+        subdir = platform_subdir()
     except InternalError as err:
         warn(err)
         return False
 
-    assert dist, f"unable to find micromamba dist"
+    url = urljoin(CHANNEL_ALIAS, MICROMAMBA_URL.replace('{subdir}', subdir))
 
-    # download_url is scheme-less, so add our preferred scheme but in a way
-    # that won't break if it starts including a scheme later.
-    dist_url = urljoin("https:", dist["download_url"])
-
-    print(f"Requesting Micromamba from {dist_url}…")
+    print(f"Requesting Micromamba from {url}…")
 
     if not dry_run:
-        response = requests.get(dist_url, stream = True)
+        response = requests.get(url, stream = True)
         response.raise_for_status()
         content_type = response.headers["Content-Type"]
 
@@ -291,7 +310,7 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def micromamba(*args, add_prefix: bool = True) -> None:
+def micromamba(*args, stdout: IO[bytes] = None, add_prefix: bool = True) -> None:
     """
     Runs our installed Micromamba with appropriate global options and options
     for prefix and channel selection.
@@ -302,6 +321,9 @@ def micromamba(*args, add_prefix: bool = True) -> None:
 
     For convenience, all arguments are converted to strings before being passed
     to :py:func:`subprocess.run`.
+
+    Set the keyword-only argument *stdout* to a binary file-like object (with a
+    file descriptor) to redirect the process's stdout.
 
     Set the keyword-only argument *add_prefix* to false to omit the
     ``--prefix`` option and channel-related options which are otherwise
@@ -332,9 +354,9 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             # own channel.
             "--override-channels",
             "--strict-channel-priority",
-            "--channel", NEXTSTRAIN_CHANNEL,
-            "--channel", "conda-forge",
-            "--channel", "bioconda",
+            "--channel", urljoin(CHANNEL_ALIAS, NEXTSTRAIN_CHANNEL),
+            "--channel", urljoin(CHANNEL_ALIAS, "conda-forge"),
+            "--channel", urljoin(CHANNEL_ALIAS, "bioconda"),
 
             # Don't automatically pin Python so nextstrain-base deps can change
             # it on upgrade.
@@ -391,7 +413,7 @@ def micromamba(*args, add_prefix: bool = True) -> None:
     }
 
     try:
-        subprocess.run(argv, env = env, check = True)
+        subprocess.run(argv, env = env, stdout = stdout, check = True)
     except (OSError, subprocess.CalledProcessError) as err:
         raise InternalError(f"Error running {argv!r}") from err
 
@@ -569,12 +591,7 @@ def package_version(spec: str) -> str:
 
     version = meta.get("version", "unknown")
     build   = meta.get("build",   "unknown")
-    channel = meta.get("channel", "unknown")
-
-    anaconda_channel = re.search(r'^https://conda[.]anaconda[.]org/(?P<repo>.+?)/(?:linux|osx)-64$', channel)
-
-    if anaconda_channel:
-        channel = anaconda_channel["repo"]
+    channel = meta.get("channel", "unknown") # full URL; includes subdir
 
     return f"{name} {version} ({build}, {channel})"
 
@@ -589,56 +606,51 @@ def package_meta(spec: str) -> Optional[dict]:
     return json.loads(metafile.read_bytes())
 
 
-def package_distribution(channel: str, package: str, version: str = None, label: str = "main") -> Optional[dict]:
-    # If *package* is a package spec, convert it just to a name.
-    package = package_name(package)
+def package_distribution(channel: str, spec: str) -> Optional[dict]:
+    with TemporaryFile() as tmp:
+        micromamba(
+            "repoquery", "search", spec,
 
-    if version is None:
-        version = latest_package_label_version(channel, package, label)
-        if version is None:
-            warn(f"Could not find latest version of package {package!r} with label {label!r}.",
-                 "\nUsing 'latest' version instead, which will be the latest version of the package regardless of label.")
-            version = "latest"
+            # Channel (repo) to search
+            "--override-channels",
+            "--strict-channel-priority",
+            "--channel", urljoin(CHANNEL_ALIAS, channel),
 
-    response = requests.get(f"https://api.anaconda.org/release/{urlquote(channel)}/{urlquote(package)}/{urlquote(version)}")
-    response.raise_for_status()
+            # Always check that we have latest package index
+            "--repodata-ttl", 0,
 
-    dists = response.json().get("distributions", [])
+            # Emit JSON so we can process it
+            "--json",
 
-    system = platform.system()
-    machine = platform.machine()
+            # Honor same method of CA certificate overriding as requests,
+            # except without support for cert directories (only files).
+            *(["--cacert-path", requests.CA_BUNDLE]
+                if not Path(requests.CA_BUNDLE).is_dir() else []),
 
-    if (system, machine) == ("Linux", "x86_64"):
-        subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
-        subdir = "osx-64"
-    else:
-        raise InternalError(f"Unsupported system/machine: {system}/{machine}")
+            add_prefix = False,
+            stdout = tmp)
 
-    # Releases have other attributes related to system/machine, but they're
-    # informational-only and subdir is what Conda *actually* uses to
-    # differentiate distributions/files/etc.  Use it too so we have the same
-    # view of reality.
-    subdir_dists = (d for d in dists if d.get("attrs", {}).get("subdir") == subdir)
-    dist = max(subdir_dists, default=None, key=lambda d: d.get("attrs", {}).get("build_number", 0))
+        tmp.seek(0)
+
+        result = json.load(tmp).get("result", {})
+
+    assert (status := result.get("status")) == "OK", \
+        f"repoquery {status=}, not OK"
+
+    dists = result.get("pkgs", [])
+
+    # Default '0-dev' should be the lowest version according to PEP440
+    # See https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering
+    dist = max(dists, default = None, key = lambda d: (parse_version_lax(d.get("version", "0-dev")), d.get("build_number", 0)))
+
+    if not dist:
+        return None
 
     return dist
 
 
 def package_name(spec: str) -> str:
     return PackageSpec.parse(spec).name
-
-
-def latest_package_label_version(channel: str, package: str, label: str) -> Optional[str]:
-    response = requests.get(f"https://api.anaconda.org/package/{urlquote(channel)}/{urlquote(package)}/files")
-    response.raise_for_status()
-
-    label_files = (file for file in response.json() if label in file.get("labels", []))
-    # Default '0-dev' should be the lowest version according to PEP440
-    # See https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering
-    latest_file: dict = max(label_files, default={}, key=lambda file: parse_version_lax(file.get('version', '0-dev')))
-    return latest_file.get("version")
 
 
 class PackageSpec(NamedTuple):
@@ -664,3 +676,25 @@ class PackageSpec(NamedTuple):
                 return PackageSpec(parts[0], parts[1], None)
             except IndexError:
                 return PackageSpec(parts[0], None, None)
+
+
+def platform_subdir() -> str:
+    """
+    Conda subdir to use for the :mod:`platform` on which we're running.
+
+    One of ``linux-64``, ``osx-64``, or ``osx-arm64``.
+
+    Raises an :exc:`InternalError` if the platform is currently unsupported.
+    """
+    system = platform.system()
+    machine = platform.machine()
+
+    if (system, machine) == ("Linux", "x86_64"):
+        subdir = "linux-64"
+    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
+        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+        subdir = "osx-64"
+    else:
+        raise InternalError(f"Unsupported system/machine: {system}/{machine}")
+
+    return subdir
