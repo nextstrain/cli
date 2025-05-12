@@ -23,6 +23,11 @@ development source code and as such may not be routinely kept up to date.
   setting][].
   ([#436](https://github.com/nextstrain/cli/pull/436))
 
+* The Conda runtime no longer requires Rosetta 2 for macOS running on aarch64
+  (aka arm64, Apple Silicon, M1/M2/…) hardware.  This improves performance when
+  using the runtime.  Run `nextstrain update conda` to receive the update.
+  ([#436](https://github.com/nextstrain/cli/pull/436))
+
 [`NEXTSTRAIN_CONDA_CHANNEL_ALIAS`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_CHANNEL_ALIAS
 [`channel_alias` Conda config setting]: https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/settings.html#set-ch-alias
 

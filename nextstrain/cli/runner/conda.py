@@ -101,14 +101,14 @@ import tarfile
 import traceback
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryFile
-from typing import IO, Iterable, NamedTuple, Optional, cast
+from typing import IO, Iterable, List, NamedTuple, Optional, cast
 from urllib.parse import urljoin
 from .. import config
 from .. import requests
 from ..errors import InternalError, UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
-from ..util import capture_output, colored, exec_or_return, parse_version_lax, runner_name, setup_tests_ok, test_rosetta_enabled, warn
+from ..util import capture_output, colored, exec_or_return, parse_version_lax, runner_name, setup_tests_ok, test_rosetta_enabled, uniq, warn
 
 
 RUNTIME_ROOT = RUNTIMES / "conda/"
@@ -195,10 +195,14 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
 
 def setup(dry_run: bool = False, force: bool = False) -> SetupStatus:
+    return _setup(dry_run, force)
+
+
+def _setup(dry_run: bool = False, force: bool = False, install_dist: 'PackageDistribution' = None) -> SetupStatus:
     if not setup_micromamba(dry_run, force):
         return False
 
-    if not setup_prefix(dry_run, force):
+    if not setup_prefix(dry_run, force, install_dist):
         return False
 
     return True
@@ -257,7 +261,7 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
     return True
 
 
-def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
+def setup_prefix(dry_run: bool = False, force: bool = False, install_dist: 'PackageDistribution' = None) -> bool:
     """
     Install Conda packages with Micromamba into our ``PREFIX``.
     """
@@ -271,10 +275,14 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, platform_subdir()):
-        install_spec = f"{install_dist.name} =={install_dist.version}"
-    else:
-        raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
+    if not install_dist:
+        for subdir in [platform_subdir(), *alternate_platform_subdirs()]:
+            if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, subdir):
+                break
+        else:
+            raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
+
+    install_spec = f"{install_dist.name} =={install_dist.version}"
 
     # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
@@ -471,9 +479,6 @@ def test_support() -> SetupTestResults:
         if system == "Linux":
             return machine == "x86_64"
 
-        # Note even on arm64 (e.g. aarch64, Apple Silicon M1) we use x86_64
-        # binaries because of current ecosystem compatibility, but Rosetta will
-        # make it work.
         elif system == "Darwin":
             return machine in {"x86_64", "arm64"}
 
@@ -484,8 +489,6 @@ def test_support() -> SetupTestResults:
 
     yield ('operating system is supported',
             supported_os())
-
-    yield from test_rosetta_enabled()
 
     yield ("runtime data dir doesn't have spaces",
             " " not in str(RUNTIME_ROOT))
@@ -524,17 +527,28 @@ def update() -> UpdateStatus:
 
     assert current_meta.get("name") in {nextstrain_base.name, None}
 
-    if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, current_subdir):
-        assert latest_dist.name == nextstrain_base.name
+    # Prefer the platform subdir if possible (e.g. to migrate from osx-64 →
+    # osx-arm64).  Otherwise, use the prefix's current subdir or alternate
+    # platform subdirs (e.g. to allow "downgrade" from osx-arm64 → osx-64).
+    for subdir in uniq([platform_subdir(), current_subdir, *alternate_platform_subdirs()]):
+        if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, subdir):
+            assert latest_dist.name == nextstrain_base.name
+            break
     else:
         raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
 
     latest_version = latest_dist.version
+    latest_subdir = latest_dist.subdir
 
     if latest_version == current_version:
         print(f"Conda package {nextstrain_base.name} {current_version} already at latest version")
     else:
         print(colored("bold", f"Updating Conda package {nextstrain_base.name} from {current_version} to {latest_version}…"))
+
+    # Do we need to force a new setup?
+    if current_subdir != latest_subdir:
+        print(f"Updating platform from {current_subdir} → {latest_subdir} by setting up from scratch again…")
+        return _setup(install_dist = latest_dist, dry_run = False, force = True)
 
     # Anything to do?
     if latest_version == current_version:
@@ -703,10 +717,25 @@ def platform_subdir() -> str:
 
     if (system, machine) == ("Linux", "x86_64"):
         subdir = "linux-64"
-    elif (system, machine) in {("Darwin", "x86_64"), ("Darwin", "arm64")}:
-        # Use the x86 arch even on arm (https://docs.nextstrain.org/en/latest/reference/faq.html#why-intel-miniconda-installer-on-apple-silicon)
+    elif (system, machine) == ("Darwin", "x86_64"):
         subdir = "osx-64"
+    elif (system, machine) == ("Darwin", "arm64"):
+        subdir = "osx-arm64"
     else:
         raise InternalError(f"Unsupported system/machine: {system}/{machine}")
 
     return subdir
+
+
+def alternate_platform_subdirs() -> List[str]:
+    """
+    Alternative Conda subdirs that this :mod:`platform` can use.
+    """
+    system = platform.system()
+    machine = platform.machine()
+
+    if (system, machine) == ("Darwin", "arm64"):
+        if setup_tests_ok(test_rosetta_enabled()):
+            return ["osx-64"]
+
+    return []
