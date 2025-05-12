@@ -271,18 +271,18 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE):
+    if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, platform_subdir()):
         install_spec = f"{install_dist.name} =={install_dist.version}"
     else:
         raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
 
     # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
-    print(f"  - {install_spec}")
+    print(f"  - {install_spec} ({install_dist.subdir})")
 
     if not dry_run:
         try:
-            micromamba("create", install_spec)
+            micromamba("create", install_spec, "--platform", install_dist.subdir)
         except InternalError as err:
             warn(err)
             traceback.print_exc()
@@ -518,31 +518,36 @@ def update() -> UpdateStatus:
 
     nextstrain_base = PackageSpec.parse(NEXTSTRAIN_BASE)
 
-    current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
+    current_meta = package_meta(NEXTSTRAIN_BASE) or {}
+    current_version = current_meta.get("version")
+    current_subdir = current_meta.get("subdir") or platform_subdir()
 
-    if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE):
+    assert current_meta.get("name") in {nextstrain_base.name, None}
+
+    if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, current_subdir):
         assert latest_dist.name == nextstrain_base.name
-
-        latest_version = latest_dist.version
-
-        if latest_version == current_version:
-            print(f"Conda package {nextstrain_base.name} {current_version} already at latest version")
-            print()
-            return True
-
-        print(colored("bold", f"Updating Conda package {nextstrain_base.name} from {current_version} to {latest_version}…"))
-
-        update_spec = f"{nextstrain_base.name} =={latest_version}"
-
     else:
         raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
 
+    latest_version = latest_dist.version
+
+    if latest_version == current_version:
+        print(f"Conda package {nextstrain_base.name} {current_version} already at latest version")
+    else:
+        print(colored("bold", f"Updating Conda package {nextstrain_base.name} from {current_version} to {latest_version}…"))
+
+    # Anything to do?
+    if latest_version == current_version:
+        return True
+
+    update_spec = f"{latest_dist.name} =={latest_version}"
+
     print()
     print(f"Updating Conda packages in {PREFIX}…")
-    print(f"  - {update_spec}")
+    print(f"  - {update_spec} ({latest_dist.subdir})")
 
     try:
-        micromamba("update", update_spec)
+        micromamba("update", update_spec, "--platform", latest_dist.subdir)
     except InternalError as err:
         warn(err)
         traceback.print_exc()
@@ -600,7 +605,7 @@ def package_meta(spec: str) -> Optional[dict]:
     return json.loads(metafile.read_bytes())
 
 
-def package_distribution(channel: str, spec: str) -> Optional['PackageDistribution']:
+def package_distribution(channel: str, spec: str, subdir: str) -> Optional['PackageDistribution']:
     with TemporaryFile() as tmp:
         micromamba(
             "repoquery", "search", spec,
@@ -609,6 +614,7 @@ def package_distribution(channel: str, spec: str) -> Optional['PackageDistributi
             "--override-channels",
             "--strict-channel-priority",
             "--channel", urljoin(CHANNEL_ALIAS, channel),
+            "--platform", subdir,
 
             # Always check that we have latest package index
             "--repodata-ttl", 0,
@@ -646,12 +652,13 @@ def package_distribution(channel: str, spec: str) -> Optional['PackageDistributi
     if not dist:
         return None
 
-    return PackageDistribution(dist["name"], dist["version"])
+    return PackageDistribution(dist["name"], dist["version"], dist["subdir"])
 
 
 class PackageDistribution(NamedTuple):
     name: str
     version: str
+    subdir: str
 
 
 def package_name(spec: str) -> str:
