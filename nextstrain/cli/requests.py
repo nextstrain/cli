@@ -21,6 +21,7 @@ HTTP requests and responses with consistent defaults for us.
     aggregate usage metrics, so we do not recommend omitting it unless
     necessary.
 """
+import certifi
 import os
 import platform
 import requests
@@ -39,6 +40,10 @@ from .__version__ import __version__
 
 
 USER_AGENT_MINIMAL = bool(os.environ.get("NEXTSTRAIN_CLI_USER_AGENT_MINIMAL"))
+
+CA_BUNDLE = os.environ.get("REQUESTS_CA_BUNDLE") \
+         or os.environ.get("CURL_CA_BUNDLE") \
+         or certifi.where()
 
 
 class Session(requests.Session):

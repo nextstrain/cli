@@ -88,6 +88,7 @@ setup(
     python_requires = '>=3.8',
 
     install_requires = [
+        "certifi",
         "docutils",
         "fasteners",
         "importlib_resources >=5.3.0; python_version < '3.11'",

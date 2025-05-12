@@ -346,6 +346,11 @@ def micromamba(*args, add_prefix: bool = True) -> None:
             # explicit here.
             "--allow-uninstall",
             "--allow-downgrade",
+
+            # Honor same method of CA certificate overriding as requests,
+            # except without support for cert directories (only files).
+            *(["--cacert-path", requests.CA_BUNDLE]
+                if not Path(requests.CA_BUNDLE).is_dir() else []),
         )
 
     env = {
