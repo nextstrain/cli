@@ -514,6 +514,20 @@ def update() -> UpdateStatus:
     """
     Update all installed packages with Micromamba.
     """
+    # In the comparisons and logic below, we handle selecting the version to
+    # update to but still let Micromamba select the specific package _build_ to
+    # use.  While our package creation automation currently doesn't support
+    # multiple builds of a version, it's worth noting that 1) Conda's data
+    # model allows for it, and 2) we may start producing multiple builds in the
+    # future (e.g. for varying x86_64-microarch-level dependencies¹ or other
+    # platform compatibility reasons).  If we do, the code below should still
+    # work fine.  However, if we start making "fixup" builds of existing
+    # versions (e.g.  build 1 of version X after build 0 of version X), the "do
+    # we need to update?" logic below would not deal with them properly.
+    #   -trs, 9 April 2025 & 13 May 2025
+    #
+    # ¹ <https://github.com/nextstrain/conda-base/issues/105>
+
     current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
 
     # We accept a package match spec, which one to three space-separated parts.¹
@@ -642,9 +656,15 @@ def package_distribution(channel: str, spec: str) -> Optional[dict]:
 
     dists = result.get("pkgs", [])
 
-    # Default '0-dev' should be the lowest version according to PEP440
-    # See https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering
-    dist = max(dists, default = None, key = lambda d: (parse_version_lax(d.get("version", "0-dev")), d.get("build_number", 0)))
+    # Default '0-dev' should be the lowest version according to PEP440.¹
+    #
+    # We're intentionally ignoring build number as we let Micromamba sort out
+    # the best build variant for a given version of our nextstrain-base
+    # package.  We currently do not produce multiple builds per version, but we
+    # may in the future.  See also the comment at the top of update().
+    #
+    # ¹ <https://peps.python.org/pep-0440/#summary-of-permitted-suffixes-and-relative-ordering>
+    dist = max(dists, default = None, key = lambda d: parse_version_lax(d.get("version", "0-dev")))
 
     if not dist:
         return None
