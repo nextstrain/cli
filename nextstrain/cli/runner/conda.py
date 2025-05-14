@@ -271,22 +271,10 @@ def setup_prefix(dry_run: bool = False, force: bool = False) -> bool:
         if not dry_run:
             shutil.rmtree(str(PREFIX))
 
-    # We accept a package match spec, which one to three space-separated parts.¹
-    # If we got a spec, then we use it as-is.
-    #
-    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
-    #
-    if " " in NEXTSTRAIN_BASE.strip():
-        install_spec = NEXTSTRAIN_BASE
+    if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE):
+        install_spec = f"{install_dist.name} =={install_dist.version}"
     else:
-        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
-
-        if latest_version:
-            install_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
-        else:
-            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific install")
-
-            install_spec = NEXTSTRAIN_BASE
+        raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
 
     # Create environment
     print(f"Installing Conda packages into {PREFIX}…")
@@ -528,37 +516,26 @@ def update() -> UpdateStatus:
     #
     # ¹ <https://github.com/nextstrain/conda-base/issues/105>
 
+    nextstrain_base = PackageSpec.parse(NEXTSTRAIN_BASE)
+
     current_version = (package_meta(NEXTSTRAIN_BASE) or {}).get("version")
 
-    # We accept a package match spec, which one to three space-separated parts.¹
-    # If we got a spec, then we need to handle updates a bit differently.
-    #
-    # ¹ <https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications>
-    #
-    if " " in NEXTSTRAIN_BASE.strip():
-        pkg = PackageSpec.parse(NEXTSTRAIN_BASE)
-        print(colored("bold", f"Updating {pkg.name} from {current_version} to {pkg.version_spec}…"))
-        update_spec = NEXTSTRAIN_BASE
+    if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE):
+        assert latest_dist.name == nextstrain_base.name
+
+        latest_version = latest_dist.version
+
+        if latest_version == current_version:
+            print(f"Conda package {nextstrain_base.name} {current_version} already at latest version")
+            print()
+            return True
+
+        print(colored("bold", f"Updating Conda package {nextstrain_base.name} from {current_version} to {latest_version}…"))
+
+        update_spec = f"{nextstrain_base.name} =={latest_version}"
 
     else:
-        latest_version = (package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE) or {}).get("version")
-
-        if latest_version:
-            if latest_version == current_version:
-                print(f"Conda package {NEXTSTRAIN_BASE} {current_version} already at latest version")
-                print()
-                return True
-
-            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version} to {latest_version}…"))
-
-            update_spec = f"{NEXTSTRAIN_BASE} =={latest_version}"
-
-        else:
-            warn(f"Unable to find latest version of {NEXTSTRAIN_BASE} package; falling back to non-specific update")
-
-            print(colored("bold", f"Updating Conda package {NEXTSTRAIN_BASE} from {current_version}…"))
-
-            update_spec = NEXTSTRAIN_BASE
+        raise UserError(f"Unable to find latest version of {NEXTSTRAIN_BASE} package in {NEXTSTRAIN_CHANNEL}")
 
     print()
     print(f"Updating Conda packages in {PREFIX}…")
@@ -623,7 +600,7 @@ def package_meta(spec: str) -> Optional[dict]:
     return json.loads(metafile.read_bytes())
 
 
-def package_distribution(channel: str, spec: str) -> Optional[dict]:
+def package_distribution(channel: str, spec: str) -> Optional['PackageDistribution']:
     with TemporaryFile() as tmp:
         micromamba(
             "repoquery", "search", spec,
@@ -669,7 +646,12 @@ def package_distribution(channel: str, spec: str) -> Optional[dict]:
     if not dist:
         return None
 
-    return dist
+    return PackageDistribution(dist["name"], dist["version"])
+
+
+class PackageDistribution(NamedTuple):
+    name: str
+    version: str
 
 
 def package_name(spec: str) -> str:
