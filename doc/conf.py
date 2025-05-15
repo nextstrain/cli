@@ -89,6 +89,9 @@ linkcheck_ignore = [
         # they will never work in the linkchecker
         'http://127.0.0.1:',
         'http://localhost:',
+
+        # Cloudflare "protection" gets in the way with a 403
+        'https://conda.anaconda.org',
     ]),
 ]
 linkcheck_anchors_ignore_for_url = [
