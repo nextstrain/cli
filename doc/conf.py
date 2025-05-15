@@ -14,6 +14,8 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import re
+
 
 # -- Project information -----------------------------------------------------
 
@@ -81,16 +83,22 @@ intersphinx_mapping = {
 ## string" matching happening, and something like a plain `r'google'`
 ## regular expression will _NOT_ match all google.com URLs.
 linkcheck_ignore = [
-    # we have links to localhost for explanatory purposes; obviously
-    # they will never work in the linkchecker
-    r'^http://127\.0\.0\.1:\d+',
-    r'^http://localhost:\d+',
+    # Fixed-string prefixes
+    *map(re.escape, [
+        # we have links to localhost for explanatory purposes; obviously
+        # they will never work in the linkchecker
+        'http://127.0.0.1:',
+        'http://localhost:',
+    ]),
 ]
 linkcheck_anchors_ignore_for_url = [
-    # Github uses anchor-looking links for highlighting lines but
-    # handles the actual resolution with Javascript, so skip anchor
-    # checks for Github URLs:
-    r'^https://github\.com',
-    r'^https://console\.aws\.amazon\.com/batch/home',
-    r'^https://console\.aws\.amazon\.com/ec2/v2/home',
+    # Fixed-string prefixes
+    *map(re.escape, [
+        # Github uses anchor-looking links for highlighting lines but
+        # handles the actual resolution with Javascript, so skip anchor
+        # checks for Github URLs:
+        'https://github.com',
+        'https://console.aws.amazon.com/batch/home',
+        'https://console.aws.amazon.com/ec2/v2/home',
+    ]),
 ]
