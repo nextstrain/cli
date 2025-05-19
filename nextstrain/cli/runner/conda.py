@@ -105,7 +105,7 @@ from typing import IO, Iterable, NamedTuple, Optional, cast
 from urllib.parse import urljoin
 from .. import config
 from .. import requests
-from ..errors import InternalError
+from ..errors import InternalError, UserError
 from ..paths import RUNTIMES
 from ..types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
 from ..util import capture_output, colored, exec_or_return, parse_version_lax, runner_name, setup_tests_ok, test_rosetta_enabled, warn
@@ -233,21 +233,24 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
         response.raise_for_status()
         content_type = response.headers["Content-Type"]
 
-        assert content_type == "application/x-tar", \
-            f"unknown content-type for micromamba dist: {content_type}"
+        try:
+            with tarfile.open(fileobj = response.raw, mode = "r|*") as tar:
+                # Ignore archive members starting with "/" and or including ".." parts,
+                # as these can be used (maliciously or accidentally) to overwrite
+                # unintended files (e.g. files outside of MICROMAMBA_ROOT).
+                safe_members = (
+                    member
+                        for member in tar
+                         if not member.name.startswith("/")
+                        and ".." not in PurePosixPath(member.name).parts)
 
-        with tarfile.open(fileobj = response.raw, mode = "r|*") as tar:
-            # Ignore archive members starting with "/" and or including ".." parts,
-            # as these can be used (maliciously or accidentally) to overwrite
-            # unintended files (e.g. files outside of MICROMAMBA_ROOT).
-            safe_members = (
-                member
-                    for member in tar
-                     if not member.name.startswith("/")
-                    and ".." not in PurePosixPath(member.name).parts)
+                print(f"Downloading and extracting Micromamba to {MICROMAMBA_ROOT}…")
+                tar.extractall(path = str(MICROMAMBA_ROOT), members = safe_members)
 
-            print(f"Downloading and extracting Micromamba to {MICROMAMBA_ROOT}…")
-            tar.extractall(path = str(MICROMAMBA_ROOT), members = safe_members)
+        except tarfile.TarError as err:
+            raise UserError(f"""
+                Failed to extract {url} (Content-Type: {content_type}) as tar archive: {err}
+                """)
     else:
         print(f"Downloading and extracting Micromamba to {MICROMAMBA_ROOT}…")
 
