@@ -6,7 +6,7 @@ import subprocess
 import sys
 from functools import partial
 from importlib.metadata import distribution as distribution_info, PackageNotFoundError
-from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, Union, overload
+from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, TypeVar, Union, overload
 from packaging.version import Version, InvalidVersion, parse as parse_version_strict
 from pathlib import Path, PurePath
 from shlex import quote as shquote
@@ -808,3 +808,14 @@ class LaxVersion(Version):
         super().__init__(version)
         self.compliant = compliant
         self.original = original if original is not None else version
+
+
+T = TypeVar("T")
+
+def uniq(xs: Iterable[T]) -> Iterable[T]:
+    """
+    Filter an iterable *xs* to its unique elements, preserving order.
+
+    Elements must be hashable.
+    """
+    return dict.fromkeys(xs).keys()
