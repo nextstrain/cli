@@ -7,11 +7,10 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-# __NEXT__
+# 10.1.0 (19 May 2025)
 
 ## Improvements
 
@@ -28,7 +27,7 @@ development source code and as such may not be routinely kept up to date.
   using the runtime.  Run `nextstrain update conda` to receive the update.
   ([#436](https://github.com/nextstrain/cli/pull/436))
 
-[`NEXTSTRAIN_CONDA_CHANNEL_ALIAS`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_CHANNEL_ALIAS
+[`NEXTSTRAIN_CONDA_CHANNEL_ALIAS`]: https://docs.nextstrain.org/projects/cli/en/10.1.0/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_CHANNEL_ALIAS
 [`channel_alias` Conda config setting]: https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/settings.html#set-ch-alias
 
 ## Development
@@ -38,7 +37,7 @@ development source code and as such may not be routinely kept up to date.
   [`NEXTSTRAIN_CONDA_MICROMAMBA_URL`][] instead.
   ([#436](https://github.com/nextstrain/cli/pull/436))
 
-[`NEXTSTRAIN_CONDA_MICROMAMBA_URL`]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_MICROMAMBA_URL
+[`NEXTSTRAIN_CONDA_MICROMAMBA_URL`]: https://docs.nextstrain.org/projects/cli/en/10.1.0/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_MICROMAMBA_URL
 
 
 # 10.0.0 (7 May 2025)
