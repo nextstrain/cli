@@ -89,6 +89,13 @@ Environment variables
     ``NEXTSTRAIN_CONDA_MICROMAMBA_VERSION``.
 
     Defaults to ``conda-forge/{subdir}/micromamba-1.5.8-0.tar.bz2``.
+
+.. envvar:: NEXTSTRAIN_CONDA_OVERRIDE_SUBDIR
+
+    Conda subdir to use for both Micromamba and the runtime environment.
+
+    If set, overrides the default behaviour of detecting the best subdir that's
+    usable for the platform.
 """
 
 import json
@@ -131,6 +138,8 @@ NEXTSTRAIN_CHANNEL = os.environ.get("NEXTSTRAIN_CONDA_CHANNEL") \
 
 NEXTSTRAIN_BASE = os.environ.get("NEXTSTRAIN_CONDA_BASE_PACKAGE") \
                or "nextstrain-base"
+
+OVERRIDE_SUBDIR = os.environ.get("NEXTSTRAIN_CONDA_OVERRIDE_SUBDIR")
 
 PYTHONUSERBASE = RUNTIME_ROOT / "python-user-base"
 
@@ -223,7 +232,7 @@ def setup_micromamba(dry_run: bool = False, force: bool = False) -> bool:
             shutil.rmtree(str(MICROMAMBA_ROOT))
 
     try:
-        subdir = platform_subdir()
+        subdir = OVERRIDE_SUBDIR or platform_subdir()
     except InternalError as err:
         warn(err)
         return False
@@ -276,7 +285,12 @@ def setup_prefix(dry_run: bool = False, force: bool = False, install_dist: 'Pack
             shutil.rmtree(str(PREFIX))
 
     if not install_dist:
-        for subdir in [platform_subdir(), *alternate_platform_subdirs()]:
+        if OVERRIDE_SUBDIR:
+            subdirs = [OVERRIDE_SUBDIR]
+        else:
+            subdirs = [platform_subdir(), *alternate_platform_subdirs()]
+
+        for subdir in subdirs:
             if install_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, subdir):
                 break
         else:
@@ -523,14 +537,19 @@ def update() -> UpdateStatus:
 
     current_meta = package_meta(NEXTSTRAIN_BASE) or {}
     current_version = current_meta.get("version")
-    current_subdir = current_meta.get("subdir") or platform_subdir()
+    current_subdir = current_meta.get("subdir") or OVERRIDE_SUBDIR or platform_subdir()
 
     assert current_meta.get("name") in {nextstrain_base.name, None}
 
     # Prefer the platform subdir if possible (e.g. to migrate from osx-64 →
     # osx-arm64).  Otherwise, use the prefix's current subdir or alternate
     # platform subdirs (e.g. to allow "downgrade" from osx-arm64 → osx-64).
-    for subdir in uniq([platform_subdir(), current_subdir, *alternate_platform_subdirs()]):
+    if OVERRIDE_SUBDIR:
+        subdirs = [OVERRIDE_SUBDIR]
+    else:
+        subdirs = uniq([platform_subdir(), current_subdir, *alternate_platform_subdirs()])
+
+    for subdir in subdirs:
         if latest_dist := package_distribution(NEXTSTRAIN_CHANNEL, NEXTSTRAIN_BASE, subdir):
             assert latest_dist.name == nextstrain_base.name
             break
