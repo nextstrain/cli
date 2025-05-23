@@ -3,7 +3,9 @@
   "include": ["nextstrain"],
   "ignore": [
     "nextstrain/cli/markdown.py",
-    "nextstrain/cli/rst/sphinx.py"
+    "nextstrain/cli/rst/sphinx.py",
+    "/**/node_modules/pyright/dist/typeshed-fallback/",
+    "c:/**/node_modules/pyright/dist/typeshed-fallback/"
   ],
   "reportMissingImports": false,
   "reportMissingModuleSource": true,
