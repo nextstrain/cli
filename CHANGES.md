@@ -13,6 +13,24 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* `nextstrain setup conda` and `nextstrain update conda` now respect an
+  optional `NEXTSTRAIN_CONDA_OVERRIDE_SUBDIR` environment variable that when
+  set overrides the default behaviour of detecting the best Conda subdir that's
+  usable for the platform.
+
+  This may be used, for example, to force the use of the x86\_64 architecture
+  (`osx-64` subdir) on macOS hardware that's natively the `aarch64` (aka arm64,
+  Apple Silicon, M1/M2/…) architecture (`osx-arm64` subdir):
+
+      NEXTSTRAIN_CONDA_OVERRIDE_SUBDIR=osx-64 nextstrain setup conda
+
+  The variable must be set for every invocation of `nextstrain setup conda` or
+  `nextstrain update conda`, otherwise the default behaviour will apply and the
+  subdir in use by the runtime may be automatically switched.
+  ([#437](https://github.com/nextstrain/cli/pull/437))
+
 
 # 10.1.0 (19 May 2025)
 
