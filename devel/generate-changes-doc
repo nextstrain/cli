@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""
+Transform our :file:`CHANGES.md` into :file:`docs/changes.md` for use with
+Sphinx + MyST.
+
+We keep the former free of Sphinx/MyST-isms since it is used in several other
+contexts as well.
+"""
+import re
+from argparse import ArgumentParser
+from difflib import unified_diff
+from docutils.nodes import make_id
+from hashlib import md5
+from pathlib import Path
+from sys import exit, stdout, stderr
+from tempfile import NamedTemporaryFile
+from packaging.version import VERSION_PATTERN
+
+from nextstrain.cli.argparse import HelpFormatter
+from nextstrain.cli.debug import debug
+
+
+repo = Path(__file__).resolve().parent.parent
+
+
+version_heading = re.compile(r'^#\s+(?P<version>(?ix:' + VERSION_PATTERN + r')|__NEXT__)(\s|$)').search
+subheading      = re.compile(r'^##+\s+(?P<heading>.+)').search
+
+
+argparser = ArgumentParser(
+    prog            = "./devel/generate-changes-doc",
+    usage           = "./devel/generate-changes-doc [--check] [--diff]",
+    description     = __doc__,
+    formatter_class = HelpFormatter)
+
+argparser.add_argument("--check", action = "store_true", help = "Only check if the generated contents need updating; do not actually update any files.  Exits 1 if there are updates, 0 if not.")
+argparser.add_argument("--diff", action = "store_true", help = "Show a diff of updates to the generated contents (or would-be-updates, if --check is also specified).")
+
+
+def main(*, check = False, diff = False):
+    src = repo / "CHANGES.md"
+    dst = repo / "doc/changes.md"
+
+    debug(f"Converting {src} → {dst}…")
+
+    with src.open(encoding = "utf-8") as CHANGES:
+        new = "".join(generate(CHANGES)).encode("utf-8")
+
+    old = dst.read_bytes() if dst.exists() else None
+
+    # Any updates?
+    new_md5 = md5(new).hexdigest()
+    old_md5 = md5(old).hexdigest() if old is not None else "0" * 32
+
+    debug(f"Old MD5: {old_md5}")
+    debug(f"New MD5: {new_md5}")
+
+    if old_md5 != new_md5:
+        if check:
+            check_failed = True
+        else:
+            dst.write_bytes(new)
+            debug(f"wrote {len(new):,} bytes ({new_md5}) to {dst}")
+        print(dst, file = stderr)
+
+        if diff:
+            stdout.writelines(
+                unified_diff(
+                    old.decode("utf-8").splitlines(keepends = True) if old is not None else [],
+                    new.decode("utf-8").splitlines(keepends = True),
+                    str(dst),
+                    str(dst),
+                    old_md5,
+                    new_md5))
+
+    else:
+        if check:
+            check_failed = False
+        debug(f"{dst} unchanged")
+
+    return 1 if check and check_failed else 0
+
+
+def generate(lines):
+    # Title the document
+    yield "# Changelog\n\n"
+
+    version = None
+
+    for line in lines:
+        # Add targets for version headings and subheadings
+        if match := version_heading(line):
+            version = match["version"]
+            version_id = make_id("v" + version)
+            yield f"({version_id})=\n"
+
+        elif version and (match := subheading(line)):
+            heading = match["heading"]
+            heading_id = make_id("v" + version + "-" + heading)
+            yield f"({heading_id})=\n"
+
+        # Offset heading levels by 1
+        if line.startswith("#"):
+            line = "#" + line
+
+        # Rewrite relative links into doc/… to correct them.
+        #
+        # XXX TODO: This is a relatively crude approach, but we can always
+        # improve it if necessary.  For example, we could extend
+        # nextstrain.cli.markdown to parse Link and LinkReference nodes and
+        # then parse/rewrite/generate.
+        #   -trs, 28 May 2025
+        line = re.sub(r'(?<=\]\()doc/', '', line)
+
+        yield line
+
+
+if __name__ == "__main__":
+    exit(main(**vars(argparser.parse_args())))

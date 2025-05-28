@@ -1,0 +1,8 @@
+#!/bin/bash
+set -euo pipefail
+
+devel="$(dirname "$0")"
+
+set -x
+"$devel"/generate-command-doc
+"$devel"/generate-changes-doc

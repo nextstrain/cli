@@ -105,6 +105,17 @@ linkcheck_ignore = [
 
         # Cloudflare "protection" gets in the way with a 403
         'https://conda.anaconda.org',
+
+        # Can't easily check __NEXT__ links that might not exist yet (at least
+        # outside of the PR preview build).
+        #
+        # XXX TODO: An improvement in the future would be munging them to the
+        # PR preview build.  This would helpfully catch mistakes!  But we'd
+        # need to coordinate CI jobs and figure out how/where to do the
+        # munging.  We could also munge them to a local doc build in the
+        # linkcheck job, I guess.  In any case, ENOTIME right now.
+        #   -trs, 29 May 2025
+        'https://docs.nextstrain.org/projects/cli/en/__NEXT__/',
     ]),
 ]
 linkcheck_anchors_ignore_for_url = [
