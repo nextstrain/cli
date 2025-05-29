@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+
+devel="$(dirname "$0")"
+
+set -x
+
+# Regenerate doc/changes.md for the "latest" version and PR previews to fix
+# __NEXT__ links.
+#
+# https://docs.readthedocs.com/platform/stable/reference/environment-variables.html#envvar-READTHEDOCS_VERSION
+# https://docs.readthedocs.com/platform/stable/reference/environment-variables.html#envvar-READTHEDOCS_VERSION_TYPE
+if [[ ${READTHEDOCS_VERSION:-} == latest || ${READTHEDOCS_VERSION_TYPE:-} == external ]]; then
+    "$devel"/generate-changes-doc --diff
+fi

@@ -7,6 +7,7 @@ We keep the former free of Sphinx/MyST-isms since it is used in several other
 contexts as well.
 """
 import re
+import os
 from argparse import ArgumentParser
 from difflib import unified_diff
 from docutils.nodes import make_id
@@ -111,6 +112,18 @@ def generate(lines):
         # then parse/rewrite/generate.
         #   -trs, 28 May 2025
         line = re.sub(r'(?<=\]\()doc/', '', line)
+
+        # Rewrite __NEXT__ links under the __NEXT__ version for RTD builds so
+        # they work on PR previews and the "latest" version.  Note that
+        # CHANGES.md in released versions (and the "stable" version) should not
+        # have any __NEXT__ version heading nor __NEXT__ links as both are
+        # removed/rewritten by devel/release.
+        #
+        # <https://docs.readthedocs.com/platform/stable/reference/environment-variables.html#envvar-READTHEDOCS_CANONICAL_URL>
+        if version == "__NEXT__" and (RTD_URL := os.environ.get("READTHEDOCS_CANONICAL_URL")):
+            if not RTD_URL.endswith("/"):
+                RTD_URL += "/"
+            line = line.replace("https://docs.nextstrain.org/projects/cli/en/__NEXT__/", RTD_URL)
 
         yield line
 
