@@ -140,11 +140,11 @@ setup(
         "dev": [
             "cram >=0.7",
             "flake8 >=4.0.0",
+            "myst-parser",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest; python_version != '3.9'",
             "pytest !=7.0.0; python_version == '3.9'",
             "pytest-forked",
-            "recommonmark",
             "sphinx>=3",
             "sphinx-autobuild",
             "sphinx-markdown-tables !=0.0.16",

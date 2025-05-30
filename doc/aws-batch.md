@@ -30,7 +30,7 @@ can press Control-Z to detach at any point once the build is submitted.
 [AWS Batch]: https://aws.amazon.com/batch/
 [`zika-tutorial/` directory]: https://github.com/nextstrain/zika-tutorial
 
-#### Using and requesting resources
+### Using and requesting resources
 
 By default, each AWS Batch job will have available to it the number of vCPUs
 and amount of memory configured in your [job definition](#job-definition).  To

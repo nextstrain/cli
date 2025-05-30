@@ -1,3 +1,5 @@
+# Changelog
+
 This is the changelog for Nextstrain CLI.  All notable changes in a release
 will be documented in this file.
 
@@ -11,9 +13,11 @@ was released.  The "__NEXT__" heading below describes changes in the unreleased
 development source code and as such may not be routinely kept up to date.
 
 
-# __NEXT__
+(v-next)=
+## __NEXT__
 
-## Documentation
+(v-next-documentation)=
+### Documentation
 
 * This changelog is [now
   included](https://docs.nextstrain.org/projects/cli/en/__NEXT__/changes/) in
@@ -22,9 +26,11 @@ development source code and as such may not be routinely kept up to date.
   ([#438](https://github.com/nextstrain/cli/pull/438))
 
 
-# 10.2.0 (27 May 2025)
+(v10-2-0)=
+## 10.2.0 (27 May 2025)
 
-## Development
+(v10-2-0-development)=
+### Development
 
 * `nextstrain setup conda` and `nextstrain update conda` now respect an
   optional `NEXTSTRAIN_CONDA_OVERRIDE_SUBDIR` environment variable that when
@@ -43,9 +49,11 @@ development source code and as such may not be routinely kept up to date.
   ([#437](https://github.com/nextstrain/cli/pull/437))
 
 
-# 10.1.0 (19 May 2025)
+(v10-1-0)=
+## 10.1.0 (19 May 2025)
 
-## Improvements
+(v10-1-0-improvements)=
+### Improvements
 
 * Use of an alternate Conda package repository is now supported during
   `nextstrain setup conda` and `nextstrain update conda` if you cannot or do
@@ -63,7 +71,8 @@ development source code and as such may not be routinely kept up to date.
 [`NEXTSTRAIN_CONDA_CHANNEL_ALIAS`]: https://docs.nextstrain.org/projects/cli/en/10.1.0/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_CHANNEL_ALIAS
 [`channel_alias` Conda config setting]: https://docs.conda.io/projects/conda/en/latest/user-guide/configuration/settings.html#set-ch-alias
 
-## Development
+(v10-1-0-development)=
+### Development
 
 * The `NEXTSTRAIN_CONDA_MICROMAMBA_VERSION` environment variable is no longer
   supported (i.e. for use with `nextstrain setup conda`).  Please use
@@ -73,7 +82,8 @@ development source code and as such may not be routinely kept up to date.
 [`NEXTSTRAIN_CONDA_MICROMAMBA_URL`]: https://docs.nextstrain.org/projects/cli/en/10.1.0/runtimes/conda/#envvar-NEXTSTRAIN_CONDA_MICROMAMBA_URL
 
 
-# 10.0.0 (7 May 2025)
+(v10-0-0)=
+## 10.0.0 (7 May 2025)
 
 This release is the first to include initial support for setting up and running
 pathogen workflows without the co-mingling of our workflow source code with
@@ -83,7 +93,8 @@ first set up with `nextstrain setup` and their workflows may then be run using
 `nextstrain run`, a new command in this release.  These features are part of
 our broader "workflows as programs" endeavor.
 
-## Features
+(v10-0-0-features)=
+### Features
 
 * A new command, [`nextstrain run`][], for running pathogen workflows in a more
   managed way as part of our broader "workflows as programs" endeavor.
@@ -112,7 +123,8 @@ our broader "workflows as programs" endeavor.
 [#407]: https://github.com/nextstrain/cli/pull/407
 [`nextstrain run`]: https://docs.nextstrain.org/projects/cli/en/10.0.0/commands/run/
 
-## Improvements
+(v10-0-0-improvements)=
+### Improvements
 
 * The results of setup checks performed by `nextstrain setup` and `nextstrain
   check-setup` are now shown individually as they complete instead of waiting
@@ -154,13 +166,15 @@ our broader "workflows as programs" endeavor.
   ([#434](https://github.com/nextstrain/cli/pull/434))
 
 
-# 9.0.0 (24 March 2025)
+(v9-0-0)=
+## 9.0.0 (24 March 2025)
 
 This release contains a **potentially-breaking change** for any usages of the
 `--sacra` option, though we expect no one is using it.  The change is described
 below.
 
-## Improvements
+(v9-0-0-improvements)=
+### Improvements
 
 * `nextstrain version` now reports itself as "Nextstrain CLI" (instead of
   "nextstrain.cli") and indicates if it is a "standalone" installation
@@ -196,7 +210,8 @@ below.
   **potentially-breaking change**, although almost certainly affects no one.
   ([#419][])
 
-## Bug fixes
+(v9-0-0-bug-fixes)=
+### Bug fixes
 
 * Fixed a rare but possible error case in `nextstrain view` and `nextstrain
   login` when running under a copy of Python with IPv6 disabled on a system
@@ -225,7 +240,8 @@ below.
   affected approximately no one.
   ([#419][])
 
-## Development
+(v9-0-0-development)=
+### Development
 
 * Goodbye, Mypy!  We now use only Pyright for type checking.  Both type
   checkers used to contribute to our development in their own way, but over
@@ -248,9 +264,11 @@ below.
 [#419]: https://github.com/nextstrain/cli/pull/419
 
 
-# 8.5.4 (1 November 2024)
+(v8-5-4)=
+## 8.5.4 (1 November 2024)
 
-## Bug fixes
+(v8-5-4-bug-fixes)=
+### Bug fixes
 
 * It is no longer a fatal error if the logs for a completed AWS Batch job
   cannot be fetched for some reason.  `nextstrain build` will warn about the
@@ -259,9 +277,11 @@ below.
   ([#406](https://github.com/nextstrain/cli/pull/406))
 
 
-# 8.5.3 (3 September 2024)
+(v8-5-3)=
+## 8.5.3 (3 September 2024)
 
-## Bug fixes
+(v8-5-3-bug-fixes)=
+### Bug fixes
 
 * Authentication established via `nextstrain login` and used by the `nextstrain
   remote` family of commands no longer verifies the "issued at" (`iat`) time of
@@ -274,9 +294,11 @@ below.
   ([#394](https://github.com/nextstrain/cli/pull/394))
 
 
-# 8.5.2 (27 August 2024)
+(v8-5-2)=
+## 8.5.2 (27 August 2024)
 
-## Bug fixes
+(v8-5-2-bug-fixes)=
+### Bug fixes
 
 * The suggested commands to run (i.e. potential solutions) in expected errors
   from `nextstrain remote` now explicitly include the remote origin to avoid
@@ -286,9 +308,11 @@ below.
   ([#391](https://github.com/nextstrain/cli/pull/391))
 
 
-# 8.5.1 (31 July 2024)
+(v8-5-1)=
+## 8.5.1 (31 July 2024)
 
-## Bug fixes
+(v8-5-1-bug-fixes)=
+### Bug fixes
 
 * `nextstrain remote download` now produces the expected local file names when
   there are periods (dots) in the remote dataset name (e.g. `nextstrain remote
@@ -298,9 +322,11 @@ below.
   ([#381](https://github.com/nextstrain/cli/pull/381))
 
 
-# 8.5.0 (18 June 2024)
+(v8-5-0)=
+## 8.5.0 (18 June 2024)
 
-## Improvements
+(v8-5-0-improvements)=
+### Improvements
 
 * Snakemake's per-input/output file metadata (stored in `.snakemake/metadata/`)
   is now downloaded from AWS Batch builds by default.  Like file modification
@@ -316,7 +342,8 @@ below.
   ([#374](https://github.com/nextstrain/cli/pull/374))
 
 
-# 8.4.0 (29 May 2024)
+(v8-4-0)=
+## 8.4.0 (29 May 2024)
 
 This release adds explicit (i.e. tested) support for Python version 3.12.
 ([#369](https://github.com/nextstrain/cli/pull/369))
@@ -329,7 +356,8 @@ installation method we recommend in the [Nextstrain installation
 documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
 supported Python version is always bundled with `nextstrain`.
 
-## Features
+(v8-4-0-features)=
+### Features
 
 * `nextstrain build` now supports two new options when using the AWS Batch
   runtime: [`--exclude-from-upload`][] and [`--exclude-from-download`][].  The
@@ -338,7 +366,8 @@ supported Python version is always bundled with `nextstrain`.
   exclude files from both upload and download.
   ([#370](https://github.com/nextstrain/cli/pull/370))
 
-## Improvements
+(v8-4-0-improvements)=
+### Improvements
 
 * The Conda runtime now uses Micromamba 1.5.8 (upgraded from 1.1.0) to manage
   the runtime environment. The newer version supports Zstandard-compressed
@@ -346,7 +375,8 @@ supported Python version is always bundled with `nextstrain`.
   the Conda runtime.
   ([#367](https://github.com/nextstrain/cli/pull/367))
 
-## Bug fixes
+(v8-4-0-bug-fixes)=
+### Bug fixes
 
 * The [`--download`][] option of `nextstrain build` now supports passing _only_
   negated patterns (e.g. `!…` and `!(…)`).  All files which _don't_ match the
@@ -360,9 +390,11 @@ supported Python version is always bundled with `nextstrain`.
 [`--download`]: https://docs.nextstrain.org/projects/cli/en/8.4.0/commands/build/#cmdoption-nextstrain-build-download
 
 
-# 8.3.0 (30 April 2024)
+(v8-3-0)=
+## 8.3.0 (30 April 2024)
 
-## Improvements
+(v8-3-0-improvements)=
+### Improvements
 
 * Commands which utilize a runtime—`nextstrain build`, `nextstrain shell`, and
   `nextstrain view`—now support specifying envdirs to forward into the runtime
@@ -372,9 +404,11 @@ supported Python version is always bundled with `nextstrain`.
   ([#365](https://github.com/nextstrain/cli/pull/365))
 
 
-# 8.2.0 (6 February 2024)
+(v8-2-0)=
+## 8.2.0 (6 February 2024)
 
-## Features
+(v8-2-0-features)=
+### Features
 
 * `nextstrain build` and `nextstrain shell` now better support pathogen
   repositories which place workflows in subdirectories.  The top-level of the
@@ -435,7 +469,8 @@ supported Python version is always bundled with `nextstrain`.
 
 [containerized]: https://docs.nextstrain.org/projects/cli/en/8.2.0/runtimes/#comparison
 
-## Improvements
+(v8-2-0-improvements)=
+### Improvements
 
 * We now produce standalone installation archives for macOS running on aarch64
   hardware (aka arm64, Apple Silicon, M1/M2).  The standalone installer will
@@ -462,16 +497,19 @@ supported Python version is always bundled with `nextstrain`.
 [development overlay option]: https://docs.nextstrain.org/projects/cli/en/8.2.0/commands/build/#development-options-for-docker
 
 
-# 8.0.1 (29 January 2024)
+(v8-0-1)=
+## 8.0.1 (29 January 2024)
 
-## Improvements
+(v8-0-1-improvements)=
+### Improvements
 
 * Several kinds of errors from `nextstrain login` and `nextstrain whoami`
   related to their interactions with a remote server are now clearer.
   ([#347](https://github.com/nextstrain/cli/pull/347))
 
 
-# 8.0.0 (18 January 2024)
+(v8-0-0)=
+## 8.0.0 (18 January 2024)
 
 This release drops support for Python versions 3.6 and 3.7 and adds support for
 3.11. ([#325](https://github.com/nextstrain/cli/pull/325),
@@ -485,7 +523,8 @@ installation method we recommend in the [Nextstrain installation
 documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
 supported Python version is always bundled with `nextstrain`.
 
-## Improvements
+(v8-0-0-improvements)=
+### Improvements
 
 * The `nextstrain remote` family of commands now support alternative
   nextstrain.org-like remotes such as internal Nextstrain Groups Server
@@ -549,7 +588,8 @@ supported Python version is always bundled with `nextstrain`.
 
   ([#345](https://github.com/nextstrain/cli/pull/345))
 
-## Bug fixes
+(v8-0-0-bug-fixes)=
+### Bug fixes
 
 * Commands making use of user authentication (e.g. `nextstrain login`,
   `nextstrain whoami`, some invocations of `nextstrain remote`, etc.) no longer
@@ -569,9 +609,11 @@ supported Python version is always bundled with `nextstrain`.
   ([#343](https://github.com/nextstrain/cli/pull/343))
 
 
-# 7.4.0 (21 September 2023)
+(v7-4-0)=
+## 7.4.0 (21 September 2023)
 
-## Improvements
+(v7-4-0-improvements)=
+### Improvements
 
 * When attached to an AWS Batch job, `nextstrain build` now only requires
   confirmation to stop the job (e.g. a double Control-C/`SIGINT`) when stdin is
@@ -600,7 +642,8 @@ supported Python version is always bundled with `nextstrain`.
 
 [#308]: https://github.com/nextstrain/cli/pull/308
 
-## Bug fixes
+(v7-4-0-bug-fixes)=
+### Bug fixes
 
 * We've plugged some isolation leaks in the Conda runtime where the
   [Python user site directory](https://docs.python.org/3/library/site.html),
@@ -610,20 +653,24 @@ supported Python version is always bundled with `nextstrain`.
   ([#311](https://github.com/nextstrain/cli/pull/311))
 
 
-# 7.3.0.post1 (19 September 2023)
+(v7-3-0-post1)=
+## 7.3.0.post1 (19 September 2023)
 
 _See also changes in 7.3.0 which was an unreleased version._
 
-## Development
+(v7-3-0-post1-development)=
+### Development
 
 * Update CI to test against the SingularityCE 3.x series only ([#314](https://github.com/nextstrain/cli/pull/314))
 
 
-# 7.3.0 (19 September 2023)
+(v7-3-0)=
+## 7.3.0 (19 September 2023)
 
 _Unreleased due to test failures. Changes first released as part of 7.3.0.post1._
 
-## Improvements
+(v7-3-0-improvements)=
+### Improvements
 
 * build: Providing a path to a pathogen build directory is no longer required
   when the AWS Batch runtime is in use (e.g. with `--aws-batch`) and both the
@@ -640,7 +687,8 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
   when updating the Conda runtime, i.e. with `nextstrain update conda`.
   ([#312](https://github.com/nextstrain/cli/pull/312))
 
-## Bug fixes
+(v7-3-0-bug-fixes)=
+### Bug fixes
 
 * The `HOST` and `PORT` environment variables are now respected by `nextstrain
   view`.  They provide defaults when `--host` and/or `--port` aren't provided.
@@ -651,9 +699,11 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
   ([#313](https://github.com/nextstrain/cli/pull/313))
 
 
-# 7.2.0 (17 August 2023)
+(v7-2-0)=
+## 7.2.0 (17 August 2023)
 
-## Bug fixes
+(v7-2-0-bug-fixes)=
+### Bug fixes
 
 * The Conda runtime now uses Micromamba 1.1.0 (upgraded from 1.0.0) to manage
   the runtime environment.  The newer version has improved error handling in
@@ -668,7 +718,8 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
   may mitigate the additional transfer in the future.
   ([#303][])
 
-## Documentation
+(v7-2-0-documentation)=
+### Documentation
 
 * The command-line `--help` output for commands and the corresponding
   documentation pages on the web are more integrated and improved in various
@@ -693,9 +744,11 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
 [#303]: https://github.com/nextstrain/cli/pull/303
 
 
-# 7.1.0 (22 June 2023)
+(v7-1-0)=
+## 7.1.0 (22 June 2023)
 
-## Improvements
+(v7-1-0-improvements)=
+### Improvements
 
 * Commands that use a runtime (`nextstrain build`, `nextstrain shell`, and
   `nextstrain view`) now support two new options for setting or passing thru
@@ -746,7 +799,8 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
   values exist outside of memory, persisted to storage (disk, S3).
   ([#289](https://github.com/nextstrain/cli/pull/289))
 
-## Bug fixes
+(v7-1-0-bug-fixes)=
+### Bug fixes
 
 * `nextstrain view` now waits (up to 10s) for Auspice to start responding
   before automatically opening it in the browser.  This should eliminate the
@@ -754,16 +808,19 @@ _Unreleased due to test failures. Changes first released as part of 7.3.0.post1.
   ([#291](https://github.com/nextstrain/cli/pull/291))
 
 
-# 7.0.1 (31 May 2023)
+(v7-0-1)=
+## 7.0.1 (31 May 2023)
 
-## Bug fixes
+(v7-0-1-bug-fixes)=
+### Bug fixes
 
 * `nextstrain update` for the Conda runtime no longer reports an "invalid
   version" error.  This was a regression introduced in 7.0.0.
   ([#286](https://github.com/nextstrain/cli/pull/286))
 
 
-# 7.0.0 (26 May 2023)
+(v7-0-0)=
+## 7.0.0 (26 May 2023)
 
 This release is mostly a bug fix release for our Conda and Singularity
 runtimes.  However, it contains a **potentially-breaking change** for existing
@@ -772,7 +829,8 @@ has changed from 2.6.0 to 3.0.0**.  This change was required for a critical bug
 fix.  If you do not use the Singularity runtime, there are no
 potentially-breaking changes in this release.
 
-## Improvements
+(v7-0-0-improvements)=
+### Improvements
 
 * `nextstrain shell` now notes which runtime is being entered in its initial
   messaging to establish more context for the user (and for developers when
@@ -783,7 +841,8 @@ potentially-breaking changes in this release.
   version (3.0.0 with this release) during `nextstrain check-setup`.
   ([#283][])
 
-## Bug fixes
+(v7-0-0-bug-fixes)=
+### Bug fixes
 
 * Setup and upgrade of the Conda runtime now only uses stable "main" channel
   releases when determining the latest release version, as intended.
@@ -811,7 +870,8 @@ potentially-breaking changes in this release.
   substitutions is disabled.
   ([#283][])
 
-## Development
+(v7-0-0-development)=
+### Development
 
 * The command lines and environment overrides of many (but not all) process
   invocations are now logged when `NEXTSTRAIN_DEBUG` is enabled.
@@ -821,9 +881,11 @@ potentially-breaking changes in this release.
 [#283]: https://github.com/nextstrain/cli/pull/283
 
 
-# 6.2.1 (24 March 2023)
+(v6-2-1)=
+## 6.2.1 (24 March 2023)
 
-## Bug fixes
+(v6-2-1-bug-fixes)=
+### Bug fixes
 
 * We've fixed and future-proofed a compatibility bug with a third-party library
   that can occur under very specific conditions when `nextstrain build` submits
@@ -835,9 +897,11 @@ potentially-breaking changes in this release.
   ([#266](https://github.com/nextstrain/cli/pull/266))
 
 
-# 6.2.0 (28 February 2023)
+(v6-2-0)=
+## 6.2.0 (28 February 2023)
 
-## Improvements
+(v6-2-0-improvements)=
+### Improvements
 
 * `nextstrain build --aws-batch --attach …` no longer offers to cancel (via
   Control-C) or detach (via Control-Z) from the job if it's already complete.
@@ -854,7 +918,8 @@ potentially-breaking changes in this release.
 
 [#253]: https://github.com/nextstrain/cli/pull/253
 
-## Bug fixes
+(v6-2-0-bug-fixes)=
+### Bug fixes
 
 * An error message that's printed by `nextstrain remote upload` when unknown
   files are given for upload to destinations on nextstrain.org now properly
@@ -871,16 +936,20 @@ potentially-breaking changes in this release.
   ([#259](https://github.com/nextstrain/cli/pull/259))
 
 
-# 6.1.0.post1 (18 January 2023)
+(v6-1-0-post1)=
+## 6.1.0.post1 (18 January 2023)
 
-## Documentation
+(v6-1-0-post1-documentation)=
+### Documentation
 
 * Minor improvements to the way we list and describe our computing platforms.
 
 
-# 6.1.0 (18 January 2023)
+(v6-1-0)=
+## 6.1.0 (18 January 2023)
 
-## Improvements
+(v6-1-0-improvements)=
+### Improvements
 
 * We've added a new Singularity runtime based on our existing Docker runtime.
 
@@ -895,16 +964,19 @@ potentially-breaking changes in this release.
   ([#248](https://github.com/nextstrain/cli/pull/248))
 
 
-# 6.0.3 (17 January 2023)
+(v6-0-3)=
+## 6.0.3 (17 January 2023)
 
-## Improvements
+(v6-0-3-improvements)=
+### Improvements
 
 * The output of `nextstrain check-setup` for the Conda runtime will now hint
   about running `nextstrain setup conda` first if the runtime seems supported
   but not yet set up.
   ([#250][])
 
-## Documentation
+(v6-0-3-documentation)=
+### Documentation
 
 * Documentation and `--help` output now standardizes on the term _runtime_ to
   describe the various ways Nextstrain CLI provides access to the Nextstrain
@@ -926,7 +998,8 @@ potentially-breaking changes in this release.
   updated.
   ([#250][])
 
-## Development
+(v6-0-3-development)=
+### Development
 
 * A new [glossary page in our documentation](https://docs.nextstrain.org/projects/cli/page/glossary/)
   will help keep our shared understanding of terms straight.
@@ -941,11 +1014,13 @@ potentially-breaking changes in this release.
 [#250]: https://github.com/nextstrain/cli/pull/250
 
 
-# 6.0.2 (3 January 2023)
+(v6-0-2)=
+## 6.0.2 (3 January 2023)
 
 _See also changes in 6.0.1 which was an unreleased version._
 
-## Bug fixes
+(v6-0-2-bug-fixes)=
+### Bug fixes
 
 * A new deprecation warning from the `cryptography` module (version 39) when
   running on Python 3.6 is now suppressed as it's just noise to an end user.
@@ -954,11 +1029,13 @@ _See also changes in 6.0.1 which was an unreleased version._
   ([#246](https://github.com/nextstrain/cli/issues/246))
 
 
-# 6.0.1 (3 January 2023)
+(v6-0-1)=
+## 6.0.1 (3 January 2023)
 
 _Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/245). Changes first released as part of 6.0.2._
 
-## Improvements
+(v6-0-1-improvements)=
+### Improvements
 
 * The standalone installation archives used by the standalone installer will
   now work on even older Linux distributions:
@@ -983,7 +1060,8 @@ _Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/245)
   version is 2.17 (was 2.27 previously).
   ([#243](https://github.com/nextstrain/cli/pull/243))
 
-## Bug fixes
+(v6-0-1-bug-fixes)=
+### Bug fixes
 
 * The automatic opening of a browser tab (or window) by `nextstrain view`—a
   feature introduced in the last release (6.0.0)—now also works for standalone
@@ -991,13 +1069,15 @@ _Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/245)
   ([#244](https://github.com/nextstrain/cli/pull/244))
 
 
-# 6.0.0 (13 December 2022)
+(v6-0-0)=
+## 6.0.0 (13 December 2022)
 
 This release contains a **potentially-breaking change** for existing usages of
 `nextstrain view`, though we expect the change to impact very few usages.  The
 change is described below.
 
-## Improvements
+(v6-0-0-improvements)=
+### Improvements
 
 * `nextstrain view` now supports viewing narratives, as was always intended.
   Previously the launched Auspice would either show baked in test narratives or
@@ -1044,15 +1124,18 @@ change is described below.
   by nextstrain.org.
   ([#238](https://github.com/nextstrain/cli/pull/238))
 
-## Development
+(v6-0-0-development)=
+### Development
 
 * The Conda runtime now uses Micromamba 1.0.0 (an upgrade from 0.27.0).
   ([#233](https://github.com/nextstrain/cli/pull/233))
 
 
-# 5.0.1 (1 November 2022)
+(v5-0-1)=
+## 5.0.1 (1 November 2022)
 
-## Bug fixes
+(v5-0-1-bug-fixes)=
+### Bug fixes
 
 * `nextstrain shell` no longer errors when its history file, e.g.
   _~/.nextstrain/shell-history_, doesn't exist.  This primarily affected the
@@ -1060,7 +1143,8 @@ change is described below.
   ([#232](https://github.com/nextstrain/cli/pull/232))
 
 
-# 5.0.0 (25 October 2022)
+(v5-0-0)=
+## 5.0.0 (25 October 2022)
 
 _Version 5.0.0 had two development pre-releases (5.0.0.dev0 and 5.0.0.dev1)
 prior to final release.  For convenience, the changes from those pre-releases
@@ -1074,7 +1158,8 @@ This release also contains **potentially-breaking changes** for existing
 usages of `nextstrain remote download` and `nextstrain update`.  The changes
 are described below.
 
-## Improvements
+(v5-0-0-improvements)=
+### Improvements
 
 * A new Conda runtime (aka runner or build environment) now complements the
   existing Docker and ambient runtimes and fills a gap between them.  This
@@ -1214,7 +1299,8 @@ are described below.
   executed.
   ([#218][])
 
-## Development
+(v5-0-0-development)=
+### Development
 
 * We now provide standalone installers (i.e. shell programs) to download and
   unpack the standalone installation archives into standard locations,
@@ -1252,11 +1338,13 @@ are described below.
   ([#218][])
 
 
-# 5.0.0.dev1 (25 October 2022)
+(v5-0-0-dev1)=
+## 5.0.0.dev1 (25 October 2022)
 
 _This is the second development pre-release made prior to the final release of 5.0.0._
 
-## Improvements
+(v5-0-0-dev1-improvements)=
+### Improvements
 
 * The "native" runtime (aka runner or build environment) is now the "ambient"
   runtime.  This name better reflects what it is and further distinguishes it
@@ -1310,7 +1398,8 @@ _This is the second development pre-release made prior to the final release of 5
 
 [Conda package specification]: https://docs.conda.io/projects/conda/en/latest/user-guide/concepts/pkg-specs.html#package-match-specifications
 
-## Bug fixes
+(v5-0-0-dev1-bug-fixes)=
+### Bug fixes
 
 * The Conda runtime now runs Micromamba in greater isolation to avoid undesired
   interactions when a) Nextstrain CLI itself is running inside an
@@ -1327,14 +1416,16 @@ _This is the second development pre-release made prior to the final release of 5
   allow it to be upgraded by `update`.
   ([#228](https://github.com/nextstrain/cli/pull/228))
 
-## Development
+(v5-0-0-dev1-development)=
+### Development
 
 * The Conda runtime is now tested in CI, joining the Docker and ambient
   runtimes.
   ([#223](https://github.com/nextstrain/cli/pull/223))
 
 
-# 5.0.0.dev0 (6 October 2022)
+(v5-0-0-dev0)=
+## 5.0.0.dev0 (6 October 2022)
 
 _This is a development pre-release made prior to the final release of 5.0.0._
 
@@ -1346,7 +1437,8 @@ This release also contains **a potentially-breaking change** for existing
 usages of `nextstrain remote download` and `nextstrain update`.  The changes
 are described below.
 
-## Improvements
+(v5-0-0-dev0-improvements)=
+### Improvements
 
 * A new Conda runtime (aka runner or build environment) now complements the
   existing Docker and "native" runtimes and fills a gap between them.  This
@@ -1468,7 +1560,8 @@ are described below.
   executed.
   ([#218][])
 
-## Development
+(v5-0-0-dev0-development)=
+### Development
 
 * We now provide standalone installers (i.e. shell programs) to download and
   unpack the standalone installation archives into standard locations,
@@ -1505,9 +1598,11 @@ are described below.
 [#218]: https://github.com/nextstrain/cli/pull/218
 
 
-# 4.2.0 (29 July 2022)
+(v4-2-0)=
+## 4.2.0 (29 July 2022)
 
-## Bug fixes
+(v4-2-0-bug-fixes)=
+### Bug fixes
 
 * Using `remote delete` on nextstrain.org now correctly outputs the "Deleting…"
   message *before* performing each delete, as intended (and as S3 remotes do).
@@ -1528,7 +1623,8 @@ are described below.
   and `nextstrain check-setup` can no longer occur.
   ([#207][])
 
-## Improvements
+(v4-2-0-improvements)=
+### Improvements
 
 * The `nextstrain remote download`, `upload`, and `delete` commands now support
   a `--dry-run` mode.
@@ -1551,7 +1647,8 @@ are described below.
   something different).
   ([#207][])
 
-## Development
+(v4-2-0-development)=
+### Development
 
 * A new debugging mode can be enabled by setting the `NEXTSTRAIN_DEBUG`
   environment variable to `1` (or another truthy value).  Currently the only
@@ -1570,9 +1667,11 @@ are described below.
 [#207]: https://github.com/nextstrain/cli/pull/207
 
 
-# 4.1.1 (18 July 2022)
+(v4-1-1)=
+## 4.1.1 (18 July 2022)
 
-## Improvements
+(v4-1-1-improvements)=
+### Improvements
 
 * The new version check now links out to the changelog for the latest version
   so you know what you're gonna get.
@@ -1580,7 +1679,8 @@ are described below.
 * The new version check now detects standalone installations and provides
   correct upgrade instructions.
 
-## Development
+(v4-1-1-development)=
+### Development
 
 * The "__NEXT__" heading (and description) is no longer included in the
   _CHANGES.md_ file in release artifacts and tags, as it's a development-only
@@ -1596,9 +1696,11 @@ are described below.
   pdb from within the command's context.
 
 
-# 4.1.0 (11 July 2022)
+(v4-1-0)=
+## 4.1.0 (11 July 2022)
 
-## Improvements
+(v4-1-0-improvements)=
+### Improvements
 
 * The `nextstrain remote` family of commands now output a nicer error message
   that's more interpretable and actionable when a server error (HTTP status
@@ -1611,12 +1713,14 @@ are described below.
 * Timestamps are now shown for each line of output from an AWS Batch build.
 
 
-# 4.0.0 (24 June 2022)
+(v4-0-0)=
+## 4.0.0 (24 June 2022)
 
 This release contains **two potentially-breaking changes** for existing usages.
 The circumstances and implications of each are described below.
 
-## Improvements
+(v4-0-0-improvements)=
+### Improvements
 
 * It is now an error (instead of a warning) to use the `--image` option to
   `nextstrain build` when using the "native" runner (either explicitly via
@@ -1686,7 +1790,8 @@ The circumstances and implications of each are described below.
   is not supported.  Prior to this it only exited with an error code if no
   runners were supported.
 
-## Bug fixes
+(v4-0-0-bug-fixes)=
+### Bug fixes
 
 * When using the AWS Batch runner, the `--cpus` and `--memory` options for
   `build` now correctly override the corresponding resource requests in newer
@@ -1710,12 +1815,14 @@ The circumstances and implications of each are described below.
   particular, this fixes `UnicodeEncodeError` issues in some contexts on
   Windows even when UTF-8 is supported.
 
-## Documentation
+(v4-0-0-documentation)=
+### Documentation
 
 * This changelog now sports a preamble to set the scene and provide context for
   the content.
 
-## Development
+(v4-0-0-development)=
+### Development
 
 * The source repo now uses a `+git` local version part to distinguish
   actual releases from installations of unreleased code.  Relatedly, the
@@ -1767,22 +1874,27 @@ The circumstances and implications of each are described below.
   Conda).
 
 
-# 3.2.5 (23 May 2022)
+(v3-2-5)=
+## 3.2.5 (23 May 2022)
 
-## Improvements
+(v3-2-5-improvements)=
+### Improvements
 
 * A better error message with a potential remediation is emitted when requests
   to nextstrain.org fail due to stale user tokens.
 
-## Documentation
+(v3-2-5-documentation)=
+### Documentation
 
 * The cross-reference to Nextstrain Groups documentation is now up to date with
   the latest Groups docs.
 
 
-# 3.2.4 (6 April 2022)
+(v3-2-4)=
+## 3.2.4 (6 April 2022)
 
-## Bug fixes
+(v3-2-4-bug-fixes)=
+### Bug fixes
 
 * `update` will no longer overwrite a `docker.image` config setting when the
   current/default value includes an explicit `latest` tag.  This change makes
@@ -1806,9 +1918,11 @@ The circumstances and implications of each are described below.
   ([#168](https://github.com/nextstrain/cli/pull/168))
 
 
-# 3.2.3 (1 April 2022)
+(v3-2-3)=
+## 3.2.3 (1 April 2022)
 
-## Bug fixes
+(v3-2-3-bug-fixes)=
+### Bug fixes
 
 * `remote upload` to nextstrain.org destinations is no longer exceedingly slow.
   This was most noticeable for large dataset JSONs.  The slowness was a result
@@ -1819,9 +1933,11 @@ The circumstances and implications of each are described below.
   ([#165](https://github.com/nextstrain/cli/pull/165))
 
 
-# 3.2.2 (28 March 2022)
+(v3-2-2)=
+## 3.2.2 (28 March 2022)
 
-## Documentation
+(v3-2-2-documentation)=
+### Documentation
 
 * A new page describes how to upgrade Nextstrain CLI.
 
@@ -1832,9 +1948,11 @@ The circumstances and implications of each are described below.
   placeholder used elsewhere in its `--help` output.
 
 
-# 3.2.1 (22 March 2022)
+(v3-2-1)=
+## 3.2.1 (22 March 2022)
 
-## Bug fixes
+(v3-2-1-bug-fixes)=
+### Bug fixes
 
 * `remote upload` no longer gzip compresses files which are already compressed
   when uploading them to an S3 remote.  This isn't expected in typical usage
@@ -1843,29 +1961,35 @@ The circumstances and implications of each are described below.
   file to `s3://nextstrain-data/files/zika/`).
   ([#161](https://github.com/nextstrain/cli/pull/161))
 
-## Development
+(v3-2-1-development)=
+### Development
 
 * The CI workflow setup steps were simplified a bit.
 
 
-# 3.2.0 (9 March 2022)
+(v3-2-0)=
+## 3.2.0 (9 March 2022)
 
-## Bug fixes
+(v3-2-0-bug-fixes)=
+### Bug fixes
 
 * `check-setup` no longer errors when, on some systems, awk outputs a large
   number (bytes of memory reported by /proc/meminfo) in exponential notation.
   ([#159](https://github.com/nextstrain/cli/pull/159))
 
-## Features
+(v3-2-0-features)=
+### Features
 
 * The `view` and `remote` family of commands now support "measurements" dataset
   sidecar files.
   ([#156](https://github.com/nextstrain/cli/pull/156))
 
 
-# 3.1.1 (4 March 2022)
+(v3-1-1)=
+## 3.1.1 (4 March 2022)
 
-## Bug fixes
+(v3-1-1-bug-fixes)=
+### Bug fixes
 
 * The Docker runtime now avoids merging stdout and stderr together when at
   least one of stdout or stderr isn't a console (TTY), e.g. when redirecting
@@ -1879,15 +2003,18 @@ The circumstances and implications of each are described below.
   --set-default`.
   ([#157](https://github.com/nextstrain/cli/pull/157))
 
-## Documentation
+(v3-1-1-documentation)=
+### Documentation
 
 * The changelog now notes two minor (har har) semantic versioning mistakes in
   previous releases.
 
 
-# 3.1.0 (1 March 2022)
+(v3-1-0)=
+## 3.1.0 (1 March 2022)
 
-## Features
+(v3-1-0-features)=
+### Features
 
 * `remote` family of commands now support interacting with nextstrain.org's web
   API using the credentials established by the `login` command.
@@ -1899,7 +2026,8 @@ The circumstances and implications of each are described below.
 * `login` now sports a `--renew` flag to request new tokens with refreshed user
   information (e.g. group memberships).
 
-## Bug fixes
+(v3-1-0-bug-fixes)=
+### Bug fixes
 
 * `build` now exits 1 (an error) when the AWS Batch job fails due to
   infrastructural issues like the EC2 instance its running on being terminated.
@@ -1917,20 +2045,24 @@ The circumstances and implications of each are described below.
 * The messages produced when an internal error is detected now suggest filing
   an issue on GitHub to report the bug.
 
-## Documentation
+(v3-1-0-documentation)=
+### Documentation
 
 * The specific release version will now be displayed under the project name in
   the sidebar of the documentation pages.
 
-## Development
+(v3-1-0-development)=
+### Development
 
 * Many breakages of our CI caused by external changes in upstream testing deps
   are now resolved.
 
 
-# 3.0.6 (26 January 2022)
+(v3-0-6)=
+## 3.0.6 (26 January 2022)
 
-## Documentation
+(v3-0-6-documentation)=
+### Documentation
 
 * The organization of the documentation sidebar menu is now improved to show
   more of the pages instead of burying them in subpage table of contents.
@@ -1940,18 +2072,21 @@ The circumstances and implications of each are described below.
   `--help` and the online documentation is now possible.
 
 
-# 3.0.5 (20 December 2021)
+(v3-0-5)=
+## 3.0.5 (20 December 2021)
 
 _This release should have bumped the minor version, not the patch version,
 since it added a new feature.  —trs, 1 March 2022_
 
-## Features
+(v3-0-5-features)=
+### Features
 
 * `view` now supports a `--host` option to specify the IP address or hostname
   on which to listen, complementing the existing `--port` option.
   `--allow-remote-access` is now an alias for `--host=0.0.0.0`.
 
-## Paper cut remedies
+(v3-0-5-paper-cut-remedies)=
+### Paper cut remedies
 
 * [netifaces](https://pypi.org/project/netifaces/) is no longer a dependency
   since its lack of wheels for recent Python versions means it often requires a
@@ -1965,12 +2100,14 @@ since it added a new feature.  —trs, 1 March 2022_
   --allow-remote-access` a bit poorer, but makes installation a lot easier.
 
 
-# 3.0.4 (3 November 2021)
+(v3-0-4)=
+## 3.0.4 (3 November 2021)
 
 _This release should have bumped the minor version, not the patch version,
 since it added new features/commands.  —trs, 1 March 2022_
 
-## Features
+(v3-0-4-features)=
+### Features
 
 * Three new commands—`login`, `logout`, and `whoami`—for authenticating with
   nextstrain.org.  These commands manage tokens stored in
@@ -1978,7 +2115,8 @@ since it added new features/commands.  —trs, 1 March 2022_
   future features will start using them, e.g.  for managing datasets and
   narratives on nextstrain.org with the `remote` family of commands.
 
-## Bug fixes
+(v3-0-4-bug-fixes)=
+### Bug fixes
 
 * Adjusted dependencies on s3fs and aiobotocore to avoid incompatible versions
   being selected by pip.
@@ -1990,7 +2128,8 @@ since it added new features/commands.  —trs, 1 March 2022_
 
 * update: Explicitly handle errors from the Docker Hub registry.
 
-## Documentation
+(v3-0-4-documentation)=
+### Documentation
 
 * AWS Batch: Documented the unintuitive interaction of compute envs and launch
   template versions and updated the disk space section for Amazon Linux 2
@@ -1998,7 +2137,8 @@ since it added new features/commands.  —trs, 1 March 2022_
 
 * Updated various links that had moved.
 
-## Development
+(v3-0-4-development)=
+### Development
 
 * Ditched Pipenv for a plain venv setup.
 
@@ -2020,9 +2160,11 @@ since it added new features/commands.  —trs, 1 March 2022_
   Sphinx warnings are often authoring mistakes that need to be addressed.
 
 
-# 3.0.3 (23 February 2021)
+(v3-0-3)=
+## 3.0.3 (23 February 2021)
 
-## Documentation
+(v3-0-3-documentation)=
+### Documentation
 
 * The help output for `build` now correctly describes the default behaviour of
   the `--download` and `--no-download` options.
@@ -2032,9 +2174,11 @@ since it added new features/commands.  —trs, 1 March 2022_
   the shell.
 
 
-# 3.0.2 (16 February 2021)
+(v3-0-2)=
+## 3.0.2 (16 February 2021)
 
-## Bug fixes
+(v3-0-2-bug-fixes)=
+### Bug fixes
 
 * `update` more gracefully handles Docker not being installed.  Although the
   command still exits with error (as it currently serves only to pull the
@@ -2057,24 +2201,28 @@ since it added new features/commands.  —trs, 1 March 2022_
   `/usr/local`).  It is instead included inside the "egg-info" directory
   alongside the code in the Python site libraries.
 
-## Development
+(v3-0-2-development)=
+### Development
 
 * Revamp CI by switching from Travis CI to GitHub Actions, expanding the test
   matrix to macOS and Python 3.9, and adding an integration test for the
   "native" build runner.
 
 
-# 3.0.1 (12 February 2021)
+(v3-0-1)=
+## 3.0.1 (12 February 2021)
 
 Hotfix for a missing transitive dependency on s3fs via fsspec, which caused
 `nextstrain build --aws-batch` invocations to fail when s3fs was not installed.
 
 
-# 3.0.0 (11 February 2021)
+(v3-0-0)=
+## 3.0.0 (11 February 2021)
 
 The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 
-## Features
+(v3-0-0-features)=
+### Features
 
 * build: Uploads and downloads for remote AWS Batch builds are now streamed
   without the use of temporary local files.  This halves the local storage
@@ -2099,7 +2247,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   Currently this functionality is limited to AWS Batch (`--aws-batch`) builds,
   as it is the only remote environment supported.
 
-## Bug fixes
+(v3-0-0-bug-fixes)=
+### Bug fixes
 
 * build: Python bytecode files (`__pycache__` and `*.pyc`) are no longer
   uploaded or downloaded from remote builds on AWS Batch.
@@ -2111,7 +2260,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 * remote download: A better error message is now produced when a prefix-less
   `s3://` URL is provided without the `--recursively` option.
 
-## Documentation
+(v3-0-0-documentation)=
+### Documentation
 
 * Clarify how remote builds on AWS Batch acquire AWS credentials.
 
@@ -2124,7 +2274,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   [docs.nextstrain.org](https://docs.nextstrain.org) effort.  Redirects were
   put into place for any moved RTD URLs.
 
-## Development
+(v3-0-0-development)=
+### Development
 
 * Various improvements to the Read The Docs and Sphinx setup.
 
@@ -2134,18 +2285,22 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 
 
 
-# 2.0.0.post1 (15 June 2020)
+(v2-0-0-post1)=
+## 2.0.0.post1 (15 June 2020)
 
-## Documentation
+(v2-0-0-post1-documentation)=
+### Documentation
 
 * The AWS Batch documentation and 2.0.0 release notes (below) now include
   information about the additional necessity of granting users the ability to
   `iam:PassRole` for the role used by Batch jobs.
 
 
-# 2.0.0 (2 June 2020)
+(v2-0-0)=
+## 2.0.0 (2 June 2020)
 
-## Features
+(v2-0-0-features)=
+### Features
 
 * build: The AWS Batch runner now supports overriding the image hardcoded in
   the Batch job definition.  Use the `--image` command-line option, the
@@ -2157,8 +2312,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   are allowed to perform the `batch:RegisterJobDefinition` action and
   `iam:PassRole` for the your configured job role (typically
   _NextstrainJobsRole_).  The [example _NextstrainJobsAccessToBatch_ IAM
-  policy](doc/aws-batch.md#nextstrainjobsaccesstobatch) in the [AWS Batch
-  docs](doc/aws-batch.md) is updated to reflect these new privileges.
+  policy](aws-batch.md#nextstrainjobsaccesstobatch) in the [AWS Batch
+  docs](aws-batch.md) is updated to reflect these new privileges.
 
 * build: The new `--cpus` and `--memory` options allow limits to be specified
   for containerized (Docker, AWS Batch) builds.  These both automatically
@@ -2170,7 +2325,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 * version: Verbose output now includes the "native" versions of Augur and
   Auspice, if available.
 
-## Bug fixes
+(v2-0-0-bug-fixes)=
+### Bug fixes
 
 * view: Auspice v2 dataset JSONs are now detected and included in the list of
   available datasets message printed to the console.
@@ -2179,11 +2335,13 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   files exist.  Previously, incomplete datasets with only the tree JSON were
   listed.
 
-## Documentation
+(v2-0-0-documentation)=
+### Documentation
 
 * The README now documents known issues with Windows.
 
-## Development
+(v2-0-0-development)=
+### Development
 
 * Pipenv is now used to provide an easier and more consistent development
   environment.
@@ -2191,22 +2349,27 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 * pytest is now used to run mypy, flake8, and doctests.
 
 
-# 1.16.7 (20 May 2020)
+(v1-16-7)=
+## 1.16.7 (20 May 2020)
 
-## Bug fixes
+(v1-16-7-bug-fixes)=
+### Bug fixes
 
 * AWS Batch builds are now more resilient in the face of transient network or
   client errors when uploading the build directory and following build logs.
   Thanks Tony Tung!
 
-# 1.16.6 (20 May 2020)
+(v1-16-6)=
+## 1.16.6 (20 May 2020)
 
-## Bug fixes
+(v1-16-6-bug-fixes)=
+### Bug fixes
 
 * The previous release did not pass mypy's type checks due to a technicality;
   mypy has now been placated.
 
-## Documentation
+(v1-16-6-documentation)=
+### Documentation
 
 * check-setup: Success or failure is (hopefully) more clearly messaged now.
   This was muddied over time by adding support for the native and AWS Batch
@@ -2234,18 +2397,22 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
 * The top-level description in `nextstrain --help` output now says more than
   three words.  :D
 
-# 1.16.5 (22 April 2020)
+(v1-16-5)=
+## 1.16.5 (22 April 2020)
 
-## Features
+(v1-16-5-features)=
+### Features
 
 * build: AWS Batch jobs now require Ctrl-C to be pressed twice _within 10s_ to
   cancel a job.  This is an additional guard on top of 1.16.4's change so that
   if you accidentally press Ctrl-C once you can't accidentally press it again
   30 minutes later and ruin your build.
 
-# 1.16.4 (22 April 2020)
+(v1-16-4)=
+## 1.16.4 (22 April 2020)
 
-## Features
+(v1-16-4-features)=
+### Features
 
 * build: AWS Batch jobs now require Ctrl-C to be pressed twice to cancel the
   job.  This guards a potentially unwanted action from being used accidentally
@@ -2256,34 +2423,41 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   transition.  For a PENDING or RUNNING job, it might be some time to the next
   transition.
 
-# 1.16.3 (22 April 2020)
+(v1-16-3)=
+## 1.16.3 (22 April 2020)
 
-## Features
+(v1-16-3-features)=
+### Features
 
 * build: AWS Batch jobs now include more detail about why the container exited
   when available.  This surfaces useful messages like "OutOfMemoryError:
   Container killed due to memory usage" in addition to the exit status.
 
-## Documentation
+(v1-16-3-documentation)=
+### Documentation
 
 * check-setup: Describe how `--set-default` chooses an environment. Thanks Mary
   Larrousse!
 
-## Bug fixes
+(v1-16-3-bug-fixes)=
+### Bug fixes
 
 * Fix missing import in our gzip utilities which could cause a runtime error
   (NameError) when running `nextstrain remote download` on S3 objects with a
   `Content-Encoding` header set to a value other than `gzip` or `deflate`.
   This circumstance is unlikely, but not impossible.
 
-## Development
+(v1-16-3-development)=
+### Development
 
 * Use Flake8 for static runtime safety and correctness checks
 
 
-# 1.16.2 (16 March 2020)
+(v1-16-2)=
+## 1.16.2 (16 March 2020)
 
-## Bug fixes
+(v1-16-2-bug-fixes)=
+### Bug fixes
 
 * deploy/remote upload: Some files, but not all, were being truncated during
   upload due to a bug in gzip compression handling.  Now the whole file makes
@@ -2294,17 +2468,21 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   different program to run is specified with `--exec`.
 
 
-# 1.16.1 (25 February 2020)
+(v1-16-1)=
+## 1.16.1 (25 February 2020)
 
-## Documentation
+(v1-16-1-documentation)=
+### Documentation
 
 * Update README to include the latest usage information, which mentions the new
   `remote` command.
 
 
-# 1.16.0 (25 February 2020)
+(v1-16-0)=
+## 1.16.0 (25 February 2020)
 
-## Features
+(v1-16-0-features)=
+### Features
 
 * The `deploy` command is now an alias for the `remote upload` command.
 
@@ -2314,7 +2492,8 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   destinations are supported, but its anticipated that Nextstrain Groups will
   be supported as first-class destinations in the future.
 
-## Bug fixes
+(v1-16-0-bug-fixes)=
+### Bug fixes
 
 * deploy/remote upload: Invalid credentials are now properly caught and messaged about.
 
@@ -2322,9 +2501,11 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   compression instead of buffering the whole file in memory first.
 
 
-# 1.15.0 (18 February 2020)
+(v1-15-0)=
+## 1.15.0 (18 February 2020)
 
-## Features
+(v1-15-0-features)=
+### Features
 
 * Environment variables for [AWS
   credentials](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#using-environment-variables)
@@ -2338,14 +2519,17 @@ The minimum Python version for installing the Nextstrain CLI itself is now 3.6.
   instance to work transparently.
 
 
-# 1.14.0 (24 September 2019)
+(v1-14-0)=
+## 1.14.0 (24 September 2019)
 
 _No changes since 1.14.0b1, described below._
 
 
-# 1.14.0b1 (17 September 2019)
+(v1-14-0b1)=
+## 1.14.0b1 (17 September 2019)
 
-## Features
+(v1-14-0b1-features)=
+### Features
 
 * The `build` command now supports detaching from and re-attaching to builds
   run on AWS Batch (`--aws-batch`).
@@ -2388,9 +2572,11 @@ _No changes since 1.14.0b1, described below._
   [S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-buckets).
 
 
-# 1.13.0 (10 September 2019)
+(v1-13-0)=
+## 1.13.0 (10 September 2019)
 
-## Features
+(v1-13-0-features)=
+### Features
 
 * The `deploy` command no longer requires permission to perform the
   globally-scoped AWS IAM action `s3:ListAllMyBuckets`.  Instead, it uses the
@@ -2400,17 +2586,21 @@ _No changes since 1.14.0b1, described below._
   actions are in the [S3 documentation](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-buckets).
 
 
-# 1.12.0 (5 September 2019)
+(v1-12-0)=
+## 1.12.0 (5 September 2019)
 
-## Features
+(v1-12-0-features)=
+### Features
 
 * The `deploy` command now supports files other than JSON data files, such as
   Markdown narratives, by setting the correct content type on upload.
 
 
-# 1.11.2 (3 September 2019)
+(v1-11-2)=
+## 1.11.2 (3 September 2019)
 
-## Bug fixes
+(v1-11-2-bug-fixes)=
+### Bug fixes
 
 * This release fixes a regression in the `view` command which caused
   "connection reset" or "empty response" errors.  The regression only affected
@@ -2419,16 +2609,20 @@ _No changes since 1.14.0b1, described below._
   Adams for the excellent bug report!
 
 
-# 1.11.1 (30 August 2019)
+(v1-11-1)=
+## 1.11.1 (30 August 2019)
 
-## Bug fixes
+(v1-11-1-bug-fixes)=
+### Bug fixes
 
 * The `check-setup` command no longer errors when Docker isn't installed.
 
 
-# 1.11.0 (30 August 2019)
+(v1-11-0)=
+## 1.11.0 (30 August 2019)
 
-## Features
+(v1-11-0-features)=
+### Features
 
 * The `view` command now supports `--native` flag to run in the native ambient
   environment.
@@ -2438,36 +2632,44 @@ _No changes since 1.14.0b1, described below._
   that you don't have to specify `--native` (or `--aws-batch`) every time if
   you don't have/want Docker support.
 
-## Bug fixes
+(v1-11-0-bug-fixes)=
+### Bug fixes
 
 * The `--verbose` flag to the `version` command will no longer cause the Docker
   image to be downloaded when it isn't available locally.
 
-## Documentation
+(v1-11-0-documentation)=
+### Documentation
 
 * Describe the somewhat annoying process of how to increase the disk space
   available to AWS Batch jobs in the AWS Web Console.
 
 
-# 1.10.2 (23 August 2019)
+(v1-10-2)=
+## 1.10.2 (23 August 2019)
 
-## Bug fixes
+(v1-10-2-bug-fixes)=
+### Bug fixes
 
 * The [environment variables used by Augur](https://docs.nextstrain.org/projects/augur/page/usage/envvars.html)
   are now passed through to --docker and --aws-batch builds.
 
 
-# 1.10.1 (26 March 2019)
+(v1-10-1)=
+## 1.10.1 (26 March 2019)
 
-## Features
+(v1-10-1-features)=
+### Features
 
 * The `view` command now sports a `--port` option to use an alternate port for
   the viewer.
 
 
-# 1.10.0 (22 February 2019)
+(v1-10-0)=
+## 1.10.0 (22 February 2019)
 
-## Features
+(v1-10-0-features)=
+### Features
 
 * Add ability to specify vCPU and memory when running AWS Batch jobs via
   `--aws-batch-cpus` and `--aws-batch-memory` or via specification in
@@ -2475,9 +2677,11 @@ _No changes since 1.14.0b1, described below._
   `NEXTSTRAIN_AWS_BATCH_CPUS` and `NEXTSTRAIN_AWS_BATCH_MEMORY`. This requires
   corresponding proper setup of compute environment in AWS Batch console.
 
-# 1.9.1 (11 February 2019)
+(v1-9-1)=
+## 1.9.1 (11 February 2019)
 
-## Features
+(v1-9-1-features)=
+### Features
 
 * Restore the modification times of files when unzipping results from an AWS
   Batch run.  This allows Snakemake's dependency resolution to properly
@@ -2486,9 +2690,11 @@ _No changes since 1.14.0b1, described below._
   Batch and then iterating on subsequent trivial steps locally).
 
 
-# 1.9.0 (8 February 2019)
+(v1-9-0)=
+## 1.9.0 (8 February 2019)
 
-## Features
+(v1-9-0-features)=
+### Features
 
 * Builds run on AWS Batch no longer delete the build dir zip file from S3 or
   the job log stream from CloudWatch, making it easier to debug and
@@ -2496,30 +2702,36 @@ _No changes since 1.14.0b1, described below._
   that the previously suggested retention policies are now the only thing
   preventing runaway data storage costs (and thus a must).
 
-## Bug fixes
+(v1-9-0-bug-fixes)=
+### Bug fixes
 
 * Declare missing dep on setuptools, used via `pkg_resources` by the
   `check-setup` and `update` commands.  setuptools nearly always exists already
   on Python installs, especially when nextstrain-cli is installed using pip,
   but nearly always is not always.
 
-## Development
+(v1-9-0-development)=
+### Development
 
 * Static type checking now passes again thanks to a work around for a mypy bug
   related to namespace packages.
 
 
-# 1.8.1 (21 January 2019)
+(v1-8-1)=
+## 1.8.1 (21 January 2019)
 
-## Features
+(v1-8-1-features)=
+### Features
 
 * The `check-setup` command now tests if the local Docker image is new enough
   for this version of the CLI.
 
 
-# 1.8.0 (18 January 2019)
+(v1-8-0)=
+## 1.8.0 (18 January 2019)
 
-## Bug fixes
+(v1-8-0-bug-fixes)=
+### Bug fixes
 
 * Docker images between `build-20190115T232255Z` and `build-20190116T000613Z`
   (inclusive) broke the `nextstrain view` command.  It is fixed in this version
@@ -2533,23 +2745,28 @@ _No changes since 1.14.0b1, described below._
   environment values.
 
 
-# 1.7.3 (28 December 2018)
+(v1-7-3)=
+## 1.7.3 (28 December 2018)
 
-## Features
+(v1-7-3-features)=
+### Features
 
 * The automatic check for newer versions of the CLI, which happens on the
   `update` and `check-setup` commands, now produces a better,
   more-likely-to-work suggested invocation of pip to perform the upgrade.
 
 
-# 1.7.2 (28 December 2018)
+(v1-7-2)=
+## 1.7.2 (28 December 2018)
 
-## Features
+(v1-7-2-features)=
+### Features
 
 * The `build` command now runs `snakemake` with the `--printshellcmds` option
   for improved log output.
 
-## Bug fixes
+(v1-7-2-bug-fixes)=
+### Bug fixes
 
 * User-provided paths are now resolved strictly—they must exist—on both Python
   3.5 and ≥3.6, not just 3.5.  This discrepancy was unlikely to result in any
@@ -2560,7 +2777,8 @@ _No changes since 1.14.0b1, described below._
   `~/.nextstrain/` does not exist (for example, when upgrading from CLI
   versions before 1.7.0).  [#37](https://github.com/nextstrain/cli/issues/37)
 
-## Development
+(v1-7-2-development)=
+### Development
 
 * Continuous integration testing now includes a much fuller range of Python
   versions in order to more quickly catch bugs like the one affecting `update`
@@ -2571,23 +2789,27 @@ _No changes since 1.14.0b1, described below._
   build more suitable for our needs.
 
 
-# 1.7.1 (5 December 2018)
+(v1-7-1)=
+## 1.7.1 (5 December 2018)
 
-## Bug fixes
+(v1-7-1-bug-fixes)=
+### Bug fixes
 
 * The `shell` command no longer throws an unexpected exception about a missing
   `warn()` function when a non-existent build directory is given.  The
   user-friendly error is printed instead, as expected.
 
 
-# 1.7.0 (26 November 2018)
+(v1-7-0)=
+## 1.7.0 (26 November 2018)
 
-## Features
+(v1-7-0-features)=
+### Features
 
 * Builds can now be run remotely on [AWS Batch](https://aws.amazon.com/batch/)
   by passing the `--aws-batch` flag to the `build` command.  See `nextstrain
   build --help` for more information.  Setup required to support this is
-  documented in [`doc/aws-batch.md`](doc/aws-batch.md).
+  documented in [`doc/aws-batch.md`](aws-batch.md).
 
 * The `update` command now pulls down new images by their `build-*` tag instead
   of tracking the mutable `latest` tag.  Our build tags are, most importantly,
@@ -2601,7 +2823,8 @@ _No changes since 1.14.0b1, described below._
   The VM may have limited memory allocated to it, leading to out-of-memory
   errors in builds.
 
-## Documentation
+(v1-7-0-documentation)=
+### Documentation
 
 * Installation instructions in the README are now more detailed.
 
@@ -2612,17 +2835,21 @@ _No changes since 1.14.0b1, described below._
   Edition.
 
 
-# 1.6.1 (25 September 2018)
+(v1-6-1)=
+## 1.6.1 (25 September 2018)
 
-## Features
+(v1-6-1-features)=
+### Features
 
 * The `shell` command announces you're entering the build environment, prints
   information about mapped volumes, and describes how to leave the environment.
 
 
-# 1.6.0 (18 September 2018)
+(v1-6-0)=
+## 1.6.0 (18 September 2018)
 
-## Bug fixes
+(v1-6-0-bug-fixes)=
+### Bug fixes
 
 * On Windows, fix an issue where the `build` and `shell` commands spawn the
   `docker run` process but also immediately return the user to the
@@ -2631,9 +2858,11 @@ _No changes since 1.14.0b1, described below._
   to win when reading from the shared stdin.
 
 
-# 1.5.0 (4 September 2018)
+(v1-5-0)=
+## 1.5.0 (4 September 2018)
 
-## Features
+(v1-5-0-features)=
+### Features
 
 * The `build` command now supports a `--native` flag to run the build outside
   of any container image, that is, within the ambient environment.  That
@@ -2648,7 +2877,8 @@ _No changes since 1.14.0b1, described below._
   common options when passed `--help`.  The full set of options is available
   using `--help-all`.  The idea is to make the initial output more approachable.
 
-## Development
+(v1-5-0-development)=
+### Development
 
 * The README now describes how to annotate the type of variable and use other
   typing features in a way that's compatible with Python 3.5
@@ -2656,24 +2886,30 @@ _No changes since 1.14.0b1, described below._
 * Package metadata for PyPi is slightly improved.
 
 
-# 1.4.1 (11 August 2018)
+(v1-4-1)=
+## 1.4.1 (11 August 2018)
 
-## Documentation
+(v1-4-1-documentation)=
+### Documentation
 
 * Minor updates to README and command help strings
 
 
-# 1.4.0 (9 August 2018)
+(v1-4-0)=
+## 1.4.0 (9 August 2018)
 
-## Features
+(v1-4-0-features)=
+### Features
 
 * A new `shell` command launches an interactive shell (bash) inside the build
   environment, which is useful for running ad-hoc commands and debugging.
 
 
-# 1.3.0 (9 August 2018)
+(v1-3-0)=
+## 1.3.0 (9 August 2018)
 
-## Features
+(v1-3-0-features)=
+### Features
 
 * The `update` command now prunes old Docker images after downloading new ones.
   This functionality relies on our new, labeled images.  Older images will have
@@ -2686,9 +2922,11 @@ _No changes since 1.14.0b1, described below._
   image are shown when the `version` command is run with the `--verbose` flag.
 
 
-# 1.2.0 (1 August 2018)
+(v1-2-0)=
+## 1.2.0 (1 August 2018)
 
-## Features
+(v1-2-0-features)=
+### Features
 
 * A new `deploy` command supports uploading data files to S3, allowing the
   complete pathogen build lifecycle to happen using this package.
@@ -2696,12 +2934,14 @@ _No changes since 1.14.0b1, described below._
 * The `check-setup` and `update` commands now check if the CLI itself is out of
   date and could be updated.
 
-## Documentation
+(v1-2-0-documentation)=
+### Documentation
 
 * Brief descriptions of the changes in each release are now kept in the
   `CHANGES.md` file.  You're reading it!
 
-## Development
+(v1-2-0-development)=
+### Development
 
 * Describe basic development practices for this package in the README.
 

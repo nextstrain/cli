@@ -35,7 +35,7 @@ author = 'Thomas Sibley and the rest of the Nextstrain team'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'recommonmark',
+    'myst_parser',
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx_markdown_tables',
@@ -49,8 +49,21 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store',
-    'development.md'
+    'development.md',
 ]
+
+
+# -- Options for MyST-Parser -------------------------------------------------
+
+# Generate Markdown-only link targets for Markdown headings up to <h5>.  These
+# are NOT used for rST cross-references or implicit section targets.
+#
+# You can see the effect of changing this by running, e.g.:
+#
+#   myst-anchors --level 1 CHANGES.md
+#
+# See also <https://myst-parser.readthedocs.io/en/latest/syntax/optional.html#auto-generated-header-anchors>.
+myst_heading_anchors = 5
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -92,6 +105,17 @@ linkcheck_ignore = [
 
         # Cloudflare "protection" gets in the way with a 403
         'https://conda.anaconda.org',
+
+        # Can't easily check __NEXT__ links that might not exist yet (at least
+        # outside of the PR preview build).
+        #
+        # XXX TODO: An improvement in the future would be munging them to the
+        # PR preview build.  This would helpfully catch mistakes!  But we'd
+        # need to coordinate CI jobs and figure out how/where to do the
+        # munging.  We could also munge them to a local doc build in the
+        # linkcheck job, I guess.  In any case, ENOTIME right now.
+        #   -trs, 29 May 2025
+        'https://docs.nextstrain.org/projects/cli/en/__NEXT__/',
     ]),
 ]
 linkcheck_anchors_ignore_for_url = [

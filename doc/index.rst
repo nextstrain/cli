@@ -26,11 +26,12 @@ Table of Contents
 =================
 
 .. toctree::
-    :maxdepth: 3
+    :titlesonly:
 
     Introduction <self>
     installation
     upgrading
+    changes
     AWS Batch <aws-batch>
 
 .. toctree::

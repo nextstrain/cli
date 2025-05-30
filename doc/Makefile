@@ -17,7 +17,7 @@ SOURCEDIR     = .
 STRICT = -n -W --keep-going
 LOOSE = -n
 
-GENERATE = ../devel/generate-command-doc
+GENERATE = ../devel/generate-doc
 
 # Put it first so that "make" without argument is like "make help".
 help:
