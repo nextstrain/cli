@@ -336,8 +336,8 @@ Specify the container image `nextstrain/base:latest` and an empty command.
 (In the wizard, delete the pre-filled command, leaving the JSON result as an
 empty array (`[]`).)
 
-Choose the job role _NextstrainJobsRole_, which you just created in the IAM
-roles section above.
+Do not choose any execution role. For the job role, choose _NextstrainJobsRole_
+which you just created in the IAM roles section above.
 
 Select the number of desired vCPUs and amount of memory you'd like each
 Nextstrain build job to have access to.
