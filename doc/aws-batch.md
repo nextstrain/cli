@@ -327,10 +327,9 @@ different name, you'll need to use the `--aws-batch-job` option to `nextstrain
 build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
 in the `[aws-batch]` section of `~/.nextstrain/config`.
 
-Set the retry attempts to _1_ and the execution timeout to _14400_ seconds (4
-hours).  The timeout ensures that broken, never-ending jobs will be terminated
-after 4 hours instead of racking up EC2 costs.  Adjust it if necessary for your
-builds.
+Set the execution timeout to _14400_ seconds (4 hours).  The timeout ensures
+that broken, never-ending jobs will be terminated after 4 hours instead of
+racking up EC2 costs.  Adjust it if necessary for your builds.
 
 Specify the container image `nextstrain/base:latest` and an empty command.
 (In the wizard, delete the pre-filled command, leaving the JSON result as an
