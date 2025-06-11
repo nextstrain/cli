@@ -289,30 +289,6 @@ setup the job definition, compute environment, and job queue described below.
 [getting started guide]: https://docs.aws.amazon.com/batch/latest/userguide/Batch_GetStarted.html
 [AWS Batch wizard]: https://console.aws.amazon.com/batch/home#/wizard
 
-#### Job definition
-
-Create a new job definition with the name `nextstrain-job`.  If you use a
-different name, you'll need to use the `--aws-batch-job` option to `nextstrain
-build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
-in the `[aws-batch]` section of `~/.nextstrain/config`.
-
-Choose the job role _NextstrainJobsRole_, which you just created in the IAM
-roles section above.
-
-Specify the container image `nextstrain/base:latest` and an empty command.
-(In the wizard, delete the pre-filled command, leaving the JSON result as an
-empty array (`[]`).)
-
-Select the number of desired vCPUs and amount of memory you'd like each
-Nextstrain build job to have access to.
-
-Set the retry attempts to _1_ and the execution timeout to _14400_ seconds (4
-hours).  The timeout ensures that broken, never-ending jobs will be terminated
-after 4 hours instead of racking up EC2 costs.  Adjust it if necessary for your
-builds.
-
-No job parameters or job environment variables are required.
-
 #### Compute environment
 
 Create a _managed_ compute environment with a name of your choosing.
@@ -335,6 +311,30 @@ the `NEXTSTRAIN_AWS_BATCH_QUEUE` environment variable, or set `queue` in the
 If you're not using the wizard, make sure you connect the job queue to the
 compute environment you created above.
 
+
+#### Job definition
+
+Create a new job definition with the name `nextstrain-job`.  If you use a
+different name, you'll need to use the `--aws-batch-job` option to `nextstrain
+build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
+in the `[aws-batch]` section of `~/.nextstrain/config`.
+
+Set the retry attempts to _1_ and the execution timeout to _14400_ seconds (4
+hours).  The timeout ensures that broken, never-ending jobs will be terminated
+after 4 hours instead of racking up EC2 costs.  Adjust it if necessary for your
+builds.
+
+Specify the container image `nextstrain/base:latest` and an empty command.
+(In the wizard, delete the pre-filled command, leaving the JSON result as an
+empty array (`[]`).)
+
+Choose the job role _NextstrainJobsRole_, which you just created in the IAM
+roles section above.
+
+Select the number of desired vCPUs and amount of memory you'd like each
+Nextstrain build job to have access to.
+
+No job parameters or job environment variables are required.
 
 ### CloudWatch Logs
 
