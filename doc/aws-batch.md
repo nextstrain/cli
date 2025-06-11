@@ -289,9 +289,15 @@ setup the job definition, compute environment, and job queue described below.
 [getting started guide]: https://docs.aws.amazon.com/batch/latest/userguide/Batch_GetStarted.html
 [AWS Batch wizard]: https://console.aws.amazon.com/batch/home#/wizard
 
+#### Job and orchestration type
+
+Choose _Amazon Elastic Compute Cloud (Amazon EC2)_ as the orchestration type.
+
 #### Compute environment
 
 Create a _managed_ compute environment with a name of your choosing.
+
+Choose _ecsInstanceRole_ as the instance role.
 
 Adjust the compute resources to meet your build requirements, taking into
 account the intensity of your builds and the number of concurrent builds you
@@ -300,6 +306,8 @@ can adjust many of the resources at a later time.
 
 Make sure to set the minimum number of vCPUs to _0_ so that you won't incur EC2
 costs when no jobs are running.
+
+Choose a VPC, subnet, and security group that has access to the internet.
 
 #### Job queue
 
@@ -335,6 +343,10 @@ Select the number of desired vCPUs and amount of memory you'd like each
 Nextstrain build job to have access to.
 
 No job parameters or job environment variables are required.
+
+### Job
+
+If you're using the wizard, the last step is to submit a job. Give it any name.
 
 ### CloudWatch Logs
 
