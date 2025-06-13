@@ -404,17 +404,20 @@ instance.
 Next, under the "Advanced details" section, make sure that "EBS-optimized
 instance" is enabled.
 
-Finally, create a new Batch compute environment that uses your launch template
-and associate that new compute environment with your Batch job queue.  Note
-that you'll need to create a new compute environment even if your existing
-compute environment is set to use the `$Latest` version of an existing launch
-template you modified as above.  Compute environments set to use the `$Latest`
-version of a launch template are frozen to the latest template version that
-exists at the time the environment was created, per [AWS Batch
-documentation][compute environment launch template].  For this reason, it's
-recommended to use an explicit version number instead of `$Latest` so that you
-can easily see what version a compute environment is using (instead of having
-to correlate compute environment and launch template version creation times).
+Create the launch template, then navigate to edit your existing Batch compute
+environment.  Under _Launch templates_, set the default launch template to the
+one you just created.  Set the default version to the version number of the
+launch template (`1` if it was just created).  Save the changes.
+
+> Note: if your compute environment uses the launch template with version set to
+`$Latest`, you must create a new compute environment to apply any new changes to
+the launch template.  Compute environments set to use the `$Latest` version of a
+launch template are frozen to the latest template version that exists at the
+time the environment was created, per [AWS Batch documentation][compute
+environment launch template].  For this reason, it's recommended to use an
+explicit version number instead of `$Latest` so that you can easily see what
+version a compute environment is using (instead of having to correlate compute
+environment and launch template version creation times).
 
 To check if it worked, create an empty directory on your computer, make a
 Snakefile containing the rule below, and run it on AWS Batch using the
