@@ -289,33 +289,15 @@ setup the job definition, compute environment, and job queue described below.
 [getting started guide]: https://docs.aws.amazon.com/batch/latest/userguide/Batch_GetStarted.html
 [AWS Batch wizard]: https://console.aws.amazon.com/batch/home#/wizard
 
-#### Job definition
+#### Job and orchestration type
 
-Create a new job definition with the name `nextstrain-job`.  If you use a
-different name, you'll need to use the `--aws-batch-job` option to `nextstrain
-build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
-in the `[aws-batch]` section of `~/.nextstrain/config`.
-
-Choose the job role _NextstrainJobsRole_, which you just created in the IAM
-roles section above.
-
-Specify the container image `nextstrain/base:latest` and an empty command.
-(In the wizard, delete the pre-filled command, leaving the JSON result as an
-empty array (`[]`).)
-
-Select the number of desired vCPUs and amount of memory you'd like each
-Nextstrain build job to have access to.
-
-Set the retry attempts to _1_ and the execution timeout to _14400_ seconds (4
-hours).  The timeout ensures that broken, never-ending jobs will be terminated
-after 4 hours instead of racking up EC2 costs.  Adjust it if necessary for your
-builds.
-
-No job parameters or job environment variables are required.
+Choose _Amazon Elastic Compute Cloud (Amazon EC2)_ as the orchestration type.
 
 #### Compute environment
 
 Create a _managed_ compute environment with a name of your choosing.
+
+Choose _ecsInstanceRole_ as the instance role.
 
 Adjust the compute resources to meet your build requirements, taking into
 account the intensity of your builds and the number of concurrent builds you
@@ -324,6 +306,8 @@ can adjust many of the resources at a later time.
 
 Make sure to set the minimum number of vCPUs to _0_ so that you won't incur EC2
 costs when no jobs are running.
+
+Choose a VPC, subnet, and security group that has access to the internet.
 
 #### Job queue
 
@@ -335,6 +319,33 @@ the `NEXTSTRAIN_AWS_BATCH_QUEUE` environment variable, or set `queue` in the
 If you're not using the wizard, make sure you connect the job queue to the
 compute environment you created above.
 
+
+#### Job definition
+
+Create a new job definition with the name `nextstrain-job`.  If you use a
+different name, you'll need to use the `--aws-batch-job` option to `nextstrain
+build`, set the `NEXTSTRAIN_AWS_BATCH_JOB` environment variable, or set `job`
+in the `[aws-batch]` section of `~/.nextstrain/config`.
+
+Set the execution timeout to _14400_ seconds (4 hours).  The timeout ensures
+that broken, never-ending jobs will be terminated after 4 hours instead of
+racking up EC2 costs.  Adjust it if necessary for your builds.
+
+Specify the container image `nextstrain/base:latest` and an empty command.
+(In the wizard, delete the pre-filled command, leaving the JSON result as an
+empty array (`[]`).)
+
+Do not choose any execution role. For the job role, choose _NextstrainJobsRole_
+which you just created in the IAM roles section above.
+
+Select the number of desired vCPUs and amount of memory you'd like each
+Nextstrain build job to have access to.
+
+No job parameters or job environment variables are required.
+
+### Job
+
+If you're using the wizard, the last step is to submit a job. Give it any name.
 
 ### CloudWatch Logs
 
@@ -381,28 +392,32 @@ template][]_ that you associate with a new Batch compute environment.
 It's quickest to [create the launch template][create-launch-template] using the
 AWS Console, although you can also do it on the command-line.
 
-First, add to the launch template an EBS storage volume with the device name
-`/dev/xvda`, volume size you want (e.g. 200 GiB), and a volume type of `gp3`.
-Make sure that the volume is marked for deletion on instance termination, or
-you'll end up paying for old volumes indefinitely!  This sets the size of the
-shared volume available to all containers on a single EC2 instance.
+Give your launch template any name.
+
+Under the "Storage" section, add a new volume with EBS storage type.  Specify a
+custom device device name of `/dev/xvda`, a volume size you want (e.g. 200 GiB),
+and a volume type of `gp3`.  Make sure that the volume is marked for deletion on
+termination, or you'll end up paying for old volumes indefinitely!  This sets
+the size of the shared volume available to all containers on a single EC2
+instance.
 
 Next, under the "Advanced details" section, make sure that "EBS-optimized
 instance" is enabled.
 
-Create the launch template and note its id or name.
+Create the launch template, then navigate to edit your existing Batch compute
+environment.  Under _Launch templates_, set the default launch template to the
+one you just created.  Set the default version to the version number of the
+launch template (`1` if it was just created).  Save the changes.
 
-Finally, create a new Batch compute environment that uses your launch template
-and associate that new compute environment with your Batch job queue.  Note
-that you'll need to create a new compute environment even if your existing
-compute environment is set to use the `$Latest` version of an existing launch
-template you modified as above.  Compute environments set to use the `$Latest`
-version of a launch template are frozen to the latest template version that
-exists at the time the environment was created, per [AWS Batch
-documentation][compute environment launch template].  For this reason, it's
-recommended to use an explicit version number instead of `$Latest` so that you
-can easily see what version a compute environment is using (instead of having
-to correlate compute environment and launch template version creation times).
+> Note: if your compute environment uses the launch template with version set to
+`$Latest`, you must create a new compute environment to apply any new changes to
+the launch template.  Compute environments set to use the `$Latest` version of a
+launch template are frozen to the latest template version that exists at the
+time the environment was created, per [AWS Batch documentation][compute
+environment launch template].  For this reason, it's recommended to use an
+explicit version number instead of `$Latest` so that you can easily see what
+version a compute environment is using (instead of having to correlate compute
+environment and launch template version creation times).
 
 To check if it worked, create an empty directory on your computer, make a
 Snakefile containing the rule below, and run it on AWS Batch using the
