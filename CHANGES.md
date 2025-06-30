@@ -13,6 +13,18 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* `nextstrain setup <pathogen>` will no longer attempt to use a local netrc file
+  for authentication. This fixes a bug which caused pathogen repo download to
+  fail when the local netrc file contained an expired GitHub authentication
+  token.
+
+  Previous behavior allowed setup of private repositories using the
+  fully-specified `<name>@<version>=<url>` format, however support for that was
+  unintentional and has been removed by this change.
+  ([#444](https://github.com/nextstrain/cli/issues/444))
+
 ## Documentation
 
 * This changelog is [now
