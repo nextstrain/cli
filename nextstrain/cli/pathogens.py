@@ -324,7 +324,9 @@ class PathogenVersion:
                 self.setup_receipt_path.unlink(missing_ok = True)
 
         try:
-            response = requests.get(str(self.url), headers = {"Accept": "application/zip, */*"}, stream = True)
+            with requests.Session() as session:
+                session.trust_env = False
+                response = session.get(str(self.url), headers = {"Accept": "application/zip, */*"}, stream = True)
             response.raise_for_status()
 
         except requests.exceptions.ConnectionError as err:
