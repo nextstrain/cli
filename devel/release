@@ -112,6 +112,10 @@ update-changelog() {
         s/^# __NEXT__\n\n\n//m;
         s/\s*The "__NEXT__" heading below .+?\.//s;
     ' "$changes_file" | git-add-stdin-as "$changes_file"
+
+    # Generate and stage the MyST-formatted changelog for commit
+    "$devel"/generate-changes-doc
+    git add "$repo/doc/changes.md"
 }
 
 git-add-stdin-as() {

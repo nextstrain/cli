@@ -16,9 +16,18 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+_See also changes in 10.2.1 which was an unreleased version._
+
+(v-next-development)=
+### Development
+
+* The release script now keeps changelogs in sync.
+  ([#446](https://github.com/nextstrain/cli/issues/446))
 
 (v10-2-1)=
 ## 10.2.1 (1 July 2025)
+
+_Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/446). Changes first released as part of 10.2.2._
 
 (v10-2-1-bug-fixes)=
 ### Bug fixes
