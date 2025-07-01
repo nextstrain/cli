@@ -5,6 +5,7 @@ devel="$(dirname "$0")"
 repo="$devel/.."
 version_file="$repo/nextstrain/cli/__version__.py"
 changes_file="$repo/CHANGES.md"
+myst_changes_file="$repo/doc/changes.md"
 
 main() {
     local version
@@ -106,16 +107,19 @@ update-changelog() {
     # for use in doc URLs that should point to the released version.
     perl -pi -e "s/__NEXT__/$new_version/g if /^# \\Q$new_version/ ... /^# /" "$changes_file"
 
-    # Remove the __NEXT__ heading and the sentence «The "__NEXT__" heading
-    # below…» for the next commit, but leave the working tree untouched.
-    perl -0p -e '
-        s/^# __NEXT__\n\n\n//m;
-        s/\s*The "__NEXT__" heading below .+?\.//s;
-    ' "$changes_file" | git-add-stdin-as "$changes_file"
-
     # Generate and stage the MyST-formatted changelog for commit
     "$devel"/generate-changes-doc
-    git add "$repo/doc/changes.md"
+
+    # Remove references to __NEXT__ for the next commit, but leave the working
+    # tree untouched.
+    for f in "$changes_file" "$myst_changes_file"; do
+        perl -0p -e '
+            s/^\(v-next\)=\n//m;
+            s/^## __NEXT__\n\n\n//m;
+            s/^# __NEXT__\n\n\n//m;
+            s/\s*The "__NEXT__" heading below .+?\.//s;
+        ' "$f" | git-add-stdin-as "$f"
+    done
 }
 
 git-add-stdin-as() {
@@ -154,7 +158,7 @@ unreleased-version() {
     # Add +git local part to mark any further development
     "$devel"/update-version "$unreleased_version"
 
-    git add "$version_file" "$changes_file"
+    git add "$version_file" "$changes_file" "$myst_changes_file"
     git commit -m "dev: Bump version to $unreleased_version"
 }
 
