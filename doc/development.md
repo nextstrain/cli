@@ -81,8 +81,8 @@ code paths themselves.
 
 New releases are made frequently and tagged in git using a [_signed_ tag][].
 There is a `./devel/release` script which will prepare a new release from your
-local repository.  It ends with instructions for you on how to push the release
-commit/tag.
+local repository.  Run this script using the isolated development environment.
+It ends with instructions for you on how to push the release commit/tag.
 
 When a release tag is pushed, the [CI workflow][] builds [source
 distributions][] and [built distributions][] (wheels), tests them, and if tests
