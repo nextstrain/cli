@@ -16,7 +16,11 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
-(v-next-bug-fixes)=
+
+(v10-2-1)=
+## 10.2.1 (1 July 2025)
+
+(v10-2-1-bug-fixes)=
 ### Bug fixes
 
 * `nextstrain setup <pathogen>` will no longer attempt to use a local netrc file
@@ -29,11 +33,11 @@ development source code and as such may not be routinely kept up to date.
   unintentional and has been removed by this change.
   ([#444](https://github.com/nextstrain/cli/issues/444))
 
-(v-next-documentation)=
+(v10-2-1-documentation)=
 ### Documentation
 
 * This changelog is [now
-  included](https://docs.nextstrain.org/projects/cli/en/__NEXT__/changes/) in
+  included](https://docs.nextstrain.org/projects/cli/en/10.2.1/changes/) in
   our published documentation for easier reference.  It includes stable
   permalink anchors for each version and the subheadings under each version.
   ([#438](https://github.com/nextstrain/cli/pull/438))
