@@ -89,6 +89,10 @@ distributions][] and [built distributions][] (wheels), tests them, and if tests
 pass, uploads them to [the nextstrain-cli project on
 PyPi](https://pypi.org/project/nextstrain-cli).
 
+The GitHub repository is configured with [rulesets][] restricting tag management
+such that only maintainers have bypass permission to create tags and only admins
+have bypass permission to delete and update tags.
+
 ### Recovering from release CI failures
 
 When CI for a release fails due to transient errors (like DNS or other network
@@ -230,6 +234,7 @@ environmental factors.
 [CI workflow]: ../.github/workflows/ci.yaml
 [source distributions]: https://packaging.python.org/en/latest/glossary/#term-Source-Distribution
 [built distributions]: https://packaging.python.org/en/latest/glossary/#term-Built-Distribution
+[rulesets]: https://github.com/nextstrain/cli/settings/rules
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [pyright]: https://github.com/microsoft/pyright
 [editor integrations for Pyright]: https://microsoft.github.io/pyright/#/installation
