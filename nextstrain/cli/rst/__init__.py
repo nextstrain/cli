@@ -232,7 +232,7 @@ def doc_url(target: str) -> str:
     return project_url.rstrip("/") + "/" + path_url.lstrip("/")
 
 
-class Reader(docutils.readers.standalone.Reader): # pyright: ignore[reportUntypedBaseClass]
+class Reader(docutils.readers.standalone.Reader):
     def get_transforms(self):
         return [*super().get_transforms(), MarkEmbeddedHyperlinkReferencesAnonymous]
 
