@@ -246,6 +246,9 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     # memory, at least on POSIX systems.
     #   -trs, 21 May 2020 (copied from ./native.py on 30 Aug 2022)
 
+    # /nextstrain/env.d is not supported with Singularity.
+    extra_env = { "NEXTSTRAIN_SKIP_ENVD": "1", **extra_env }
+
     extra_env = {
         **SINGULARITY_CONFIG_ENV,
 
