@@ -895,7 +895,12 @@ def nextstrain_repo_zip_url(name: str, version: str) -> URL:
     possible and returns a URL to a ZIP file of the repo contents at that
     revision.
     """
-    version_url = URL(f"/pathogen-repos/{urlquote(name)}/versions/{urlquote(version)}", NEXTSTRAIN_DOT_ORG)
+    # Quoting `version` _without_ the default `safe='/'` so that it gets
+    # properly formatted as a single route parameter. Required for supporting
+    # versions that are branch names with slashes. Note, I did not do the same
+    # for `name` since GitHub repo names cannot contain slashes.
+    #   -Jover, 18 July 2025
+    version_url = URL(f"/pathogen-repos/{urlquote(name)}/versions/{urlquote(version, safe='')}", NEXTSTRAIN_DOT_ORG)
 
     with requests.Session() as http:
         resolved_version = http.get(str(version_url), headers = {"Accept": "application/json"})
