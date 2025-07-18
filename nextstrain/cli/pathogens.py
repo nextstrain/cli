@@ -305,6 +305,23 @@ class PathogenVersion:
         self.url = url
 
 
+    def registered_workflows(self) -> Dict[str, Dict]:
+        """
+        Parses :attr:`.registration` to return a dict of registered
+        compatible workflows, where the keys are workflow names.
+        """
+        if self.registration is None:
+            debug("pathogen does not have a registration")
+            return {}
+
+        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        if not isinstance(workflows, dict):
+            debug(f"pathogen registration.compatibility['nextstrain runs'] is not a dict (got a {type(workflows).__name__})")
+            return {}
+
+        return workflows
+
+
     def workflow_path(self, workflow: str) -> Path:
         return self.path / workflow
 
