@@ -455,11 +455,8 @@ class PathogenVersion:
         def test_compatibility() -> SetupTestResult:
             msg = "nextstrain-pathogen.yaml declares `nextstrain run` compatibility"
 
-            try:
-                registration = read_pathogen_registration(self.registration_path)
-            except (OSError, yaml.YAMLError, ValueError):
-                if DEBUGGING:
-                    traceback.print_exc()
+            registration = read_pathogen_registration(self.registration_path)
+            if registration is None:
                 return msg + "\n(couldn't read registration)", False
 
             try:
@@ -841,21 +838,28 @@ def sorted_versions(vs: Iterable[str]) -> List[str]:
     return [v.original for v in [*reversed(compliant), *non_compliant]]
 
 
-def read_pathogen_registration(path: Path) -> Dict:
+def read_pathogen_registration(path: Path) -> Optional[Dict]:
     """
     Reads a ``nextstrain-pathogen.yaml`` file at *path* and returns a dict of
     its deserialized contents.
+
+    Returns ``None`` if there was an issue reading the registration.
     """
-    with path.open("r", encoding = "utf-8") as f:
-        registration = yaml.safe_load(f)
+    try:
+        with path.open("r", encoding = "utf-8") as f:
+            registration = yaml.safe_load(f)
 
-    # XXX TODO SOON: Consider doing actual schema validation here in the
-    # future.
-    #   -trs, 12 Dec 2024
-    if not isinstance(registration, dict):
-        raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
+        # XXX TODO SOON: Consider doing actual schema validation here in the
+        # future.
+        #   -trs, 12 Dec 2024
+        if not isinstance(registration, dict):
+            raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
 
-    return registration
+        return registration
+    except (OSError, yaml.YAMLError, ValueError):
+        if DEBUGGING:
+            traceback.print_exc()
+        return None
 
 
 # We query a nextstrain.org API instead of querying GitHub's API directly for a
