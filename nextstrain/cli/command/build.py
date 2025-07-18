@@ -297,6 +297,14 @@ def run(opts):
                     based on its --memory option.  This may or may not be what you expect.
                     """ % (snakemake_opts["--resources"][0],)))
 
+        if opts.__runner__ is runner.aws_batch and snakemake_opts["--local-storage-prefix"]:
+            warn(dedent("""
+                Warning: The explicit %s option passed to Snakemake overrides the
+                default prefix (.snakemake/storage/) expected for the AWS Batch
+                runtime. This may prevent you from downloading the storage files
+                that were downloaded during the remote build.
+                """ % (snakemake_opts["--local-storage-prefix"][0],)))
+
     return runner.run(opts, working_volume = working_volume, cpus = opts.cpus, memory = opts.memory)
 
 
@@ -441,19 +449,22 @@ def parse_snakemake_args(args):
     their presence or absence in our invocation.
 
     >>> sorted(parse_snakemake_args(["--cores"]).items())
-    [('--cores', ['--cores']), ('--resources', [])]
+    [('--cores', ['--cores']), ('--local-storage-prefix', []), ('--resources', [])]
+
+    >>> sorted(parse_snakemake_args(["--local-storage-prefix=.snakemake/foo"]).items())
+    [('--cores', []), ('--local-storage-prefix', ['--local-storage-prefix']), ('--resources', [])]
 
     >>> sorted(parse_snakemake_args(["--resources=mem_mb=100"]).items())
-    [('--cores', []), ('--resources', ['--resources'])]
+    [('--cores', []), ('--local-storage-prefix', []), ('--resources', ['--resources'])]
 
     >>> sorted(parse_snakemake_args(["-j", "8", "--res", "mem_mb=100"]).items())
-    [('--cores', ['-j']), ('--resources', ['--res'])]
+    [('--cores', ['-j']), ('--local-storage-prefix', []), ('--resources', ['--res'])]
 
     >>> sorted(parse_snakemake_args(["-j8"]).items())
-    [('--cores', ['-j']), ('--resources', [])]
+    [('--cores', ['-j']), ('--local-storage-prefix', []), ('--resources', [])]
 
     >>> sorted(parse_snakemake_args([]).items())
-    [('--cores', []), ('--resources', [])]
+    [('--cores', []), ('--local-storage-prefix', []), ('--resources', [])]
     """
     opts = {
         "-j" if re.search(r"^-j\d+$", arg) else arg
@@ -480,7 +491,25 @@ def parse_snakemake_args(args):
         "--res", # documented
     }
 
+    storage_prefix = {
+        "--local-storage-prefix", # documented
+        "--local-storage-prefi",
+        "--local-storage-pref",
+        "--local-storage-pre",
+        "--local-storage-pr",
+        "--local-storage-p",
+        "--local-storage-",
+        "--local-storage",
+        "--local-storag",
+        "--local-stora",
+        "--local-stor",
+        "--local-sto",
+        "--local-st",
+        "--local-s",
+    }
+
     return {
         "--cores": list(cores & opts),
         "--resources": list(resources & opts),
+        "--local-storage-prefix": list(storage_prefix & opts),
     }
