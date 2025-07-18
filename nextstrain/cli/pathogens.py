@@ -130,6 +130,7 @@ class PathogenVersion:
 
     setup_receipt: Optional[dict] = None
     url: Optional[URL] = None
+    registration: Optional[dict] = None
 
 
     def __init__(self, name_version_url: str, new_setup: bool = False):
@@ -242,6 +243,9 @@ class PathogenVersion:
 
         self.registration_path  = self.path / "nextstrain-pathogen.yaml"
         self.setup_receipt_path = self.path.with_suffix(self.path.suffix + ".json")
+
+        if self.registration_path.exists():
+            self.registration = read_pathogen_registration(self.registration_path)
 
         if not new_setup:
             if not self.path.is_dir():
@@ -448,6 +452,8 @@ class PathogenVersion:
             json.dump(self.setup_receipt, f, indent = "  ")
             print(file = f)
 
+        self.registration = read_pathogen_registration(self.registration_path)
+
         return True
 
 
@@ -455,12 +461,11 @@ class PathogenVersion:
         def test_compatibility() -> SetupTestResult:
             msg = "nextstrain-pathogen.yaml declares `nextstrain run` compatibility"
 
-            registration = read_pathogen_registration(self.registration_path)
-            if registration is None:
+            if self.registration is None:
                 return msg + "\n(couldn't read registration)", False
 
             try:
-                compatibility = registration["compatibility"]["nextstrain run"]
+                compatibility = self.registration["compatibility"]["nextstrain run"]
             except (KeyError, IndexError, TypeError):
                 if DEBUGGING:
                     traceback.print_exc()
