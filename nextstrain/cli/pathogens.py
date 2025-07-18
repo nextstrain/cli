@@ -455,11 +455,8 @@ class PathogenVersion:
         def test_compatibility() -> SetupTestResult:
             msg = "nextstrain-pathogen.yaml declares `nextstrain run` compatibility"
 
-            try:
-                registration = read_pathogen_registration(self.registration_path)
-            except (OSError, yaml.YAMLError, ValueError):
-                if DEBUGGING:
-                    traceback.print_exc()
+            registration = read_pathogen_registration(self.registration_path)
+            if registration is None:
                 return msg + "\n(couldn't read registration)", False
 
             try:
@@ -841,13 +838,24 @@ def sorted_versions(vs: Iterable[str]) -> List[str]:
     return [v.original for v in [*reversed(compliant), *non_compliant]]
 
 
-def read_pathogen_registration(path: Path) -> Dict:
+def read_pathogen_registration(path: Path) -> Optional[Dict]:
     """
     Reads a ``nextstrain-pathogen.yaml`` file at *path* and returns a dict of
     its deserialized contents.
+
+    Returns ``None`` if there was an issue reading file.
     """
-    with path.open("r", encoding = "utf-8") as f:
-        registration = yaml.safe_load(f)
+    try:
+        with path.open("r", encoding = "utf-8") as f:
+            registration = yaml.safe_load(f)
+
+        # Differentiate empty YAML from bad YAML by setting to empty dict
+        registration = {} if registration is None else registration
+    except (OSError, yaml.YAMLError, ValueError):
+        if DEBUGGING:
+            traceback.print_exc()
+        print(f"Couldn't read pathogen registration {path!r}")
+        return None
 
     # XXX TODO SOON: Consider doing actual schema validation here in the
     # future.
