@@ -71,5 +71,12 @@ def run(opts):
                     print("    " + str(version) + (f"={version.url or ''}" if opts.verbose else ""), "(default)" if is_default else "")
                     if opts.verbose:
                         print("      " + str(version.path))
+
+                    if registered_workflows := version.registered_workflows():
+                        print("      " + "Available workflows:")
+                        for workflow in registered_workflows:
+                            print("        " + workflow)
+                    else:
+                        print("      " + "No workflows listed, please refer to pathogen docs.")
         else:
             print("  (none)")

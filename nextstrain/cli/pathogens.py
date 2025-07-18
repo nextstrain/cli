@@ -304,6 +304,24 @@ class PathogenVersion:
         self.url = url
 
 
+    def registered_workflows(self) -> List[str]:
+        """
+        Parses :attr:`.registration` for a list of registered workflow names.
+        """
+        if self.registration is None:
+            return []
+
+        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        if isinstance(workflows, dict):
+            workflows = list(workflows.keys())
+
+        if isinstance(workflows, list):
+            return workflows
+        else:
+            debug("Could not find registered workflows")
+            return []
+
+
     def workflow_path(self, workflow: str) -> Path:
         return self.path / workflow
 
