@@ -13,6 +13,15 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* Snakemake's storage support downloaded files (stored in `.snakemake/storage/`)
+  are now downloaded from AWS Batch builds by default.
+
+  The runtime image used must be at least `nextstrain/base:build-20250721T201347Z`
+  for these Snakemake storage files to be available for download from the AWS
+  Batch job.
+  ([#460](https://github.com/nextstrain/cli/pull/460))
 
 # 10.2.1.post1 (1 July 2025)
 
