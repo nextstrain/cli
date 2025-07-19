@@ -67,8 +67,11 @@ def register_parser(subparser):
             Available workflows may vary per pathogen (and possibly between
             pathogen version).  Some pathogens may provide multiple variants or
             base configurations of a top-level workflow, e.g. as in
-            ``phylogenetic/mpxv`` and ``phylogenetic/hmpxv1``.  Refer to the
-            pathogen's own documentation for valid workflow names.
+            ``phylogenetic/mpxv`` and ``phylogenetic/hmpxv1``.
+            Run ``nextstrain version --pathogens`` to see a list of registered
+            workflows per pathogen version. If the pathogen does not have
+            registered workflows, then refer to the pathogen's own documentation
+            for valid workflow names.
 
             Workflow names conventionally correspond directly to directory
             paths in the pathogen source, but this may not always be the case.
