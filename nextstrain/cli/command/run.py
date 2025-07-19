@@ -228,6 +228,9 @@ def run(opts):
     # Resolve pathogen and workflow names to a local workflow directory.
     pathogen = PathogenVersion(opts.pathogen)
 
+    if opts.workflow not in pathogen.registered_workflows():
+        print(f"The {opts.workflow!r} workflow is not registered as a compatible workflow, but trying to run anyways.")
+
     workflow_directory = pathogen.workflow_path(opts.workflow)
 
     if not workflow_directory.is_dir() or not (workflow_directory / "Snakefile").is_file():
