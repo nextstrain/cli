@@ -23,6 +23,12 @@ development source code and as such may not be routinely kept up to date.
   Batch job.
   ([#460](https://github.com/nextstrain/cli/pull/460))
 
+## Bug fixes
+
+* `nextstrain setup <pathogen>@<version>` and `nextstrain update <pathogen>@<version>`
+  no longer result in a 404 error if `<version>` includes a slash and it is a
+  valid version specifier. ([#459](https://github.com/nextstrain/cli/pull/459))
+
 # 10.2.1.post1 (1 July 2025)
 
 _See also changes in 10.2.1 which was an unreleased version._
