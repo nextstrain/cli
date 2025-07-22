@@ -141,8 +141,21 @@ def download_workdir(remote_workdir: S3Object, workdir: Path, patterns: List[str
         ".snakemake/log/",
 
         # …and the input/output metadata Snakemake tracks (akin to mtimes,
-        # which we also preserve).
+        # which we also preserve)…
         ".snakemake/metadata/",
+
+        # …and the remote files downloaded via Snakemake's storage support.
+        # Note this is the default path used by Snakemake, but the storage path
+        # is configurable via `--local-storage-prefix`.¹ So if someone configures
+        # the storage path to a custom path within `.snakemake`, e.g. `.snakemake/foo`,
+        # then it would not be available in their downloaded workdir.
+        # I'm not even sure it's possible to configure the path in entrypoint-aws-batch
+        # for the docker-base image, so I've added a warning against using the
+        # Snakemake option when using aws-batch runtimes.
+        #   -Jover, 18 July 2025
+        #
+        # ¹ <https://github.com/snakemake/snakemake/blob/v9.6.3/src/snakemake/cli.py#L1456-L1462>
+        ".snakemake/storage/",
     ])
 
     if patterns:
