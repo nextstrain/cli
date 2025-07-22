@@ -488,6 +488,12 @@ class PathogenVersion:
                     traceback.print_exc()
                 return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
 
+            if compatibility:
+                if workflows := self.registered_workflows():
+                    msg += f"\nAvailable workflows: {list(workflows.keys())}"
+                else:
+                    msg += f"\nNo workflows listed, please refer to pathogen docs."
+
             return msg, bool(compatibility)
 
         return [
