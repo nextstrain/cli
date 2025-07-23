@@ -130,6 +130,7 @@ class PathogenVersion:
 
     setup_receipt: Optional[dict] = None
     url: Optional[URL] = None
+    registration: Optional[dict] = None
 
 
     def __init__(self, name_version_url: str, new_setup: bool = False):
@@ -243,6 +244,9 @@ class PathogenVersion:
         self.registration_path  = self.path / "nextstrain-pathogen.yaml"
         self.setup_receipt_path = self.path.with_suffix(self.path.suffix + ".json")
 
+        if self.registration_path.exists():
+            self.registration = read_pathogen_registration(self.registration_path)
+
         if not new_setup:
             if not self.path.is_dir():
                 # XXX TODO: This error case should maybe be handled outside of
@@ -299,6 +303,23 @@ class PathogenVersion:
                     """)
 
         self.url = url
+
+
+    def registered_workflows(self) -> Dict[str, Dict]:
+        """
+        Parses :attr:`.registration` to return a dict of registered
+        compatible workflows, where the keys are workflow names.
+        """
+        if self.registration is None:
+            debug("pathogen does not have a registration")
+            return {}
+
+        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        if not isinstance(workflows, dict):
+            debug(f"pathogen registration.compatibility['nextstrain runs'] is not a dict (got a {type(workflows).__name__})")
+            return {}
+
+        return workflows
 
 
     def workflow_path(self, workflow: str) -> Path:
@@ -448,6 +469,8 @@ class PathogenVersion:
             json.dump(self.setup_receipt, f, indent = "  ")
             print(file = f)
 
+        self.registration = read_pathogen_registration(self.registration_path)
+
         return True
 
 
@@ -455,19 +478,21 @@ class PathogenVersion:
         def test_compatibility() -> SetupTestResult:
             msg = "nextstrain-pathogen.yaml declares `nextstrain run` compatibility"
 
-            try:
-                registration = read_pathogen_registration(self.registration_path)
-            except (OSError, yaml.YAMLError, ValueError):
-                if DEBUGGING:
-                    traceback.print_exc()
+            if self.registration is None:
                 return msg + "\n(couldn't read registration)", False
 
             try:
-                compatibility = registration["compatibility"]["nextstrain run"]
+                compatibility = self.registration["compatibility"]["nextstrain run"]
             except (KeyError, IndexError, TypeError):
                 if DEBUGGING:
                     traceback.print_exc()
                 return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
+
+            if compatibility:
+                if workflows := self.registered_workflows():
+                    msg += f"\nAvailable workflows: {list(workflows.keys())}"
+                else:
+                    msg += f"\nNo workflows listed, please refer to pathogen docs."
 
             return msg, bool(compatibility)
 
@@ -841,21 +866,28 @@ def sorted_versions(vs: Iterable[str]) -> List[str]:
     return [v.original for v in [*reversed(compliant), *non_compliant]]
 
 
-def read_pathogen_registration(path: Path) -> Dict:
+def read_pathogen_registration(path: Path) -> Optional[Dict]:
     """
     Reads a ``nextstrain-pathogen.yaml`` file at *path* and returns a dict of
     its deserialized contents.
+
+    Returns ``None`` if there was an issue reading the registration.
     """
-    with path.open("r", encoding = "utf-8") as f:
-        registration = yaml.safe_load(f)
+    try:
+        with path.open("r", encoding = "utf-8") as f:
+            registration = yaml.safe_load(f)
 
-    # XXX TODO SOON: Consider doing actual schema validation here in the
-    # future.
-    #   -trs, 12 Dec 2024
-    if not isinstance(registration, dict):
-        raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
+        # XXX TODO SOON: Consider doing actual schema validation here in the
+        # future.
+        #   -trs, 12 Dec 2024
+        if not isinstance(registration, dict):
+            raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
 
-    return registration
+        return registration
+    except (OSError, yaml.YAMLError, ValueError):
+        if DEBUGGING:
+            traceback.print_exc()
+        return None
 
 
 # We query a nextstrain.org API instead of querying GitHub's API directly for a
