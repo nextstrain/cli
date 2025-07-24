@@ -267,6 +267,15 @@ def run(opts):
     if workflow_configfile:
         resolved_configfile = resolved_pathogen / workflow_configfile.relative_to(pathogen.path)
 
+    resolved_overlay = None
+    if (opts.analysis_directory / "config.yaml").is_file():
+        resolved_build = (
+            docker.mount_point(build_volume)
+                if opts.__runner__ in {docker, singularity, aws_batch} else
+            build_volume.src.resolve(strict = True)
+        )
+        resolved_overlay = resolved_build / "config.yaml"
+
     print(f"Running the {opts.workflow!r} workflow for pathogen {pathogen}")
 
     # Set up Snakemake invocation.
@@ -296,6 +305,10 @@ def run(opts):
         *(["--configfile=%s" % (resolved_configfile)]
             if resolved_configfile else []),
 
+        # Ensure the overlay config in the user's analysis directory
+        # overrides any default config file provided above.
+        *(["--configfile=%s" % (resolved_overlay)]
+            if resolved_overlay else []),
         # Pass thru appropriate resource options.
         #
         # Snakemake requires the --cores option as of 5.11, so provide a
