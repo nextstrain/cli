@@ -27,6 +27,7 @@ runs:
         python-version: ${{ inputs.python-version }}
         miniforge-version: latest
         channels: conda-forge,bioconda
+        conda-remove-defaults: true
 
     - run: cat ~/.profile || true
       shell: bash -l -eo pipefail {0}
