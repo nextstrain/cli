@@ -314,9 +314,9 @@ class PathogenVersion:
             debug("pathogen does not have a registration")
             return {}
 
-        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        workflows = self.registration.get("nextstrain_run_workflows")
         if not isinstance(workflows, dict):
-            debug(f"pathogen registration.compatibility['nextstrain runs'] is not a dict (got a {type(workflows).__name__})")
+            debug(f"pathogen registration.nextstrain_run_workflows is not a dict (got a {type(workflows).__name__})")
             return {}
 
         return workflows
@@ -481,6 +481,11 @@ class PathogenVersion:
             if self.registration is None:
                 return msg + "\n(couldn't read registration)", False
 
+            if workflows := self.registered_workflows():
+                return msg + f"\nAvailable workflows: {list(workflows.keys())}", True
+
+            # If no compatible workflows are listed, then check for the
+            # boolean compatibility declaration
             try:
                 compatibility = self.registration["compatibility"]["nextstrain run"]
             except (KeyError, IndexError, TypeError):
@@ -488,13 +493,7 @@ class PathogenVersion:
                     traceback.print_exc()
                 return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
 
-            if compatibility:
-                if workflows := self.registered_workflows():
-                    msg += f"\nAvailable workflows: {list(workflows.keys())}"
-                else:
-                    msg += f"\nNo workflows listed, please refer to pathogen docs."
-
-            return msg, bool(compatibility)
+            return msg + "\nNo compatible workflows listed, please refer to pathogen docs.", bool(compatibility)
 
         return [
             ('downloaded',
