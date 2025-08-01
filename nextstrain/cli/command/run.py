@@ -228,7 +228,7 @@ def run(opts):
     # Resolve pathogen and workflow names to a local workflow directory.
     pathogen = PathogenVersion(opts.pathogen)
 
-    if opts.workflow not in pathogen.registered_workflows():
+    if opts.workflow not in pathogen.compatible_workflows("nextstrain run"):
         print(f"The {opts.workflow!r} workflow is not registered as a compatible workflow, but trying to run anyways.")
 
     workflow_directory = pathogen.workflow_path(opts.workflow)

@@ -18,7 +18,7 @@ development source code and as such may not be routinely kept up to date.
 * `nextstrain setup <pathogen>` and `nextstrain version --pathogens` now list
   the available workflows for a pathogen if the pathogen lists the workflows
   in the top-level `nextstrain-pathogen.yaml` file.
-  ([#461](https://github.com/nextstrain/cli/pull/461))
+  ([#461](https://github.com/nextstrain/cli/pull/461), [#472](https://github.com/nextstrain/cli/pull/472))
 
 * Snakemake's storage support downloaded files (stored in `.snakemake/storage/`)
   are now downloaded from AWS Batch builds by default.
