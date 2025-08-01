@@ -314,9 +314,9 @@ class PathogenVersion:
             debug("pathogen does not have a registration")
             return {}
 
-        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        workflows = self.registration.get("workflows")
         if not isinstance(workflows, dict):
-            debug(f"pathogen registration.compatibility['nextstrain runs'] is not a dict (got a {type(workflows).__name__})")
+            debug(f"pathogen registration.workflows is not a dict (got a {type(workflows).__name__})")
             return {}
 
         return workflows
