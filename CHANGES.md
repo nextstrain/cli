@@ -15,6 +15,11 @@ development source code and as such may not be routinely kept up to date.
 
 ## Improvements
 
+* `nextstrain run` supports running workflows with defined Snakefiles and
+  configfiles in the `nextstrain-pathogen.yaml` file. This is mainly relevant
+  for maintainers for pathogens and does not affect users of `nextstrain run`.
+  ([#462](https://github.com/nextstrain/cli/pull/462))
+
 * `nextstrain setup <pathogen>` and `nextstrain version --pathogens` now list
   the available workflows for a pathogen if the pathogen lists the workflows
   in the top-level `nextstrain-pathogen.yaml` file.
