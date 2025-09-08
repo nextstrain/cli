@@ -47,7 +47,7 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
 
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
@@ -123,7 +123,7 @@ jobs:
         shell: bash
     steps:
       # Note that this Python version doesn't impact the actual build.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
@@ -353,7 +353,7 @@ jobs:
       # the annotated tag object from the remote so we can verify/use it later.
       - run: git fetch --force origin tag "$GITHUB_REF_NAME"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
       - run: python3 -m pip install --upgrade twine
