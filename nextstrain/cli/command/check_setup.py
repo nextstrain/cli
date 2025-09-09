@@ -83,7 +83,9 @@ def run(opts: Options) -> int:
     failure = partial(colored, "red")
 
     # Check our own version for updates
-    check_for_new_version()
+    _, update_instructions = check_for_new_version()
+    if (update_instructions):
+        print(update_instructions)
 
     # Run and collect our runners' self-tests
     print("Testing your setup…")

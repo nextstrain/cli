@@ -73,6 +73,7 @@ def remove_suffix(suffix, string):
 
 def check_for_new_version():
     newer_version = new_version_available()
+    update_instructions = None
 
     installed_into_user_site = \
             site.ENABLE_USER_SITE \
@@ -128,50 +129,58 @@ def check_for_new_version():
     if newer_version:
         pkgreq = shquote(f"nextstrain-cli=={newer_version}")
 
-        print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
-        print()
-        print("See what's new in the changelog:")
-        print()
-        print(f"    https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme")
-        print()
+        update_instructions = dedent(f"""
+        A new version of nextstrain-cli, {newer_version}, is available!  You're running {__version__}.
+
+        See what's new in the changelog:
+
+            https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme")
+
+        """)
 
         if standalone_installation():
-            print("Upgrade your standalone installation by running:")
-            print()
-            print(f"    {standalone_installer(newer_version)}")
-            print()
-            print("or by downloading a new archive from:")
-            print()
-            print(f"    {standalone_installation_archive_url(newer_version)}")
+            update_instructions += dedent(f"""
+            Upgrade your standalone installation by running:
 
+                {standalone_installer(newer_version)}")
+
+            or by downloading a new archive from:
+
+                {standalone_installation_archive_url(newer_version)}
+            """)
         elif installer == "pip":
-            print("Upgrade your Pip-based installation by running:")
-            print()
-            print(f"    {python} -m pip install --user {pkgreq}" if installed_into_user_site else \
-                  f"    {python} -m pip install {pkgreq}")
+            update_instructions += dedent("""
+            Upgrade your Pip-based installation by running:
 
-        elif installer == "pipx":
-            print("Upgrade your pipx-based installation by running:")
-            print()
-            print(f"    pipx install -f {pkgreq}")
-
-        elif installer == "conda":
-            print("Upgrade your Conda-based installation running:")
-            print()
-            if conda_prefix:
-                print(f"    {conda} install -p {shquote(conda_prefix)} {pkgreq}")
+            """)
+            if installed_into_user_site:
+                update_instructions += f"    {python} -m pip install --user {pkgreq}"
             else:
-                print(f"    {conda} install {pkgreq}   # add -n NAME or -p PATH if necessary")
+                update_instructions += f"    {python} -m pip install {pkgreq}"
+        elif installer == "pipx":
+            update_instructions += dedent(f"""
+            Upgrade your pipx-based installation by running:
+
+                pipx install -f {pkgreq}
+            """)
+        elif installer == "conda":
+            update_instructions += dedent("""
+            Upgrade your Conda-based installation by running:
+
+            """)
+            if conda_prefix:
+                update_instructions += f"    {conda} install -p {shquote(conda_prefix)} {pkgreq}"
+            else:
+                update_instructions += f"    {conda} install {pkgreq}   # add -n NAME or -p PATH if necessary"
 
         else:
-            print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
+            update_instructions += f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)"
 
-        print()
     else:
         print("nextstrain-cli is up to date!")
         print()
 
-    return newer_version
+    return newer_version, update_instructions
 
 
 def distribution_installer() -> Optional[str]:

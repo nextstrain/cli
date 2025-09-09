@@ -76,7 +76,6 @@ def run(opts):
     heading = partial(colored, "bold")
     success = partial(colored, "green")
     failure = partial(colored, "red")
-    notice  = partial(colored, "yellow")
 
     updates: List[Tuple[Callable[[], UpdateStatus], str]] = []
 
@@ -116,7 +115,7 @@ def run(opts):
     # Check our own version for updates
     print(heading(f"Checking for newer versions of Nextstrain CLI…"))
     print()
-    newer_version = check_for_new_version()
+    newer_version, update_instructions = check_for_new_version()
 
     # Perform updates
     if not updates:
@@ -152,14 +151,12 @@ def run(opts):
     # Print overall status
     if all(oks):
         print(success("All updates successful!"))
-        if newer_version:
-            print()
-            print(notice("…but consider upgrading Nextstrain CLI too, as noted above."))
     else:
         print(failure("Some updates failed!  See above for details."))
-        if newer_version:
-            print()
-            print(notice("Maybe upgrading Nextstrain CLI, as noted above, will help?"))
+
+    if newer_version:
+        print()
+        print(update_instructions)
 
     # Return a 1 or 0 exit code
     return int(not all(oks))
