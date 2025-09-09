@@ -28,4 +28,4 @@ def pytest_markdown_embed_images(case):
 
 
 def split_input_expected(markdown):
-    return re.split(r'(?m)^---+8<---+$\n', markdown, 1)
+    return re.split(r'(?m)^---+8<---+$\n', markdown, maxsplit=1)
