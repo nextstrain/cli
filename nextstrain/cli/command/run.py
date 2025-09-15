@@ -231,26 +231,50 @@ def run(opts):
     if opts.workflow not in pathogen.compatible_workflows("nextstrain run"):
         print(f"The {opts.workflow!r} workflow is not registered as a compatible workflow, but trying to run anyways.")
 
-    workflow_directory = pathogen.workflow_path(opts.workflow)
+    workflow_files = pathogen.workflow_files(opts.workflow)
+    workflow_snakefile = workflow_files["snakefile"]
 
-    if not workflow_directory.is_dir() or not (workflow_directory / "Snakefile").is_file():
+    if not workflow_snakefile.is_file():
         raise UserError(f"""
-            No {opts.workflow!r} workflow for pathogen {opts.pathogen!r} found {f"in {str(workflow_directory)!r}" if DEBUGGING else "locally"}.
+            No {opts.workflow!r} workflow for pathogen {opts.pathogen!r} found {f"(Snakefile {workflow_snakefile!r} does not exist)" if DEBUGGING else "locally"}.
 
             Maybe you need to update to a newer version of the pathogen?
 
             Hint: to update the pathogen, run `nextstrain update {shquote(pathogen.name)}`.
             """)
 
+    if workflow_configfile := workflow_files["configfile"]:
+        assert workflow_configfile.is_file(), \
+            f"Workflow's registered config file {workflow_configfile!r} does not exist."
+
     # The pathogen volume is the pathogen directory (i.e. repo).
-    # The workflow volume is the workflow directory within the pathogen directory.
     # The build volume is the user's analysis directory and will be the working directory.
-    pathogen_volume, workflow_volume = build.pathogen_volumes(workflow_directory, name = "pathogen")
+    pathogen_volume, _ = build.pathogen_volumes(pathogen.path, name = "pathogen")
     build_volume = NamedVolume("build", opts.analysis_directory)
 
     # for containerized runtimes (e.g. Docker, Singularity, and AWS Batch)
     opts.volumes.append(pathogen_volume)
     opts.volumes.append(build_volume)
+
+    # Resolve paths for workflow files
+    resolved_pathogen = (
+        docker.mount_point(pathogen_volume)
+            if opts.__runner__ in {docker, singularity, aws_batch} else
+        pathogen_volume.src.resolve(strict = True)
+    )
+    resolved_snakefile = resolved_pathogen / workflow_snakefile.relative_to(pathogen.path)
+    resolved_configfile = None
+    if workflow_configfile:
+        resolved_configfile = resolved_pathogen / workflow_configfile.relative_to(pathogen.path)
+
+    resolved_overlay = None
+    if (opts.analysis_directory / "config.yaml").is_file():
+        resolved_build = (
+            docker.mount_point(build_volume)
+                if opts.__runner__ in {docker, singularity, aws_batch} else
+            build_volume.src.resolve(strict = True)
+        )
+        resolved_overlay = resolved_build / "config.yaml"
 
     print(f"Running the {opts.workflow!r} workflow for pathogen {pathogen}")
 
@@ -276,11 +300,15 @@ def run(opts):
 
         # Workdir will be the analysis volume (/nextstrain/build in a
         # containerized runtime), so explicitly point to the Snakefile.
-        "--snakefile=%s/Snakefile" % (
-            docker.mount_point(workflow_volume)
-                if opts.__runner__ in {docker, singularity, aws_batch} else
-            workflow_volume.src.resolve(strict = True)),
+        "--snakefile=%s" % (resolved_snakefile),
 
+        *(["--configfile=%s" % (resolved_configfile)]
+            if resolved_configfile else []),
+
+        # Ensure the overlay config in the user's analysis directory
+        # overrides any default config file provided above.
+        *(["--configfile=%s" % (resolved_overlay)]
+            if resolved_overlay else []),
         # Pass thru appropriate resource options.
         #
         # Snakemake requires the --cores option as of 5.11, so provide a
