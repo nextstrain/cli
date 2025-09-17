@@ -23,14 +23,15 @@ after submission and `nextstrain build` must be used to further monitor or
 manage the run and download results after completion.
 """
 
+import os.path
 from inspect import cleandoc
 from shlex import quote as shquote
 from textwrap import dedent
 from .. import runner
 from ..argparse import add_extended_help_flags, MkDirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
-from ..debug import DEBUGGING
+from ..debug import DEBUGGING, debug
 from ..errors import UserError
-from ..pathogens import PathogenVersion
+from ..pathogens import PathogenVersion, UnmanagedPathogen
 from ..runner import aws_batch, docker, singularity
 from ..util import byte_quantity, split_image_name
 from ..volume import NamedVolume
@@ -39,7 +40,7 @@ from . import build
 
 def register_parser(subparser):
     """
-    %(prog)s [options] <pathogen-name>[@<version>] <workflow-name> <analysis-directory> [<target> [<target> [...]]]
+    %(prog)s [options] <pathogen-name>[@<version>]|<pathogen-path> <workflow-name> <analysis-directory> [<target> [<target> [...]]]
     %(prog)s --help
     """
 
@@ -48,14 +49,19 @@ def register_parser(subparser):
     # Positional parameters
     parser.add_argument(
         "pathogen",
-        metavar = "<pathogen-name>[@<version>]",
+        metavar = "<pathogen-name>[@<version>]|<pathogen-path>",
         help    = cleandoc(f"""
             The name (and optionally, version) of a previously set up pathogen.
             See :command-reference:`nextstrain setup`.  If no version is
             specified, then the default version (if any) will be used.
 
+            Alternatively, the local path to a directory that is a pathogen
+            repository.  For this case to be recognized as such, the path must
+            contain a separator ({{path_sep}}) or consist entirely of the current
+            directory ({os.path.curdir}) or parent directory ({os.path.pardir}) specifier.
+
             Required.
-            """))
+            """.format(path_sep = " or ".join(sorted(set([os.path.sep, os.path.altsep or os.path.sep]))))))
 
     parser.add_argument(
         "workflow",
@@ -226,7 +232,13 @@ def run(opts):
             """)
 
     # Resolve pathogen and workflow names to a local workflow directory.
-    pathogen = PathogenVersion(opts.pathogen)
+    try:
+        pathogen = UnmanagedPathogen(opts.pathogen)
+    except ValueError:
+        debug(f"Treating {opts.pathogen!r} as managed pathogen version")
+        pathogen = PathogenVersion(opts.pathogen)
+    else:
+        debug(f"Treating {opts.pathogen!r} as unmanaged pathogen directory")
 
     if opts.workflow not in pathogen.registered_workflows():
         print(f"The {opts.workflow!r} workflow is not registered as a compatible workflow, but trying to run anyways.")
@@ -234,13 +246,18 @@ def run(opts):
     workflow_directory = pathogen.workflow_path(opts.workflow)
 
     if not workflow_directory.is_dir() or not (workflow_directory / "Snakefile").is_file():
-        raise UserError(f"""
-            No {opts.workflow!r} workflow for pathogen {opts.pathogen!r} found {f"in {str(workflow_directory)!r}" if DEBUGGING else "locally"}.
+        if isinstance(pathogen, UnmanagedPathogen):
+            raise UserError(f"""
+                No {opts.workflow!r} workflow for pathogen {opts.pathogen!r} found {f"in {str(workflow_directory)!r}" if DEBUGGING else "locally"}.
+                """)
+        else:
+            raise UserError(f"""
+                No {opts.workflow!r} workflow for pathogen {opts.pathogen!r} found {f"in {str(workflow_directory)!r}" if DEBUGGING else "locally"}.
 
-            Maybe you need to update to a newer version of the pathogen?
+                Maybe you need to update to a newer version of the pathogen?
 
-            Hint: to update the pathogen, run `nextstrain update {shquote(pathogen.name)}`.
-            """)
+                Hint: to update the pathogen, run `nextstrain update {shquote(pathogen.name)}`.
+                """)
 
     # The pathogen volume is the pathogen directory (i.e. repo).
     # The workflow volume is the workflow directory within the pathogen directory.
