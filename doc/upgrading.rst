@@ -17,7 +17,7 @@ The way to upgrade depends on what kind of Nextstrain CLI installation you have
 
     See what's new in the changelog:
 
-        https://github.com/nextstrain/cli/blob/X.Y.Z/CHANGES.md#readme
+        https://docs.nextstrain.org/projects/cli/en/X.Y.Z/changes/
 
     Upgrade by running:
 

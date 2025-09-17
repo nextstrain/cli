@@ -145,7 +145,7 @@ def check_for_new_version() -> NewVersionCheckResult:
 
             See what's new in the changelog:
 
-                https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme
+                https://docs.nextstrain.org/projects/cli/en/{newer_version}/changes/
             """)
 
         if standalone_installation():
