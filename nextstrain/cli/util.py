@@ -6,7 +6,7 @@ import subprocess
 import sys
 from functools import partial
 from importlib.metadata import distribution as distribution_info, PackageNotFoundError
-from typing import Any, Callable, Iterable, Literal, Mapping, List, Optional, Sequence, Tuple, TypeVar, Union, overload
+from typing import Any, Callable, Iterable, Literal, Mapping, NamedTuple, List, Optional, Sequence, Tuple, TypeVar, Union, overload
 from packaging.version import Version, InvalidVersion, parse as parse_version_strict
 from pathlib import Path, PurePath
 from shlex import quote as shquote
@@ -71,8 +71,20 @@ def remove_suffix(suffix, string):
     return re.sub(re.escape(suffix) + '$', '', string)
 
 
-def check_for_new_version():
+class NewVersionCheckResult(NamedTuple):
+    newer_version: Optional[str]
+    status_message: Optional[str]
+    update_instructions: Optional[str]
+
+    def __bool__(self):
+        return self.newer_version is not None
+
+
+def check_for_new_version() -> NewVersionCheckResult:
     newer_version = new_version_available()
+    status_message = None
+    update_instructions = None
+    update_command = None
 
     installed_into_user_site = \
             site.ENABLE_USER_SITE \
@@ -128,50 +140,67 @@ def check_for_new_version():
     if newer_version:
         pkgreq = shquote(f"nextstrain-cli=={newer_version}")
 
-        print("A new version of nextstrain-cli, %s, is available!  You're running %s." % (newer_version, __version__))
-        print()
-        print("See what's new in the changelog:")
-        print()
-        print(f"    https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme")
-        print()
+        status_message = dedent(f"""\
+            A new version of Nextstrain CLI, {newer_version}, is available!  You're running {__version__}.
+
+            See what's new in the changelog:
+
+                https://github.com/nextstrain/cli/blob/{newer_version}/CHANGES.md#readme
+            """)
 
         if standalone_installation():
-            print("Upgrade your standalone installation by running:")
-            print()
-            print(f"    {standalone_installer(newer_version)}")
-            print()
-            print("or by downloading a new archive from:")
-            print()
-            print(f"    {standalone_installation_archive_url(newer_version)}")
+            update_command = standalone_installer(newer_version)
+
+            update_instructions = dedent(f"""\
+                Upgrade your standalone installation by running:
+
+                    {update_command}
+
+                or by downloading a new archive from:
+
+                    {standalone_installation_archive_url(newer_version)}
+                """)
 
         elif installer == "pip":
-            print("Upgrade your Pip-based installation by running:")
-            print()
-            print(f"    {python} -m pip install --user {pkgreq}" if installed_into_user_site else \
-                  f"    {python} -m pip install {pkgreq}")
+            if installed_into_user_site:
+                update_command = f"{python} -m pip install --user {pkgreq}"
+            else:
+                update_command = f"{python} -m pip install {pkgreq}"
+
+            update_instructions = dedent(f"""\
+                Upgrade your Pip-based installation running:
+
+                    {update_command}
+                """)
 
         elif installer == "pipx":
-            print("Upgrade your pipx-based installation by running:")
-            print()
-            print(f"    pipx install -f {pkgreq}")
+            update_command = f"pipx install -f {pkgreq}"
+
+            update_instructions = dedent(f"""\
+                Upgrade your pipx-based installation by running:
+
+                    {update_command}
+                """)
 
         elif installer == "conda":
-            print("Upgrade your Conda-based installation running:")
-            print()
             if conda_prefix:
-                print(f"    {conda} install -p {shquote(conda_prefix)} {pkgreq}")
+                update_command = f"{conda} install -p {shquote(conda_prefix)} {pkgreq}"
             else:
-                print(f"    {conda} install {pkgreq}   # add -n NAME or -p PATH if necessary")
+                update_command = f"{conda} install {pkgreq}   # add -n NAME or -p PATH if necessary"
+
+            update_instructions = dedent(f"""\
+                Upgrade your Conda-based installation by running:
+
+                    {update_command}
+                """)
 
         else:
-            print(f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)")
+            update_instructions = f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)\n"
 
-        print()
     else:
-        print("nextstrain-cli is up to date!")
-        print()
+        status_message = "Nextstrain CLI is up to date!\n"
 
-    return newer_version
+    return NewVersionCheckResult(newer_version, status_message, update_instructions)
 
 
 def distribution_installer() -> Optional[str]:

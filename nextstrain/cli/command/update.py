@@ -116,11 +116,18 @@ def run(opts):
     # Check our own version for updates
     print(heading(f"Checking for newer versions of Nextstrain CLI…"))
     print()
-    newer_version = check_for_new_version()
+    new_version_check = check_for_new_version()
+    print(new_version_check.status_message)
+    # We'll re-print the update notice along with update instructions at
+    # the bottom.
 
     # Perform updates
     if not updates:
-        print("Nothing to update!")
+        if new_version_check.newer_version:
+            print(new_version_check.update_instructions)
+            print("Nothing to update (except Nextstrain CLI itself, see above)!")
+        else:
+            print("Nothing to update!")
         return 0
 
     oks: List[UpdateStatus] = []
@@ -152,14 +159,20 @@ def run(opts):
     # Print overall status
     if all(oks):
         print(success("All updates successful!"))
-        if newer_version:
+        if new_version_check.newer_version:
             print()
-            print(notice("…but consider upgrading Nextstrain CLI too, as noted above."))
+            print(notice("…but consider upgrading Nextstrain CLI too."))
+            print()
+            print(new_version_check.status_message)
+            print(new_version_check.update_instructions)
     else:
         print(failure("Some updates failed!  See above for details."))
-        if newer_version:
+        if new_version_check.newer_version:
             print()
-            print(notice("Maybe upgrading Nextstrain CLI, as noted above, will help?"))
+            print(notice("Maybe upgrading Nextstrain CLI will help?"))
+            print()
+            print(new_version_check.status_message)
+            print(new_version_check.update_instructions)
 
     # Return a 1 or 0 exit code
     return int(not all(oks))
