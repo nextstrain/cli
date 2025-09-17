@@ -43,6 +43,15 @@ supported Python version is always bundled with `nextstrain`.
   Batch job.
   ([#460](https://github.com/nextstrain/cli/pull/460))
 
+* `nextstrain run` now supports an alternative invocation where a path to a
+  local directory that is a pathogen repository can be given instead of a
+  pathogen name (and optionally version).  This allows `nextstrain run` to be
+  used with pathogen repos managed outside of Nextstrain CLI (i.e. not by
+  `nextstrain setup` and `nextstrain update`), which can be useful for the
+  analysis directory support and local testing.  The workflow to run is still
+  given separately by name (not path).
+  ([#476](https://github.com/nextstrain/cli/issues/476))
+
 (v-next-bug-fixes)=
 ### Bug fixes
 

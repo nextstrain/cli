@@ -642,6 +642,46 @@ class PathogenVersion:
            and (self.url    == other.url or self.url is None or other.url is None)
 
 
+class UnmanagedPathogen:
+    """
+    A local directory that's a pathogen repo, not managed by Nextstrain CLI.
+
+    Used by ``nextstrain run``.  Includes only the :cls:`PathogenVersion` API
+    surface that ``nextstrain run`` requires.
+    """
+    path: Path
+    registration_path: Path
+
+    registration: Optional[dict] = None
+
+    def __init__(self, path: str):
+        spec = PathogenSpec.parse(path)
+
+        if not spec.name or (spec.name not in set([os.path.curdir, os.path.pardir]) and not (set(spec.name) & set([os.path.sep, os.path.altsep or os.path.sep]))):
+            raise ValueError(f"the {spec.name!r} part of {path!r} does not look like a path")
+
+        self.path = Path(path)
+
+        if not self.path.is_dir():
+            raise UserError(f"""
+                Path {str(self.path)!r} is not a directory (or does not exist).
+                """)
+
+        self.registration_path = self.path / "nextstrain-pathogen.yaml"
+
+        if self.registration_path.exists():
+            self.registration = read_pathogen_registration(self.registration_path)
+
+    registered_workflows = PathogenVersion.registered_workflows
+    workflow_path = PathogenVersion.workflow_path
+
+    def __str__(self) -> str:
+        return str(self.path)
+
+    def __repr__(self) -> str:
+        return f"<UnmanagedPathogen path={str(self.path)!r}>"
+
+
 def every_pathogen_default_by_name(pathogens: Dict[str, Dict[str, PathogenVersion]] = None) -> Dict[str, PathogenVersion]:
     """
     Scans file system to return a dict of :cls:`PathogenVersion` objects,

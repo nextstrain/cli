@@ -12,7 +12,7 @@ nextstrain run
 
 .. code-block:: none
 
-    usage: nextstrain run [options] <pathogen-name>[@<version>] <workflow-name> <analysis-directory> [<target> [<target> [...]]]
+    usage: nextstrain run [options] <pathogen-name>[@<version>]|<pathogen-path> <workflow-name> <analysis-directory> [<target> [<target> [...]]]
            nextstrain run --help
 
 
@@ -44,11 +44,16 @@ positional arguments
 
 
 
-.. option:: <pathogen-name>[@<version>]
+.. option:: <pathogen-name>[@<version>]|<pathogen-path>
 
     The name (and optionally, version) of a previously set up pathogen.
     See :command-reference:`nextstrain setup`.  If no version is
     specified, then the default version (if any) will be used.
+
+    Alternatively, the local path to a directory that is a pathogen
+    repository.  For this case to be recognized as such, the path must
+    contain a separator (/) or consist entirely of the current
+    directory (.) or parent directory (..) specifier.
 
     Required.
 
