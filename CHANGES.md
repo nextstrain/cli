@@ -13,6 +13,17 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+This release adds explicit (i.e. tested) support for Python version 3.13.
+([#473](https://github.com/nextstrain/cli/pull/473))
+
+Note that this Python version support only matters if you're installing
+Nextstrain CLI from PyPI or Bioconda
+([c.f.](https://docs.nextstrain.org/projects/cli/en/__NEXT__/installation/)).  It
+does not apply if you're installing Nextstrain CLI using the standalone
+installation method we recommend in the [Nextstrain installation
+documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
+supported Python version is always bundled with `nextstrain`.
+
 ## Improvements
 
 * `nextstrain setup <pathogen>` and `nextstrain version --pathogens` now list

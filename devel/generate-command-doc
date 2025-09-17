@@ -20,6 +20,8 @@ To instead output (to stdout) the rST for a single command::
 This can be useful for development loops.
 """
 import os
+import re
+import sys
 from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
 from contextlib import contextmanager, redirect_stdout
 from difflib import diff_bytes, unified_diff
@@ -207,6 +209,26 @@ def _generate_rst(command: Tuple[str, ...], parser: ArgumentParser) -> Iterable[
             else:
                 invocation = formatter._format_action_invocation(action)
                 description = (action.help or "") % {"default": action.default}
+
+                # Restore repeated option argument placeholders in options with
+                # multiple names, i.e. change Python 3.13's argparse's new
+                # style¹ of
+                #
+                #   --username, -u <user>
+                #
+                # back into the previous form
+                #
+                #   --username <user>, -u <user>
+                #
+                # I prefer the more explicit style (and so do many common
+                # command-line programs outside of Python/argparse).
+                #   -trs, 16 Sept 2025
+                #
+                # ¹ <https://github.com/python/cpython/issues/101599>
+                #   <https://github.com/python/cpython/commit/c4a2e8a2c5188c3288d57b80852e92c83f46f6f3>
+                if sys.version_info >= (3, 13):
+                    if match := re.search(r'(?<!,) (?!-)(?P<arg>.+)$', invocation):
+                        invocation = re.sub(r'(?=,)', " " + match["arg"], invocation)
 
                 yield f".. option:: {invocation}"
                 yield
