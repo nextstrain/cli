@@ -83,7 +83,12 @@ def run(opts: Options) -> int:
     failure = partial(colored, "red")
 
     # Check our own version for updates
-    check_for_new_version()
+    print("Checking for newer versions of Nextstrain CLI…")
+    print()
+    new_version_check = check_for_new_version()
+    print(new_version_check.status_message)
+    # We'll re-print the update notice along with update instructions at
+    # the bottom.
 
     # Run and collect our runners' self-tests
     print("Testing your setup…")
@@ -140,6 +145,12 @@ def run(opts: Options) -> int:
         if supported_runners and not opts.set_default:
             print()
             print("Try running check-setup again with the --set-default option to pick a supported runtime above.")
+
+    # Re-print update message for ourselves afterwards too
+    if new_version_check.newer_version:
+        print()
+        print(new_version_check.status_message)
+        print(new_version_check.update_instructions)
 
     # Return a 1 or 0 exit code
     if default_runner in opts.runners:
