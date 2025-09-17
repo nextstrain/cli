@@ -40,6 +40,15 @@ development source code and as such may not be routinely kept up to date.
   output.
   ([#475](https://github.com/nextstrain/cli/issues/475))
 
+* For most installation methods (i.e. standalone, Pip, pipx, and Conda), the
+  process of updating Nextstrain CLI itself is now automated by a single
+  `nextstrain update cli` command.  This is suggested in new version notices
+  emitted by automatic new version checks (along with the previously-suggested
+  update commands that vary by installation method).  Integrating with
+  `nextstrain update` puts updates to the CLI alongside updates to the runtimes
+  and pathogens.
+  ([#475](https://github.com/nextstrain/cli/issues/475))
+
 (v-next-bug-fixes)=
 ### Bug fixes
 

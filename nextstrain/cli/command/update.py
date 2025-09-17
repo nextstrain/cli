@@ -10,8 +10,9 @@ Three runtimes currently support updates: Docker, Conda, and Singularity.
 Updates may take several minutes as new software versions are downloaded.
 
 This command also checks for newer versions of the Nextstrain CLI (the
-`nextstrain` program) itself and will suggest upgrade instructions if an
-upgrade is available.
+`nextstrain` program) itself and will suggest updating if an new version is
+available.  Running `nextstrain update cli` will automatically update to the
+new version.
 """
 
 import traceback
@@ -48,9 +49,10 @@ def register_parser(subparser):
     """
     %(prog)s [<pathogen-name>[@<version>] | <runtime-name> […]]
     %(prog)s
+    %(prog)s cli
     %(prog)s --help
     """
-    parser = subparser.add_parser("update", help = "Update a pathogen or runtime")
+    parser = subparser.add_parser("update", help = "Update a pathogen or runtime (or this program)")
 
     parser.add_argument(
         "args",
@@ -78,10 +80,17 @@ def run(opts):
     failure = partial(colored, "red")
     notice  = partial(colored, "yellow")
 
+    update_self = False
+
     updates: List[Tuple[Callable[[], UpdateStatus], str]] = []
 
     if opts.args:
         for arg in opts.args:
+            # Special case the arg used to update ourselves.
+            if arg.lower() == "cli":
+                update_self = True
+                continue
+
             try:
                 runner = runner_module(arg)
             except ValueError as e1:
@@ -114,12 +123,16 @@ def run(opts):
                 + [(default_runner.update, f"{runner_name(default_runner)} default runtime")]
 
     # Check our own version for updates
-    print(heading(f"Checking for newer versions of Nextstrain CLI…"))
-    print()
     new_version_check = check_for_new_version()
-    print(new_version_check.status_message)
-    # We'll re-print the update notice along with update instructions at
-    # the bottom.
+
+    if update_self:
+        updates += [(new_version_check.update, "Nextstrain CLI")]
+    else:
+        print(heading(f"Checking for newer versions of Nextstrain CLI…"))
+        print()
+        print(new_version_check.status_message)
+        # We'll re-print the update notice along with update instructions at
+        # the bottom.
 
     # Perform updates
     if not updates:
@@ -159,7 +172,7 @@ def run(opts):
     # Print overall status
     if all(oks):
         print(success("All updates successful!"))
-        if new_version_check.newer_version:
+        if not update_self and new_version_check.newer_version:
             print()
             print(notice("…but consider upgrading Nextstrain CLI too."))
             print()
@@ -167,7 +180,7 @@ def run(opts):
             print(new_version_check.update_instructions)
     else:
         print(failure("Some updates failed!  See above for details."))
-        if new_version_check.newer_version:
+        if not update_self and new_version_check.newer_version:
             print()
             print(notice("Maybe upgrading Nextstrain CLI will help?"))
             print()

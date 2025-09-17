@@ -67,7 +67,7 @@ commands
 
 .. option:: update
 
-    Update a pathogen or runtime. See :doc:`/commands/update`.
+    Update a pathogen or runtime (or this program). See :doc:`/commands/update`.
 
 .. option:: setup
 

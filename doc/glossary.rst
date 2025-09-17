@@ -22,6 +22,14 @@ documentation.
         The foundation of a :term:`computing environment` (or part of it), such
         as Docker, Conda, Singularity, AWS Batch, etc.
 
+    pathogen
+        A versioned set of :term:`workflows <docs:workflow>` for producing
+        analyses of a particular pathogen.  Managed via :doc:`/commands/setup`
+        and :doc:`/commands/update` for use with :doc:`/commands/run`, or
+        managed directly by the user for use with :doc:`/commands/build`.
+
+        See :term:`docs:pathogen repository`.
+
     runner
         The code (i.e. Python module, e.g. :file:`nextstrain/cli/runner/docker.py`)
         which arranges to execute things inside a :term:`runtime`.

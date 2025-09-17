@@ -16,7 +16,7 @@ from wcmatch.glob import globmatch, GLOBSTAR, EXTGLOB, BRACE, MATCHBASE, NEGATE,
 from . import requests
 from .__version__ import __version__
 from .debug import debug
-from .types import RunnerModule, SetupTestResults, SetupTestResultStatus
+from .types import RunnerModule, SetupTestResults, SetupTestResultStatus, UpdateStatus
 from .url import NEXTSTRAIN_DOT_ORG, URL
 
 
@@ -75,9 +75,41 @@ class NewVersionCheckResult(NamedTuple):
     newer_version: Optional[str]
     status_message: Optional[str]
     update_instructions: Optional[str]
+    update_command: Optional[str]
 
     def __bool__(self):
         return self.newer_version is not None
+
+    def update(self) -> UpdateStatus:
+        print(self.status_message)
+
+        if not self.newer_version:
+            return True
+
+        if not self.update_command:
+            if self.update_instructions:
+                print(self.update_instructions)
+            return None
+
+        # Pick the shell to use ourselves since subprocess.run()'s "shell"
+        # kwarg doesn't let us.
+        system = platform.system()
+
+        if system in {"Linux", "Darwin"}:
+            shell = "bash"
+        elif system == "Windows":
+            shell = "pwsh"
+        else:
+            raise RuntimeError(f"unknown system {system!r}")
+
+        print(f"Running `{self.update_command}` via {shell}")
+
+        # Instead of checking the result and returning False ourselves, use
+        # check = True to raise an exception on error that will percolate
+        # upwards and be handled nicely in nextstrain/cli/command/update.py.
+        subprocess.run([shell, "-c", self.update_command], check = True)
+
+        return True
 
 
 def check_for_new_version() -> NewVersionCheckResult:
@@ -136,7 +168,7 @@ def check_for_new_version() -> NewVersionCheckResult:
     else:
         conda, conda_prefix = None, None
 
-    # Put it all together into an upgrade command!
+    # Put it all together into an update command!
     if newer_version:
         pkgreq = shquote(f"nextstrain-cli=={newer_version}")
 
@@ -152,7 +184,11 @@ def check_for_new_version() -> NewVersionCheckResult:
             update_command = standalone_installer(newer_version)
 
             update_instructions = dedent(f"""\
-                Upgrade your standalone installation by running:
+                Update your standalone installation of Nextstrain CLI automatically by running:
+
+                    nextstrain update cli
+
+                or manually by running:
 
                     {update_command}
 
@@ -168,7 +204,11 @@ def check_for_new_version() -> NewVersionCheckResult:
                 update_command = f"{python} -m pip install {pkgreq}"
 
             update_instructions = dedent(f"""\
-                Upgrade your Pip-based installation running:
+                Update your Pip-based installation of Nextstrain CLI automatically by running:
+
+                    nextstrain update cli
+
+                or manually by running:
 
                     {update_command}
                 """)
@@ -177,7 +217,11 @@ def check_for_new_version() -> NewVersionCheckResult:
             update_command = f"pipx install -f {pkgreq}"
 
             update_instructions = dedent(f"""\
-                Upgrade your pipx-based installation by running:
+                Update your pipx-based installation of Nextstrain CLI automatically by running:
+
+                    nextstrain update cli
+
+                or manually by running:
 
                     {update_command}
                 """)
@@ -189,18 +233,25 @@ def check_for_new_version() -> NewVersionCheckResult:
                 update_command = f"{conda} install {pkgreq}   # add -n NAME or -p PATH if necessary"
 
             update_instructions = dedent(f"""\
-                Upgrade your Conda-based installation by running:
+                Update your Conda-based installation of Nextstrain CLI automatically by running:
+
+                    nextstrain update cli
+
+                or manually by running:
 
                     {update_command}
                 """)
 
         else:
-            update_instructions = f"(Omitting tailored instructions for upgrading due to unknown installation method ({installer!r}).)\n"
+            update_instructions = dedent(f"""\
+                Automated updating of Nextstrain CLI is unsupported due to unknown installation
+                method ({installer!r}).
+                """)
 
     else:
         status_message = "Nextstrain CLI is up to date!\n"
 
-    return NewVersionCheckResult(newer_version, status_message, update_instructions)
+    return NewVersionCheckResult(newer_version, status_message, update_instructions, update_command)
 
 
 def distribution_installer() -> Optional[str]:
