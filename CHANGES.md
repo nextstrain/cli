@@ -45,6 +45,15 @@ supported Python version is always bundled with `nextstrain`.
   no longer result in a 404 error if `<version>` includes a slash and it is a
   valid version specifier. ([#459](https://github.com/nextstrain/cli/pull/459))
 
+* Reverting changes made in 10.2.1, `nextstrain setup <pathogen>` and
+  `nextstrain update <pathogen>` will once again attempt to use a local netrc
+  file for authentication when downloading pathogen source URLs.  This also
+  reinstates support in those cases for configuring outgoing network proxies
+  and CA certificate trust stores via environment variables.  Support for
+  private repositories is not unintentional and is something we intend to
+  provide.
+  ([#478](https://github.com/nextstrain/cli/issues/478))
+
 # 10.2.1.post1 (1 July 2025)
 
 _See also changes in 10.2.1 which was an unreleased version._
