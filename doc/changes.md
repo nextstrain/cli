@@ -50,6 +50,12 @@ supported Python version is always bundled with `nextstrain`.
   no longer result in a 404 error if `<version>` includes a slash and it is a
   valid version specifier. ([#459](https://github.com/nextstrain/cli/pull/459))
 
+* When a standalone installation of Nextstrain CLI suggests a command to run to
+  update itself, that command now takes into account non-default installation
+  paths so that the new version is installed to the same place as the current
+  version.
+  ([#474](https://github.com/nextstrain/cli/pull/474))
+
 (v10-2-1-post1)=
 ## 10.2.1.post1 (1 July 2025)
 
