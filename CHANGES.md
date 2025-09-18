@@ -56,7 +56,7 @@ _See also changes in 10.2.1 which was an unreleased version._
 
 # 10.2.1 (1 July 2025)
 
-_Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/446). Changes first released as part of 10.2.2._
+_Unreleased due to [test failures](https://github.com/nextstrain/cli/issues/446). Changes first released as part of 10.2.1.post1._
 
 ## Bug fixes
 
