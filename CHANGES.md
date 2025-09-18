@@ -39,6 +39,14 @@ supported Python version is always bundled with `nextstrain`.
   Batch job.
   ([#460](https://github.com/nextstrain/cli/pull/460))
 
+* When `nextstrain setup <pathogen>` and `nextstrain update <pathogen>`
+  encounter an authentication error downloading from pathogen source URLs, the
+  error message now includes a hint, if applicable, noting the presence of
+  netrc-provided credentials and possible resolutions.  This aids in resolving
+  errors arising from stale GitHub credentials present in some users' netrc
+  files (as managed by older versions of the GitHub CLI, `gh`).
+  ([#479](https://github.com/nextstrain/cli/issues/479))
+
 ## Bug fixes
 
 * `nextstrain setup <pathogen>@<version>` and `nextstrain update <pathogen>@<version>`
