@@ -496,16 +496,8 @@ class PathogenVersion:
             if compatible_workflows := self.compatible_workflows("nextstrain run"):
                 return msg + f"\nCompatible workflows: {list(compatible_workflows.keys())}", True
 
-            # If no compatible workflows are listed, then check for the top level
-            # boolean compatibility declaration
-            try:
-                compatibility = self.registration["compatibility"]["nextstrain run"]
-            except (KeyError, IndexError, TypeError):
-                if DEBUGGING:
-                    traceback.print_exc()
-                return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
 
-            return msg + "\nNo compatible workflows listed, please refer to pathogen docs.", bool(compatibility)
+            return msg + "\nNo compatible workflows registered, please refer to pathogen docs.", False
 
         return [
             ('downloaded',
