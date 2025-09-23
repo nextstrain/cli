@@ -324,13 +324,13 @@ class PathogenVersion:
 
     def compatible_workflows(self, feature: str) -> Dict[str, Dict]:
         """
-        Parses registered workflows to return a subset of workflows that are
+        Filters registered workflows to return a subset of workflows that are
         compatible with the provided *feature*.
         """
         return {
-            workflow: workflow_config
-            for workflow, workflow_config in self.registered_workflows().items()
-            if workflow_config.get("compatibility", {}).get(feature, False)
+            name: info
+            for name, info in self.registered_workflows().items()
+            if isinstance(info, dict) and info.get("compatibility", {}).get(feature)
         }
 
 
