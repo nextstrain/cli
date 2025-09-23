@@ -291,6 +291,14 @@ def run(opts):
         *(["--forceall"]
             if opts.force else []),
 
+        # Explicitly use Snakemake's current working directory as the
+        # workflow's workdir, overriding any "workdir:" directive the workflow
+        # may include.  Snakemake uses the cwd by default in the absence of any
+        # "workdir:" directive, but we want to _always_ use it to avoid writing
+        # into the pathogen/workflow source directories if a non-compatible
+        # workflow is run.
+        "--directory=.",
+
         # Workdir will be the analysis volume (/nextstrain/build in a
         # containerized runtime), so explicitly point to the Snakefile.
         "--snakefile=%s/Snakefile" % (
