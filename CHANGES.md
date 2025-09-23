@@ -39,6 +39,15 @@ supported Python version is always bundled with `nextstrain`.
   Batch job.
   ([#460](https://github.com/nextstrain/cli/pull/460))
 
+* `nextstrain run` now supports an alternative invocation where a path to a
+  local directory that is a pathogen repository can be given instead of a
+  pathogen name (and optionally version).  This allows `nextstrain run` to be
+  used with pathogen repos managed outside of Nextstrain CLI (i.e. not by
+  `nextstrain setup` and `nextstrain update`), which can be useful for the
+  analysis directory support and local testing.  The workflow to run is still
+  given separately by name (not path).
+  ([#476](https://github.com/nextstrain/cli/issues/476))
+
 ## Bug fixes
 
 * `nextstrain setup <pathogen>@<version>` and `nextstrain update <pathogen>@<version>`
@@ -53,6 +62,16 @@ supported Python version is always bundled with `nextstrain`.
   private repositories is not unintentional and is something we intend to
   provide.
   ([#478](https://github.com/nextstrain/cli/issues/478))
+
+* `nextstrain run` now overrides (i.e. suppresses) any ["workdir:"
+  directives](https://snakemake.readthedocs.io/en/stable/snakefiles/configuration.html)
+  in a workflow by explicitly setting the working directory when it invokes
+  Snakemake.  This avoids writing files into the pathogen/workflow source
+  directories when non-compatible (or broken) workflows are used with
+  `nextstrain run` despite the warnings issued.  Such workflows are more likely
+  to error and fail now early on rather than "succeed" but produce output files
+  in the wrong location.
+  ([#476](https://github.com/nextstrain/cli/issues/476))
 
 # 10.2.1.post1 (1 July 2025)
 
