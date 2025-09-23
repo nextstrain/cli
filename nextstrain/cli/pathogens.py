@@ -338,6 +338,26 @@ class PathogenVersion:
         return self.path / workflow
 
 
+    def workflow_files(self, workflow: str) -> Dict:
+        """
+        Parses :attr:`.registration` to get the path to a *workflow* files,
+        snakefile and configfile.
+        """
+        files = {
+            "snakefile": self.workflow_path(workflow) / "Snakefile",
+            "configfile": None,
+        }
+
+        if workflow_registration := self.registered_workflows().get(workflow):
+            if snakefile := workflow_registration.get("snakefile"):
+                files["snakefile"] = self.path / snakefile
+
+            if configfile := workflow_registration.get("configfile"):
+                files["configfile"] = self.path / configfile
+
+        return files
+
+
     def setup(self, dry_run: bool = False, force: bool = False) -> SetupStatus:
         """
         Downloads and installs this pathogen version from :attr:`.url`.
