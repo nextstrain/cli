@@ -513,10 +513,10 @@ class PathogenVersion:
             if not self.registered_workflows():
                 return msg + "\n(no workflows registered)", False
 
-            if not (compatible_workflows := self.compatible_workflows("nextstrain run")):
+            if not self.compatible_workflows("nextstrain run"):
                 return msg + "\n(no workflows registered as compatible)", False
 
-            return msg + f"\nCompatible workflows: {list(compatible_workflows.keys())}", True
+            return msg, True
 
         return [
             ('downloaded',
@@ -526,6 +526,9 @@ class PathogenVersion:
                 self.registration_path.is_file()),
 
             test_compatibility(),
+
+            *((f'`nextstrain run` workflow {name!r} exists', self.workflow_path(name).is_dir())
+                for name in self.compatible_workflows("nextstrain run")),
         ]
 
 
