@@ -6,7 +6,8 @@ import os.path
 import re
 import traceback
 import yaml
-from base64 import b32encode, b32decode
+from base64 import b32encode, b32decode, b64decode
+from inspect import cleandoc
 from itertools import groupby
 from tempfile import TemporaryFile
 from textwrap import indent
@@ -361,6 +362,25 @@ class PathogenVersion:
 
         except requests.exceptions.HTTPError as err:
             if 400 <= err.response.status_code <= 499:
+                if (err.response.status_code in {401, 403}
+                and (auth := err.response.request.headers["Authorization"])
+                and auth.startswith("Basic ")):
+                    user = b64decode(auth.split(" ", 1)[1]).decode("utf-8").split(":", 1)[0]
+                    hint = cleandoc(f"""
+                        Authentication credentials for user {user!r}, stored in
+                        a netrc file, were automatically used.  Perhaps they're
+                        invalid?
+
+                        You may wish to retry without using stored credentials,
+                        either by removing them your netrc file or setting the
+                        NETRC environment variable to an empty value.
+                        """)
+                else:
+                    hint = cleandoc(f"""
+                        The URL may be incorrect (e.g. misspelled) or no longer
+                        accessible.
+                        """)
+
                 raise UserError(f"""
                     Failed to download pathogen setup URL:
 
@@ -370,9 +390,8 @@ class PathogenVersion:
 
                         {type(err).__name__}: {err}
 
-                    The URL may be incorrect (e.g. misspelled) or no longer
-                    accessible.
-                    """, urls = request_list(err.response)) from err
+                    {{hint}}
+                    """, urls = request_list(err.response), hint = hint) from err
 
             elif 500 <= err.response.status_code <= 599:
                 raise UserError(f"""
