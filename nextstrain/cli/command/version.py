@@ -72,9 +72,9 @@ def run(opts):
                     if opts.verbose:
                         print("      " + str(version.path))
 
-                    if registered_workflows := version.registered_workflows():
-                        print("      " + "Available workflows:")
-                        for workflow in registered_workflows:
+                    if compatible_workflows := version.compatible_workflows("nextstrain run"):
+                        print("      " + "Compatible workflows:")
+                        for workflow in compatible_workflows:
                             print("        " + workflow)
                     else:
                         print("      " + "No workflows listed, please refer to pathogen docs.")
