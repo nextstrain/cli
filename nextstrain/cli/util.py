@@ -235,15 +235,16 @@ def standalone_installation_path() -> Optional[Path]:
 
 def standalone_installer(version: str) -> str:
     system = platform.system()
+    destination = str(standalone_installation_path() or "")
 
     if system == "Linux":
-        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | bash -s {shquote(version)}"
+        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/linux | DESTINATION={shquote(destination)} bash -s {shquote(version)}"
 
     elif system == "Darwin":
-        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | bash -s {shquote(version)}"
+        return f"curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/mac | DESTINATION={shquote(destination)} bash -s {shquote(version)}"
 
     elif system == "Windows":
-        return 'Invoke-Expression "& { $(Invoke-RestMethod https://nextstrain.org/cli/installer/windows) } %s"' % shquote(version)
+        return '$env:DESTINATION=%s; Invoke-Expression "& { $(Invoke-RestMethod https://nextstrain.org/cli/installer/windows) } %s"' % (shquote(destination), shquote(version))
 
     else:
         raise RuntimeError(f"unknown system {system!r}")
