@@ -166,6 +166,12 @@ class PathogenVersion:
                 Disallowed character(s) {"".join(disallowed)!r} in name {name!r}.
                 """)
 
+        if name.lower() == "cli":
+            raise UserError(f"""
+                The name {name!r} is reserved for use by Nextstrain CLI itself
+                in `nextstrain update cli`.
+                """)
+
         if url and not new_setup:
             raise UserError(f"""
                 URL specified in {name_version_url!r}.

@@ -61,6 +61,23 @@ supported Python version is always bundled with `nextstrain`.
   files (as managed by older versions of the GitHub CLI, `gh`).
   ([#479](https://github.com/nextstrain/cli/issues/479))
 
+* When Nextstrain CLI detects that a new version of itself is available, it
+  will now output the instructions on how to upgrade to that new version after
+  (instead of before) the normal output from the running command.  This makes
+  it easier to find and follow the instructions when output is long.  The
+  notices of the new version will be output both before and after normal
+  output.
+  ([#475](https://github.com/nextstrain/cli/issues/475))
+
+* For most installation methods (i.e. standalone, Pip, pipx, and Conda), the
+  process of updating Nextstrain CLI itself is now automated by a single
+  `nextstrain update cli` command.  This is suggested in new version notices
+  emitted by automatic new version checks (along with the previously-suggested
+  update commands that vary by installation method).  Integrating with
+  `nextstrain update` puts updates to the CLI alongside updates to the runtimes
+  and pathogens.
+  ([#475](https://github.com/nextstrain/cli/issues/475))
+
 (v-next-bug-fixes)=
 ### Bug fixes
 

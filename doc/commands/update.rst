@@ -14,6 +14,7 @@ nextstrain update
 
     usage: nextstrain update [<pathogen-name>[@<version>] | <runtime-name> […]]
            nextstrain update
+           nextstrain update cli
            nextstrain update --help
 
 
@@ -28,8 +29,9 @@ Three runtimes currently support updates: Docker, Conda, and Singularity.
 Updates may take several minutes as new software versions are downloaded.
 
 This command also checks for newer versions of the Nextstrain CLI (the
-`nextstrain` program) itself and will suggest upgrade instructions if an
-upgrade is available.
+`nextstrain` program) itself and will suggest updating if an new version is
+available.  Running `nextstrain update cli` will automatically update to the
+new version.
 
 positional arguments
 ====================
