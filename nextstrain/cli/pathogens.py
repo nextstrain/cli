@@ -364,6 +364,11 @@ class PathogenVersion:
                 self.setup_receipt_path.unlink(missing_ok = True)
 
         try:
+            # Heads up: if you add explicit authn to this request—either an
+            # "auth" parameter or an "Authorization" header—consider if it
+            # breaks the assumption of netrc-based auth in the 401/403 error
+            # handling below and make changes as necessary.  Thanks!
+            #   -trs, 25 Sept 2025
             response = requests.get(str(self.url), headers = {"Accept": "application/zip, */*"}, stream = True)
             response.raise_for_status()
 
