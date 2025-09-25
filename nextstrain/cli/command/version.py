@@ -68,15 +68,11 @@ def run(opts):
                 print("  " + name)
                 for version in versions.values():
                     is_default = version == defaults.get(name)
-                    print("    " + str(version) + (f"={version.url or ''}" if opts.verbose else ""), "(default)" if is_default else "")
+                    compatible_workflows = version.compatible_workflows("nextstrain run")
+                    print("    " + str(version) + (f"={version.url or ''}" if opts.verbose else "")
+                          + (" (default)" if is_default else "")
+                          + (f" {{{', '.join(compatible_workflows)}}}" if compatible_workflows else ""))
                     if opts.verbose:
                         print("      " + str(version.path))
-
-                    if registered_workflows := version.registered_workflows():
-                        print("      " + "Available workflows:")
-                        for workflow in registered_workflows:
-                            print("        " + workflow)
-                    else:
-                        print("      " + "No workflows listed, please refer to pathogen docs.")
         else:
             print("  (none)")

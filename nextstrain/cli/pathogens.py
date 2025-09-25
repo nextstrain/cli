@@ -308,19 +308,31 @@ class PathogenVersion:
 
     def registered_workflows(self) -> Dict[str, Dict]:
         """
-        Parses :attr:`.registration` to return a dict of registered
-        compatible workflows, where the keys are workflow names.
+        Parses :attr:`.registration` to return a dict of registered workflows,
+        where the keys are workflow names.
         """
         if self.registration is None:
             debug("pathogen does not have a registration")
             return {}
 
-        workflows = self.registration.get("compatibility", {}).get("nextstrain run")
+        workflows = self.registration.get("workflows")
         if not isinstance(workflows, dict):
-            debug(f"pathogen registration.compatibility['nextstrain runs'] is not a dict (got a {type(workflows).__name__})")
+            debug(f"pathogen registration.workflows is not a dict (got a {type(workflows).__name__})")
             return {}
 
         return workflows
+
+
+    def compatible_workflows(self, feature: str) -> Dict[str, Dict]:
+        """
+        Filters registered workflows to return a subset of workflows that are
+        compatible with the provided *feature*.
+        """
+        return {
+            name: info
+            for name, info in self.registered_workflows().items()
+            if isinstance(info, dict) and info.get("compatibility", {}).get(feature)
+        }
 
 
     def workflow_path(self, workflow: str) -> Path:
@@ -498,20 +510,13 @@ class PathogenVersion:
             if self.registration is None:
                 return msg + "\n(couldn't read registration)", False
 
-            try:
-                compatibility = self.registration["compatibility"]["nextstrain run"]
-            except (KeyError, IndexError, TypeError):
-                if DEBUGGING:
-                    traceback.print_exc()
-                return msg + "\n(couldn't find 'compatibility: nextstrain run: …' field)", False
+            if not self.registered_workflows():
+                return msg + "\n(no workflows registered)", False
 
-            if compatibility:
-                if workflows := self.registered_workflows():
-                    msg += f"\nAvailable workflows: {list(workflows.keys())}"
-                else:
-                    msg += f"\nNo workflows listed, please refer to pathogen docs."
+            if not self.compatible_workflows("nextstrain run"):
+                return msg + "\n(no workflows registered as compatible)", False
 
-            return msg, bool(compatibility)
+            return msg, True
 
         return [
             ('downloaded',
@@ -521,6 +526,9 @@ class PathogenVersion:
                 self.registration_path.is_file()),
 
             test_compatibility(),
+
+            *((f'`nextstrain run` workflow {name!r} exists', self.workflow_path(name).is_dir())
+                for name in self.compatible_workflows("nextstrain run")),
         ]
 
 
@@ -690,6 +698,7 @@ class UnmanagedPathogen:
             self.registration = read_pathogen_registration(self.registration_path)
 
     registered_workflows = PathogenVersion.registered_workflows
+    compatible_workflows = PathogenVersion.compatible_workflows
     workflow_path = PathogenVersion.workflow_path
 
     def __str__(self) -> str:

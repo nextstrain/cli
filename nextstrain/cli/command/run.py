@@ -33,7 +33,7 @@ from ..debug import DEBUGGING, debug
 from ..errors import UserError
 from ..pathogens import PathogenVersion, UnmanagedPathogen
 from ..runner import aws_batch, docker, singularity
-from ..util import byte_quantity, split_image_name
+from ..util import byte_quantity, split_image_name, warn
 from ..volume import NamedVolume
 from . import build
 
@@ -241,7 +241,21 @@ def run(opts):
         debug(f"Treating {opts.pathogen!r} as unmanaged pathogen directory")
 
     if opts.workflow not in pathogen.registered_workflows():
-        print(f"The {opts.workflow!r} workflow is not registered as a compatible workflow, but trying to run anyways.")
+        warn(cleandoc(f"""
+            The {opts.workflow!r} workflow is not registered by pathogen {opts.pathogen!r}!
+
+            Trying to run it anyways (but it likely won't work)…
+            """))
+        warn()
+
+    elif opts.workflow not in pathogen.compatible_workflows("nextstrain run"):
+        warn(cleandoc(f"""
+            The {opts.workflow!r} workflow is registered by pathogen {opts.pathogen!r}
+            but not marked as compatible with `nextstrain run`!
+
+            Trying to run it anyways (but it likely won't work)…
+            """))
+        warn()
 
     workflow_directory = pathogen.workflow_path(opts.workflow)
 
