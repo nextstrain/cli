@@ -395,8 +395,8 @@ class PathogenVersion:
                         invalid?
 
                         You may wish to retry without using stored credentials,
-                        either by removing them your netrc file or setting the
-                        NETRC environment variable to an empty value.
+                        either by removing them from your netrc file or setting
+                        the NETRC environment variable to an empty value.
                         """)
                 else:
                     hint = cleandoc(f"""
