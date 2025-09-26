@@ -2,6 +2,7 @@
 Pathogen workflows.
 """
 import json
+import os
 import os.path
 import re
 import traceback
@@ -364,6 +365,11 @@ class PathogenVersion:
                 self.setup_receipt_path.unlink(missing_ok = True)
 
         try:
+            # Heads up: if you add explicit authn to this request—either an
+            # "auth" parameter or an "Authorization" header—consider if it
+            # breaks the assumption of netrc-based auth in the 401/403 error
+            # handling below and make changes as necessary.  Thanks!
+            #   -trs, 25 Sept 2025
             response = requests.get(str(self.url), headers = {"Accept": "application/zip, */*"}, stream = True)
             response.raise_for_status()
 
@@ -384,15 +390,51 @@ class PathogenVersion:
                 and (auth := err.response.request.headers["Authorization"])
                 and auth.startswith("Basic ")):
                     user = b64decode(auth.split(" ", 1)[1]).decode("utf-8").split(":", 1)[0]
-                    hint = cleandoc(f"""
-                        Authentication credentials for user {user!r}, stored in
-                        a netrc file, were automatically used.  Perhaps they're
-                        invalid?
 
-                        You may wish to retry without using stored credentials,
-                        either by removing them your netrc file or setting the
-                        NETRC environment variable to an empty value.
-                        """)
+                    # Logic here matches requests.utils.get_netrc_auth()
+                    if "NETRC" in os.environ:
+                        netrcs = [os.environ["NETRC"]]
+                    else:
+                        netrcs = ["~/.netrc", "~/_netrc"]
+
+                    if netrc := next(filter(os.path.exists, map(os.path.expanduser, netrcs)), None):
+                        # We could also check that the netrc file we just found
+                        # contains the credentials we see in the request… but
+                        # that feels slightly excessive.
+                        #   -trs, 25 Sept 2025
+                        hint = cleandoc(f"""
+                            Authentication credentials for user
+
+                                {user}
+
+                            stored in the netrc file
+
+                                {netrc}
+
+                            were automatically used.  Perhaps they're invalid?
+
+                            You may wish to retry without using stored credentials,
+                            either by removing them from your netrc file or setting
+                            the NETRC environment variable to an empty value.
+                            """)
+                    else:
+                        hint = cleandoc(f"""
+                            Authentication credentials for user
+
+                                {user}
+
+                            potentially stored in one of the following netrc files
+
+                                {'''
+                                '''.join(netrcs)}
+
+                            were automatically used.  Perhaps they're invalid?
+
+                            You may wish to retry without using stored credentials,
+                            either by removing them from one of the netrc files
+                            or setting the NETRC environment variable to an
+                            empty value.
+                            """)
                 else:
                     hint = cleandoc(f"""
                         The URL may be incorrect (e.g. misspelled) or no longer
