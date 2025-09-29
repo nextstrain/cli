@@ -72,7 +72,9 @@ positional arguments
     for valid workflow names.
 
     Workflow names conventionally correspond directly to directory
-    paths in the pathogen source, but this may not always be the case.
+    paths in the pathogen source, but this may not always be the case:
+    the pathogen's registration info can provide an explicit path for a
+    workflow name.
 
     Required.
 

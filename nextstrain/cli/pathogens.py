@@ -342,8 +342,73 @@ class PathogenVersion:
         }
 
 
-    def workflow_path(self, workflow: str) -> Path:
-        return self.path / workflow
+    def workflow_registration(self, name: str) -> Optional[dict]:
+        """
+        Returns the registration dictionary for the workflow *name*.
+
+        Returns ``None`` if the workflow is not registered, does not have
+        registration information, or the registered information is not a
+        dictionary.
+        """
+        if (info := self.registered_workflows().get(name)) and not isinstance(info, dict):
+            debug(f"pathogen registration.workflows[{name!r}] is not a dict (got a {type(info).__name__})")
+            return None
+
+        return info
+
+
+    def workflow_path(self, name: str) -> Path:
+        if (info := self.workflow_registration(name)) and (path := info.get("path")):
+            debug(f"pathogen registration specifies {path!r} for workflow {name!r}")
+
+            # Forbid anchored paths in registration info, as it's never correct
+            # practice.  An anchored path is just an absolute path on POSIX
+            # systems but covers more "absolute-like" cases on Windows systems
+            # too.
+            if PurePath(path).anchor:
+                raise UserError(f"""
+                    The {self.registration_path.name} file for {str(self)!r}
+                    registers an anchored path for the workflow {name!r}:
+
+                        {path}
+
+                    Registered workflow paths must be relative to (and within)
+                    the pathogen source itself.  This is a mistake that the
+                    pathogen author(s) must fix.
+                    """)
+
+            # Ensure the relative path resolves _within_ the pathogen repo to
+            # avoid shenanigans.
+            resolved_pathogen_path = self.path.resolve()
+            resolved_workflow_path = (resolved_pathogen_path / path).resolve()
+
+            # Path.is_relative_to() was added in Python 3.9, so implement it
+            # ourselves around .relative_to().
+            try:
+                resolved_workflow_path.relative_to(resolved_pathogen_path)
+            except ValueError:
+                raise UserError(f"""
+                    The {self.registration_path.name} file for {str(self)!r}
+                    registers an out-of-bounds path for the workflow {name!r}:
+
+                        {path}
+
+                    which resolves to:
+
+                        {str(resolved_workflow_path)}
+
+                    which is outside of the pathogen's source.
+
+                    Registered workflow paths must be within the pathogen
+                    source itself.  This is a mistake that the pathogen
+                    author(s) must fix.
+                    """)
+
+            debug(f"resolved workflow {name!r} to {str(resolved_workflow_path)!r}")
+            return resolved_workflow_path
+
+        debug(f"pathogen registration does not specify path for workflow {name!r}; using name as path")
+        return self.path / name
 
 
     def setup(self, dry_run: bool = False, force: bool = False) -> SetupStatus:
@@ -747,6 +812,7 @@ class UnmanagedPathogen:
 
     registered_workflows = PathogenVersion.registered_workflows
     compatible_workflows = PathogenVersion.compatible_workflows
+    workflow_registration = PathogenVersion.workflow_registration
     workflow_path = PathogenVersion.workflow_path
 
     def __str__(self) -> str:
