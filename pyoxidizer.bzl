@@ -3,6 +3,7 @@
 # file format:
 #
 #   https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_getting_started.html#the-pyoxidizer-bzl-configuration-file
+#   https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_config.html
 #
 # The short overview is that it's not-quite-Python but a subset called
 # Starlark.
@@ -15,6 +16,13 @@
 #    source dir.
 #
 NEXTSTRAIN_CLI_DIST = VARS.get("NEXTSTRAIN_CLI_DIST", ".")
+
+
+# We can't import os.path.sep, so figure it out ourselves.  BUILD_TARGET_TRIPLE¹
+# is a global automatically set by PyOxidizer.
+#
+# ¹ <https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_config_globals.html#build-target-triple>
+path_sep = "\\" if BUILD_TARGET_TRIPLE.endswith("-windows-msvc") else "/"
 
 
 # Define how to bundle a Python interpreter + our Python code + shared
@@ -60,6 +68,12 @@ def make_exe():
     python_config = python_dist.make_python_interpreter_config()
     python_config.run_module = "nextstrain.cli"
 
+    # Find unclassified "File" resources in lib/ via Python's standard
+    # filesystem importer.  Note that OxidizedFinder/OxidizedImporter will
+    # pre-empt the standard importer for classified resources.  We affect
+    # classification decisions in exe_resource_policy_decision() below.
+    python_config.module_search_paths = ["$ORIGIN/lib"]
+
     # Equivalent to: -Xnextstrain-cli-is-standalone, which we use to know if
     # we're in a standalone installation or not at runtime.
     python_config.x_options = ["nextstrain-cli-is-standalone"]
@@ -103,23 +117,50 @@ def exe_resource_policy_decision(policy, resource):
     # and data resources of these packages on the filesystem as well.
     pkgs_requiring_file = ["botocore", "boto3", "docutils.parsers.rst", "docutils.writers"]
 
+    # Some packages don't work with OxidizedFinder/OxidizedImporter even when
+    # they're stored on the filesystem (due to bugs in PyOxidizer!), so we
+    # include them only as unclassified files and rely on Python's standard
+    # filesystem importer to load them instead.¹
+    #
+    # ¹ <https://pyoxidizer.readthedocs.io/en/stable/pyoxidizer_packaging_additional_files.html#installing-unclassified-files-on-the-filesystem>
+    unclassified_pkgs = [
+        # <https://github.com/indygreg/PyOxidizer/issues/436>
+        # <https://github.com/indygreg/PyOxidizer/issues/749>
+        # <https://github.com/python-jsonschema/jsonschema-specifications/issues/61>
+        "jsonschema_specifications",
+    ]
+
     if type(resource) == "PythonModuleSource":
         if resource.name in pkgs_requiring_file or any([resource.name.startswith(p + ".") for p in pkgs_requiring_file]):
             resource.add_location = "filesystem-relative:lib"
+
+        elif resource.name in unclassified_pkgs or any([resource.name.startswith(p + ".") for p in unclassified_pkgs]):
+            resource.add_include = False
 
     if type(resource) in ("PythonPackageResource", "PythonPackageDistributionResource"):
         if resource.package in pkgs_requiring_file or any([resource.package.startswith(p + ".") for p in pkgs_requiring_file]):
             resource.add_location = "filesystem-relative:lib"
 
+        elif resource.package in unclassified_pkgs or any([resource.package.startswith(p + ".") for p in unclassified_pkgs]):
+            resource.add_include = False
+
     # We ignore most "unclassified" Files (include_file_resources = False
     # above) since our config discovers and emits *both* classified
     # (PythonModuleSource, etc) and unclassified resources (File) and we prefer
-    # the former.  However, a libffi shared object that ships with the Linux
-    # wheel for cffi doesn't get classified and thus must be caught here as a
-    # plain File.
+    # the former.  However…
     if type(resource) == "File":
+        # …a libffi shared object that ships with the Linux wheel for cffi
+        # doesn't get classified and thus must be caught here as a plain File, and…
         if resource.path.startswith("cffi.libs/libffi"):
             print("Adding " + resource.path + " to bundle")
+            resource.add_include = True
+            resource.add_location = "filesystem-relative:lib"
+
+        # …some packages don't work with OxidizedFinder/OxidizedImporter even
+        # when they're stored on the filesystem, so we include them only as
+        # unclassified files and rely on Python's standard filesystem importer
+        # to load them instead.
+        elif resource.path in [p.replace(".", path_sep) for p in unclassified_pkgs] or any([resource.path.startswith(p.replace(".", path_sep) + path_sep) for p in unclassified_pkgs]):
             resource.add_include = True
             resource.add_location = "filesystem-relative:lib"
 

@@ -9,6 +9,11 @@ description: >-
 
   before calling this action.
 
+inputs:
+  ambient:
+    description: Flag to enable/disable the ambient runtime integration test steps
+    default: "true"
+
 runs:
   using: composite
   steps:
@@ -54,7 +59,7 @@ runs:
         git -C zika-tutorial clean -dfqx
         nextstrain build --singularity --cpus 2 zika-tutorial
 
-    - if: runner.os != 'Windows'
+    - if: fromJSON(inputs.ambient) && runner.os != 'Windows'
       name: Build zika-tutorial with --ambient
       shell: bash -l -eo pipefail {0}
       run: |
