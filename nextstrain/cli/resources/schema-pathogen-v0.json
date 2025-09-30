@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nextstrain.org/schemas/pathogen/v0",
+  "title": "Nextstrain Pathogen (v0)",
+  "description": "Pathogen registration information in a nextstrain-pathogen.yaml file",
+  "type": "object",
+  "properties": {
+    "$schema": {"const": "https://nextstrain.org/schemas/pathogen/v0"},
+    "workflows": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the workflow's source directory relative to the pathogen directory containing this nextstrain-pathogen.yaml file.  This directory should typically contain a Snakefile.  A relative path that resolves outside of the pathogen's directory (e.g. traverses upwards) is not permitted."
+          },
+          "compatibility": {
+            "type": "object",
+            "properties": {
+              "nextstrain run": {
+                "type": "boolean",
+                "description": "Declares the compatibility (or not) of this workflow with the `nextstrain run` command.  The primary requirement for this compatibility is that the workflow is authored so that it may be run with a working directory that's different from and outside of the workflow's own source directory."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["$schema"],
+  "additionalProperties": false
+}

@@ -2,6 +2,7 @@
 Pathogen workflows.
 """
 import json
+import jsonschema
 import os
 import os.path
 import re
@@ -23,13 +24,14 @@ from zipfile import ZipFile
 
 from . import config
 from . import requests
+from . import resources
 from .debug import DEBUGGING, debug
-from .errors import UserError
+from .errors import InternalError, UserError
 from .net import is_loopback
 from .paths import PATHOGENS
 from .types import SetupStatus, SetupTestResults, SetupTestResult, UpdateStatus
 from .url import URL, NEXTSTRAIN_DOT_ORG
-from .util import parse_version_lax, print_and_check_setup_tests, request_list
+from .util import parse_version_lax, print_and_check_setup_tests, request_list, warn
 
 
 # XXX TODO: I'm not very happy with the entirety of the conceptual organization
@@ -252,8 +254,14 @@ class PathogenVersion:
         self.registration_path  = self.path / "nextstrain-pathogen.yaml"
         self.setup_receipt_path = self.path.with_suffix(self.path.suffix + ".json")
 
-        if self.registration_path.exists():
+        try:
             self.registration = read_pathogen_registration(self.registration_path)
+        except RegistrationError:
+            # Ignore malformed registrations during __init__() here to avoid a
+            # noisy constructor for PathogenVersion.  We're more noisy about
+            # registration issues in setup(), which will be seen during the
+            # initial `nextstrain setup` or subsequent `nextstrain update`.
+            self.registration = None
 
         if not new_setup:
             if not self.path.is_dir():
@@ -611,7 +619,22 @@ class PathogenVersion:
             json.dump(self.setup_receipt, f, indent = "  ")
             print(file = f)
 
-        self.registration = read_pathogen_registration(self.registration_path)
+        try:
+            self.registration = read_pathogen_registration(self.registration_path)
+        except RegistrationError as err:
+            self.registration = None
+
+            warn(cleandoc(f"""
+                The {self.registration_path.name} file for {str(self)!r} is malformed:
+
+                    {'''
+                    '''.join(str(err).splitlines())}
+
+                It will not be used and this pathogen setup may not be fully-functional.
+                \
+                """))
+            if DEBUGGING:
+                traceback.print_exc()
 
         return True
 
@@ -807,8 +830,22 @@ class UnmanagedPathogen:
 
         self.registration_path = self.path / "nextstrain-pathogen.yaml"
 
-        if self.registration_path.exists():
+        try:
             self.registration = read_pathogen_registration(self.registration_path)
+        except RegistrationError as err:
+            self.registration = None
+
+            warn(cleandoc(f"""
+                The {self.registration_path.name} file for {str(self)!r} is malformed:
+
+                    {'''
+                    '''.join(str(err).splitlines())}
+
+                It will not be used and this pathogen's workflows may not be fully-functional.
+                \
+                """))
+            if DEBUGGING:
+                traceback.print_exc()
 
     registered_workflows = PathogenVersion.registered_workflows
     compatible_workflows = PathogenVersion.compatible_workflows
@@ -1051,23 +1088,62 @@ def read_pathogen_registration(path: Path) -> Optional[Dict]:
     Reads a ``nextstrain-pathogen.yaml`` file at *path* and returns a dict of
     its deserialized contents.
 
-    Returns ``None`` if there was an issue reading the registration.
+    Returns ``None`` if the path does not exist.
+
+    Raises :exc:`RegistrationError` if there are issues with the registration.
     """
+    # Read file
     try:
         with path.open("r", encoding = "utf-8") as f:
             registration = yaml.safe_load(f)
 
-        # XXX TODO SOON: Consider doing actual schema validation here in the
-        # future.
-        #   -trs, 12 Dec 2024
-        if not isinstance(registration, dict):
-            raise ValueError(f"pathogen registration not a dict (got a {type(registration).__name__}): {str(path)!r}")
-
-        return registration
-    except (OSError, yaml.YAMLError, ValueError):
-        if DEBUGGING:
-            traceback.print_exc()
+    except FileNotFoundError as err:
+        debug(f"failed to read pathogen registration at {str(path)!r}:", err)
         return None
+
+    # File exists and we read it.
+    #
+    # If it's an empty file (or contains only comments) as is common when the
+    # file is used solely as a marker, then we'll get None.  Treat that as an
+    # empty dict instead.
+    if registration is None:
+        registration = {}
+
+    if not isinstance(registration, dict):
+        raise RegistrationError(f"top-level not a dict (got a {type(registration).__name__})")
+
+    # Locate schema for file, if any
+    if not (schema_id := registration.get("$schema")):
+        debug(f"skipping validation of pathogen registration {str(path)!r}: no $schema declared")
+        return registration
+
+    # Known schemas we can validate against
+    schemas = {
+        "https://nextstrain.org/schemas/pathogen/v0": "schema-pathogen-v0.json" }
+
+    # Skip validation if schema is unknown
+    if not (schema_path := schemas.get(schema_id)):
+        debug(f"skipping validation of pathogen registration {str(path)!r}: unknown $schema: {schema_id!r}")
+        return registration
+
+    # Validate
+    debug(f"validating pathogen registration against {schema_id!r} ({schema_path!r})")
+
+    with resources.open_text(schema_path) as f:
+        schema = json.load(f)
+
+    assert schema.get("$id") == schema_id
+
+    try:
+        jsonschema.validate(registration, schema)
+    except jsonschema.ValidationError as err:
+        raise RegistrationError(f"Schema validation failed: {err.message}") from err
+
+    return registration
+
+
+class RegistrationError(InternalError):
+    pass
 
 
 # We query a nextstrain.org API instead of querying GitHub's API directly for a
