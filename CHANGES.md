@@ -13,6 +13,34 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Improvements
+
+* `nextstrain run` now resolves workflow names by looking in the pathogen
+  registration (`nextstrain-pathogen.yaml`) for an explicitly registered path.
+  If no path is registered for a workflow, `nextstrain run` still falls back to
+  using the workflow name for the workflow path.
+
+  This allows for workflow names that are not also directory paths within the
+  pathogen source, which is useful for pathogens that are structured
+  non-conventionally for one reason or another.  The decoupling of workflow
+  names from paths also means that the workflow can be relocated within the
+  pathogen repo without breaking the name (i.e. the external interface to the
+  workflow).
+
+  As an example, the following workflow registration:
+
+  ```yaml
+  workflows:
+    phylogenetic:
+      path: .
+      compatibility:
+        nextstrain run: yes
+  ```
+
+  would allow invocation of a `phylogenetic` workflow located at the top-level
+  of the pathogen source, such as in [zika-tutorial](https://github.com/nextstrain/zika-tutorial).
+  ([#481](https://github.com/nextstrain/cli/pull/481))
+
 
 # 10.3.0 (26 September 2025)
 
