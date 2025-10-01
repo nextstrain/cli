@@ -3,6 +3,7 @@ set -euo pipefail
 shopt -s extglob failglob
 
 devel="$(dirname "$0")"
+build="$(dirname "$0")/../build"
 
 main() {
     local pyoxidizer
@@ -21,7 +22,12 @@ main() {
     #
     # https://github.com/pypa/manylinux#readme
     if [[ "$(platform-system)" == Linux ]]; then
-        exec "$devel"/within-container quay.io/pypa/manylinux2014_x86_64 "$pyoxidizer" "$@"
+        mkdir -p "$build"/cache/{pyoxidizer,pip,cargo}
+        exec "$devel"/within-container \
+            --volume "$build/cache/pyoxidizer:/tmp/.cache/pyoxidizer" \
+            --volume "$build/cache/pip:/tmp/.cache/pip" \
+            --volume "$build/cache/cargo:/tmp/.cargo" \
+            quay.io/pypa/manylinux2014_x86_64 "$pyoxidizer" "$@"
     else
         exec "$pyoxidizer" "$@"
     fi
