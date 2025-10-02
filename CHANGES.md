@@ -41,6 +41,19 @@ development source code and as such may not be routinely kept up to date.
   of the pathogen source, such as in [zika-tutorial](https://github.com/nextstrain/zika-tutorial).
   ([#481](https://github.com/nextstrain/cli/pull/481))
 
+* Pathogen registration files (`nextstrain-pathogen.yaml`) now have a formal
+  schema, <https://nextstrain.org/schemas/pathogen/v0>, and registrations will
+  be validated against the schema if they declare so with `$schema`.
+
+  Unknown `$schema` ids are ignored.  Validation errors will cause the pathogen
+  registration file to be ignored (as if it didn't exist).
+
+  Malformed registration files are warned about during the initial pathogen
+  setup with `nextstrain setup` and during subsequent pathogen version updates
+  with `nextstrain update`, but not when using an existing pathogen setup with
+  `nextstrain run` (so as not to be too noisy).
+  ([#482](https://github.com/nextstrain/cli/pull/482))
+
 
 # 10.3.0 (26 September 2025)
 

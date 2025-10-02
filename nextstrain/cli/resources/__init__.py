@@ -19,9 +19,15 @@ if sys.version_info >= (3, 11):
 else:
     from importlib_resources import files as _files, as_file as _as_file
 
+from importlib.resources import open_text as _open_text
+
 from pathlib import Path
-from typing import ContextManager
+from typing import ContextManager, TextIO
 
 
 def as_file(path: str) -> ContextManager[Path]:
     return _as_file(_files(__name__) / path)
+
+
+def open_text(path: str) -> TextIO:
+    return _open_text(__name__, path, encoding = "utf-8")

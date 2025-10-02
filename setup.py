@@ -33,6 +33,7 @@ setup(
     package_data = {
         "nextstrain.cli.resources": [
             "bashrc",
+            "schema-pathogen-v0.json",
         ],
     },
 
@@ -93,6 +94,7 @@ setup(
         "docutils",
         "fasteners",
         "importlib_resources >=5.3.0; python_version < '3.11'",
+        "jsonschema >=4", # for draft 2020-12 support
         "packaging",
         "pyjwt[crypto] >=2.0.0",
         "pyparsing >=3.0.0",
