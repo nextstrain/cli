@@ -46,7 +46,7 @@ From PyPI
     are many ways to install Python 3 on Windows, macOS, or Linux, including the
     `official packages`_, `Homebrew`_ for macOS, and the `Anaconda Distribution`_.
     Details are beyond the scope of this guide, but make sure you install Python
-    3.6 or higher. You may already have Python 3 installed, especially if you're on
+    3.8 or higher. You may already have Python 3 installed, especially if you're on
     Linux. Check by running ``python --version`` or ``python3 --version``.
 
     .. _official packages: https://www.python.org/downloads/
