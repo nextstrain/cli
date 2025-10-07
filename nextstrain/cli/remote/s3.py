@@ -99,7 +99,8 @@ def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable
             meta = { "ContentType": encoding_type }
 
         with data:
-            bucket.upload_fileobj(data, remote_file, meta)
+            # TODO: Remove pyright ignore if <https://github.com/youtype/mypy_boto3_builder/issues/365> is fixed.
+            bucket.upload_fileobj(data, remote_file, meta) # pyright: ignore[reportArgumentType]
 
     # Purge any CloudFront caches for this bucket
     purge_cloudfront(bucket, [remote for local, remote in files], dry_run)
@@ -148,7 +149,8 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
         encoding = remote_object.content_encoding
 
         with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
-            remote_object.download_fileobj(file)
+            # TODO: Remove pyright ignore if <https://github.com/youtype/mypy_boto3_builder/issues/365> is fixed.
+            remote_object.download_fileobj(file) # pyright: ignore[reportArgumentType]
 
 
 def ls(url: URL) -> Iterable[str]:
