@@ -251,9 +251,9 @@ for more information.
 
     Name of the AWS Batch job queue to use
 
-.. option:: --aws-batch-s3-bucket <name>
+.. option:: --aws-batch-s3-bucket [s3://]<name>[/<prefix>]
 
-    Name of the AWS S3 bucket to use as shared storage
+    Name (or URL) of the AWS S3 bucket to use as shared storage, with optional prefix for keys
 
 .. option:: --aws-batch-cpus <count>
 

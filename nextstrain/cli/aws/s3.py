@@ -3,17 +3,30 @@ S3 handling.
 """
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
-from typing import Tuple
+from typing import NamedTuple
 
 from ..errors import UserError
-from ..types import S3Bucket
+from ..types import S3Bucket, S3Object
 from ..url import URL
 
 
-def split_url(url: URL) -> Tuple[S3Bucket, str]:
+class S3BucketWithPrefix(NamedTuple):
+    bucket: S3Bucket
+    prefix: str
+
+    def Object(self, key: str) -> S3Object:
+        return self.bucket.Object(self.prefix + key)
+
+
+def split_url(url: URL) -> S3BucketWithPrefix:
     """
     Splits the given s3:// *url* into a Bucket object and normalized path
     with some sanity checking.
+
+    The returned tuple itself also has an :meth:`~S3BucketWithPrefix.Object`
+    method which automatically prepends the prefix onto the given key before
+    returning an :cls:`S3Object`.  This lets the tuple be used as a minimal
+    replacement for :cls:`S3Bucket`.
     """
     if not url.scheme == "s3":
         raise UserError(f"Expected an s3://… URL but got a URL for {url.scheme}:… instead: {str(url)!r}")
@@ -46,4 +59,4 @@ def split_url(url: URL) -> Tuple[S3Bucket, str]:
             3. The bucket does not exist (buckets are not automatically created for safety reasons).
             """)
 
-    return bucket, prefix
+    return S3BucketWithPrefix(bucket, prefix)

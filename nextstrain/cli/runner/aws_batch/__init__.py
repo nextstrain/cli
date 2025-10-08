@@ -143,8 +143,8 @@ def register_arguments(parser) -> None:
     development.add_argument(
         "--aws-batch-s3-bucket",
         dest    = "s3_bucket",
-        help    = "Name of the AWS S3 bucket to use as shared storage",
-        metavar = "<name>",
+        help    = "Name (or URL) of the AWS S3 bucket to use as shared storage, with optional prefix for keys",
+        metavar = "[s3://]<name>[/<prefix>]",
         default = DEFAULT_S3_BUCKET)
 
     development.add_argument(

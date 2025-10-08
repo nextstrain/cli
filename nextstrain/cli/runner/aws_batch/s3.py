@@ -3,11 +3,8 @@ S3 handling for AWS Batch jobs.
 """
 
 import binascii
-import boto3
 import fsspec
 import os.path
-from botocore.config import Config
-from botocore.exceptions import ClientError
 from calendar import timegm
 from os import utime
 from pathlib import Path, PurePath
@@ -16,8 +13,10 @@ from typing import Callable, Generator, Iterable, List, Optional, Any, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
 from ... import env
+from ...aws.s3 import S3BucketWithPrefix, split_url
 from ...debug import DEBUGGING
-from ...types import Env, S3Bucket, S3Object
+from ...types import Env, S3Object
+from ...url import URL
 from ...util import glob_matcher
 from ...volume import NamedVolume
 
@@ -41,7 +40,7 @@ def object_from_url(s3url: str) -> S3Object:
     return bucket(url.netloc).Object(key)
 
 
-def upload_workdir(workdir: Path, bucket: S3Bucket, run_id: str, patterns: List[str] = None, volumes: List[NamedVolume] = []) -> S3Object:
+def upload_workdir(workdir: Path, bucket: S3BucketWithPrefix, run_id: str, patterns: List[str] = None, volumes: List[NamedVolume] = []) -> S3Object:
     """
     Upload a ZIP archive of the local *workdir* (and optional *volumes*) to the
     remote S3 *bucket* for the given *run_id*.
@@ -271,7 +270,7 @@ def zipinfo_mtime(member: ZipInfo) -> float:
     return timegm(struct_time((*member.date_time, -1, -1, -1)))
 
 
-def upload_envd(extra_env: Env, bucket: S3Bucket, run_id: str) -> S3Object:
+def upload_envd(extra_env: Env, bucket: S3BucketWithPrefix, run_id: str) -> S3Object:
     """
     Upload a ZIP archive of *extra_env* as an envdir to the remote S3 *bucket*
     for the given *run_id*.
@@ -290,19 +289,21 @@ def upload_envd(extra_env: Env, bucket: S3Bucket, run_id: str) -> S3Object:
     return remote_zip
 
 
-def bucket(name: str) -> S3Bucket:
+def bucket(name: str) -> S3BucketWithPrefix:
     """
-    Load an **existing** bucket from S3.
+    Load an **existing** bucket from S3 by *name*.
+
+    *name* may include an optional fixed prefix for object keys delimited from
+    the bucket name by a slash (``/``).  The prefix will be preprended to the
+    key of any objects returned by the :meth:`.Object` method of the returned
+    bucket object.
     """
-    config = Config(retries = {'max_attempts': 3})
-    s3_resource = boto3.resource("s3", config = config)
+    url = URL(name)
 
-    try:
-        s3_resource.meta.client.head_bucket(Bucket = name)
-    except ClientError:
-        raise ValueError('Bucket named "%s" does not exist' % name)
+    if not url.scheme:
+        url = URL("s3://" + name)
 
-    return s3_resource.Bucket(name)
+    return split_url(url)
 
 
 def bucket_exists(name: str) -> bool:
