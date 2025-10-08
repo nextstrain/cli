@@ -40,20 +40,20 @@ also supported.
 .. _credentials file: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
 """
 
-import boto3
 import mimetypes
 import re
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
+from botocore.exceptions import ClientError, WaiterError
 from os.path import commonprefix
 from pathlib import Path
 from time import time
 from typing import Callable, Iterable, List, Optional, Tuple
 from .. import aws
+from ..aws.s3 import split_url
 from ..authn import User
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
-from ..types import S3Bucket, S3Object
+from ..types import S3Object
 from ..url import URL, Origin
 
 
@@ -222,42 +222,6 @@ def logout(origin: Origin):
         Authentication management commands (e.g. `nextstrain logout` and
         related) are not supported for S3 remotes.
         """)
-
-
-def split_url(url: URL) -> Tuple[S3Bucket, str]:
-    """
-    Splits the given s3:// *url* into a Bucket object and normalized path
-    with some sanity checking.
-    """
-    # Require a bucket name
-    if not url.netloc:
-        raise UserError("No bucket name specified in url (%s)" % url.geturl())
-
-    # Remove leading slashes from any destination path in order to use it as a
-    # prefix for uploaded files.  Internal and trailing slashes are untouched.
-    prefix = url.path.lstrip("/")
-
-    try:
-        bucket = boto3.resource("s3").Bucket(url.netloc)
-
-    except (NoCredentialsError, PartialCredentialsError) as error:
-        raise UserError("Unable to authenticate with S3: %s" % error) from error
-
-    # Find the bucket and ensure we have access and that it already exists so
-    # we don't automagically create new buckets.
-    try:
-        boto3.client("s3").head_bucket(Bucket = bucket.name)
-
-    except ClientError:
-        raise UserError(f"""
-            Unable to read from S3 bucket "{bucket.name}". Possible reasons:
-
-            1. Your AWS credentials are invalid.
-            2. Your AWS credentails are valid but lack permissions to the bucket.
-            3. The bucket does not exist (buckets are not automatically created for safety reasons).
-            """)
-
-    return bucket, prefix
 
 
 def assert_exists(object: S3Object):
