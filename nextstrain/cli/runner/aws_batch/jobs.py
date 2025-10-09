@@ -106,7 +106,7 @@ class JobState:
         return self.state.get("container", {}).get("exitCode")
 
     @property
-    def workdir(self) -> Optional[str]:
+    def workdir(self) -> Optional[s3.S3Object]:
         env = {
             var["name"]: var["value"]
                 for var in self.state.get("container", {}).get("environment", []) }
