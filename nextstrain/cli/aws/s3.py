@@ -55,7 +55,7 @@ def split_url(url: URL) -> S3BucketWithPrefix:
             Unable to read from S3 bucket "{bucket.name}". Possible reasons:
 
             1. Your AWS credentials are invalid.
-            2. Your AWS credentails are valid but lack permissions to the bucket.
+            2. Your AWS credentials are valid but lack permissions to the bucket.
             3. The bucket does not exist (buckets are not automatically created for safety reasons).
             """)
 
