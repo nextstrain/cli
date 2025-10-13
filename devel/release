@@ -171,7 +171,7 @@ remind-to-push() {
     echo
     echo "Please remember to push, including tags:"
     echo
-    echo "   git push origin master tag $version"
+    echo "   git push origin tag $version && sleep 5 && git push origin master"
     echo
     echo "CI will build dists for the release tag and publish them after tests pass."
     echo
