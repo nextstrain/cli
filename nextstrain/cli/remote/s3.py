@@ -40,20 +40,20 @@ also supported.
 .. _credentials file: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file
 """
 
-import boto3
 import mimetypes
 import re
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError, WaiterError
+from botocore.exceptions import ClientError, WaiterError
 from os.path import commonprefix
 from pathlib import Path
 from time import time
 from typing import Callable, Iterable, List, Optional, Tuple
 from .. import aws
+from ..aws.s3 import split_url
 from ..authn import User
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
 from ..util import warn, remove_prefix
 from ..errors import UserError
-from ..types import S3Bucket, S3Object
+from ..types import S3Object
 from ..url import URL, Origin
 
 
@@ -99,7 +99,8 @@ def upload(url: URL, local_files: List[Path], dry_run: bool = False) -> Iterable
             meta = { "ContentType": encoding_type }
 
         with data:
-            bucket.upload_fileobj(data, remote_file, meta)
+            # TODO: Remove pyright ignore if <https://github.com/youtype/mypy_boto3_builder/issues/365> is fixed.
+            bucket.upload_fileobj(data, remote_file, meta) # pyright: ignore[reportArgumentType]
 
     # Purge any CloudFront caches for this bucket
     purge_cloudfront(bucket, [remote for local, remote in files], dry_run)
@@ -148,7 +149,8 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
         encoding = remote_object.content_encoding
 
         with ContentDecodingWriter(encoding, local_file.open("wb")) as file:
-            remote_object.download_fileobj(file)
+            # TODO: Remove pyright ignore if <https://github.com/youtype/mypy_boto3_builder/issues/365> is fixed.
+            remote_object.download_fileobj(file) # pyright: ignore[reportArgumentType]
 
 
 def ls(url: URL) -> Iterable[str]:
@@ -220,42 +222,6 @@ def logout(origin: Origin):
         Authentication management commands (e.g. `nextstrain logout` and
         related) are not supported for S3 remotes.
         """)
-
-
-def split_url(url: URL) -> Tuple[S3Bucket, str]:
-    """
-    Splits the given s3:// *url* into a Bucket object and normalized path
-    with some sanity checking.
-    """
-    # Require a bucket name
-    if not url.netloc:
-        raise UserError("No bucket name specified in url (%s)" % url.geturl())
-
-    # Remove leading slashes from any destination path in order to use it as a
-    # prefix for uploaded files.  Internal and trailing slashes are untouched.
-    prefix = url.path.lstrip("/")
-
-    try:
-        bucket = boto3.resource("s3").Bucket(url.netloc)
-
-    except (NoCredentialsError, PartialCredentialsError) as error:
-        raise UserError("Unable to authenticate with S3: %s" % error) from error
-
-    # Find the bucket and ensure we have access and that it already exists so
-    # we don't automagically create new buckets.
-    try:
-        boto3.client("s3").head_bucket(Bucket = bucket.name)
-
-    except ClientError:
-        raise UserError(f"""
-            Unable to read from S3 bucket "{bucket.name}". Possible reasons:
-
-            1. Your AWS credentials are invalid.
-            2. Your AWS credentails are valid but lack permissions to the bucket.
-            3. The bucket does not exist (buckets are not automatically created for safety reasons).
-            """)
-
-    return bucket, prefix
 
 
 def assert_exists(object: S3Object):

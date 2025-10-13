@@ -58,6 +58,46 @@ development source code and as such may not be routinely kept up to date.
   `nextstrain run` (so as not to be too noisy).
   ([#482](https://github.com/nextstrain/cli/pull/482))
 
+* The AWS Batch runtime now supports storing workdir and envdir archives in S3
+  under a key prefix.  This optional key prefix is provided after the bucket
+  name in the [`--aws-batch-s3-bucket` option][] or the equivalent
+  [`aws-batch.s3-bucket` config field][] or [`NEXTSTRAIN_AWS_BATCH_S3_BUCKET`
+  environment variable][].  For example, providing
+
+      --aws-batch-s3-bucket=some-bucket/a/prefix/
+
+  would result in workdir archives stored at
+
+      s3://some-bucket/a/prefix/6116f3e3-9bc0-4769-99e3-adb71b4d82c0.zip
+
+  For extra clarity, particularly when providing a prefix, the value may now be
+  specified as a URL (e.g. `s3://some-bucket/a/prefix` or
+  `s3://another-bucket`), though, for backwards compatibility, doing so is not
+  required.  A key prefix may be useful for the organization of the objects in
+  a bucket, particularly when the bucket is accessed directly, outside of
+  Nextstrain CLI.
+  ([#483](https://github.com/nextstrain/cli/pull/483))
+
+[`--aws-batch-s3-bucket` option]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/commands/build/#cmdoption-nextstrain-build-aws-batch-s3-bucket
+[`aws-batch.s3-bucket` config field]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/aws-batch/#term-aws-batch.s3-bucket
+[`NEXTSTRAIN_AWS_BATCH_S3_BUCKET` environment variable]: https://docs.nextstrain.org/projects/cli/en/__NEXT__/runtimes/aws-batch/#envvar-NEXTSTRAIN_AWS_BATCH_S3_BUCKET
+
+(v-next-bug-fixes)=
+### Bug fixes
+
+* The AWS configuration for S3 operations for the AWS Batch runtime no longer
+  sets 3 as the max number of attempts for retries.  To explicitly control
+  [retries](https://boto3.amazonaws.com/v1/documentation/api/1.40.48/guide/retries.html)
+  yourself, use AWS' own support
+  via [config files](https://boto3.amazonaws.com/v1/documentation/api/1.40.48/guide/configuration.html#using-a-configuration-file)
+  (`max_attempts`)
+  and [environment variables](https://boto3.amazonaws.com/v1/documentation/api/1.40.48/guide/configuration.html#using-environment-variables)
+  (`AWS_MAX_ATTEMPTS`).  The previous configuration precluded the use these AWS
+  config files and env vars to control max attempts.  Note that 3 attempts is
+  already the AWS default, so no behaviour change is expected and no action is
+  needed during upgrade.
+  ([#483](https://github.com/nextstrain/cli/pull/483))
+
 
 (v10-3-0)=
 ## 10.3.0 (26 September 2025)
