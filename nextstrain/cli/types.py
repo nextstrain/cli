@@ -6,7 +6,7 @@ import argparse
 import builtins
 import sys
 from pathlib import Path
-from typing import Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING, runtime_checkable
+from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING, runtime_checkable
 # TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
 from typing_extensions import TypeAlias
 
@@ -49,7 +49,11 @@ SetupTestResultStatus: TypeAlias = Union[bool, None, EllipsisType]
 UpdateStatus = Optional[bool]
 
 # Re-export boto3 S3 resource types we use for convenience.
-from types_boto3_s3.service_resource import Bucket as S3Bucket, Object as S3Object # noqa: F401 (for re-export)
+if TYPE_CHECKING:
+    from types_boto3_s3.service_resource import Bucket as S3Bucket, Object as S3Object # noqa: F401 (for re-export)
+else:
+    S3Bucket = Any
+    S3Object = Any
 
 
 @runtime_checkable

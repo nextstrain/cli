@@ -16,6 +16,14 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-bug-fixes)=
+### Bug fixes
+
+* The dependency on `types-boto3-s3` is now development-only (the `dev` extra).
+  This eases Conda packaging and is consistent with dev-only dependencies on
+  other type definition packages.
+  ([#485](https://github.com/nextstrain/cli/pull/485))
+
 
 (v10-4-0)=
 ## 10.4.0 (13 October 2025)
