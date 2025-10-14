@@ -100,7 +100,6 @@ setup(
         "pyparsing >=3.0.0",
         "pyyaml >=5.3.1",
         "requests",
-        "types-boto3-s3",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
         "wrapt",
@@ -154,6 +153,7 @@ setup(
             "sphinx-markdown-tables !=0.0.16",
             "sphinx_rtd_theme",
             "types-boto3",
+            "types-boto3-s3",
             "types-botocore",
 
             # Only necessary for urllib3 <2.0.0, which we only have to use on
