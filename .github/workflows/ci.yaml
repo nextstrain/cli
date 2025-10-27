@@ -130,7 +130,7 @@ jobs:
 
       # Build the executable + necessary external files from the dists.
       - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
@@ -266,7 +266,7 @@ jobs:
           # to conflicting jsonschema dependencies.
           ambient: ${{ matrix.python != '3.8' }}
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
@@ -323,7 +323,7 @@ jobs:
           python-version: '3.9'
 
       # Download and extract the installation archive.
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: standalone-${{ matrix.target }}
 
@@ -372,24 +372,24 @@ jobs:
           python-version: "3.10"
       - run: python3 -m pip install --upgrade twine
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: dist
           path: dist/
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: standalone-x86_64-unknown-linux-gnu
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: standalone-x86_64-apple-darwin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: standalone-aarch64-apple-darwin
 
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: standalone-x86_64-pc-windows-msvc
 
