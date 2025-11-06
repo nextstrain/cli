@@ -24,11 +24,11 @@ runs:
       shell: bash -l -eo pipefail {0}
       run: nextstrain setup docker
 
-    - if: runner.os != 'Windows'
+    - if: runner.os != 'Windows' && !(runner.os == 'Linux' && runner.arch == 'ARM64')
       shell: bash -l -eo pipefail {0}
       run: nextstrain setup conda
 
-    - if: runner.os != 'macOS' && runner.os != 'Windows'
+    - if: runner.os != 'macOS' && runner.os != 'Windows' && !(runner.os == 'Linux' && runner.arch == 'ARM64')
       shell: bash -l -eo pipefail {0}
       run: nextstrain setup singularity
 
@@ -45,14 +45,14 @@ runs:
         git -C zika-tutorial clean -dfqx
         nextstrain build --docker --cpus 2 zika-tutorial
 
-    - if: runner.os != 'Windows'
+    - if: runner.os != 'Windows' && !(runner.os == 'Linux' && runner.arch == 'ARM64')
       name: Build zika-tutorial with --conda
       shell: bash -l -eo pipefail {0}
       run: |
         git -C zika-tutorial clean -dfqx
         nextstrain build --conda --cpus 2 zika-tutorial
 
-    - if: runner.os != 'macOS' && runner.os != 'Windows'
+    - if: runner.os != 'macOS' && runner.os != 'Windows' && !(runner.os == 'Linux' && runner.arch == 'ARM64')
       name: Build zika-tutorial with --singularity
       shell: bash -l -eo pipefail {0}
       run: |

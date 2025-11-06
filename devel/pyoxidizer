@@ -27,7 +27,7 @@ main() {
             --volume "$build/cache/pyoxidizer:/tmp/.cache/pyoxidizer" \
             --volume "$build/cache/pip:/tmp/.cache/pip" \
             --volume "$build/cache/cargo:/tmp/.cargo" \
-            quay.io/pypa/manylinux2014_x86_64 "$pyoxidizer" "$@"
+            quay.io/pypa/manylinux2014_"$(platform-machine)" "$pyoxidizer" "$@"
     else
         exec "$pyoxidizer" "$@"
     fi

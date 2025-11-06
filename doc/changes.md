@@ -16,6 +16,15 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-improvements)=
+### Improvements
+
+* We now produce standalone installation archives for Linux running on aarch64
+  hardware (aka arm64).  The standalone installer will use these archives
+  starting with this release.
+  ([#489](https://github.com/nextstrain/cli/pull/489),
+  [#490](https://github.com/nextstrain/cli/pull/490))
+
 (v-next-bug-fixes)=
 ### Bug fixes
 
