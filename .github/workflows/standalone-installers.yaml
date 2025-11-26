@@ -37,9 +37,9 @@ jobs:
         os:
           - ubuntu-22.04
           - ubuntu-24.04
-          - macos-13
-          - macos-14      # (aarch64)
-          - macos-15      # (aarch64)
+          - macos-15-intel
+          - macos-14        # (aarch64)
+          - macos-15        # (aarch64)
           - windows-2022
           - windows-2025
 
