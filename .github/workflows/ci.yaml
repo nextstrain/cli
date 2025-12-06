@@ -149,6 +149,16 @@ jobs:
             echo "${var}=${!var}" | tee -a "$GITHUB_ENV"
           done
 
+      # NOTE: This might falsely declare compatibility with 10.9 (PyOxidizer's
+      # default target, which MACOSX_DEPLOYMENT_TARGET doesn't seem to be
+      # overriding during build).
+      # <https://github.com/nextstrain/cli/pull/492#discussion_r2566880207>
+      - name: Set deployment target and SDK
+        if: matrix.os == 'macos-15-intel'
+        run: |
+          echo "MACOSX_DEPLOYMENT_TARGET=10.13" | tee -a "$GITHUB_ENV"
+          echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" | tee -a "$GITHUB_ENV"
+
       - run: |
           ./devel/pyoxidizer build \
             --release \
