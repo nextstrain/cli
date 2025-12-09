@@ -16,6 +16,12 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-bug-fixes)=
+### Bug fixes
+
+* Updated the s3fs dependency to avoid versions starting with 2025.12.0. This
+  maintains a dependency on `boto3` which is used for various commands.
+  ([#495](https://github.com/nextstrain/cli/pull/495))
 
 (v10-4-1)=
 ## 10.4.1 (14 October 2025)

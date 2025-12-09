@@ -118,12 +118,19 @@ setup(
         # declarations.
         #
         # Resolve the issue by using a specially-provided package extra from
-        # s3fs (first introduced with 2021.4.0) which causes them to declare an
-        # explicit dependency on aiobotocore's specially-provided package extra
-        # on boto3 so that dependency resolver can figure it out properly.
+        # s3fs (first introduced with 2021.4.0, removed in 2025.12.0) which
+        # causes them to declare an explicit dependency on aiobotocore's
+        # specially-provided package extra on boto3 so that dependency resolver
+        # can figure it out properly.
         #
-        # See <https://github.com/dask/s3fs/issues/357> and
-        # <https://github.com/nextstrain/cli/issues/133> for more background.
+        # Note that the upper limit is not future-proof and will likely cause
+        # issues down the road. There may be a better combination to use here,
+        # but that needs extra digging.
+        #
+        # More background:
+        # <https://github.com/dask/s3fs/issues/357>
+        # <https://github.com/nextstrain/cli/issues/133>
+        # <https://github.com/fsspec/s3fs/issues/994>
         #
         # What a mess.
         #
@@ -131,7 +138,7 @@ setup(
         # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the
         # error described in https://github.com/fsspec/s3fs/issues/790
         "fsspec !=2023.9.1",
-        "s3fs[boto3] >=2021.04.0, !=2023.9.1",
+        "s3fs[boto3] >=2021.04.0, !=2023.9.1, <2025.12.0",
 
         # From 2.0.0 onwards, urllib3 is better typed, but not usable (given
         # our dep tree) on 3.8 and 3.9 so we use types-urllib3 there (see
