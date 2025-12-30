@@ -103,7 +103,7 @@ setup(
         "requests",
         "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
-        "wrapt <2.0.0",
+        "wrapt >=2.0.0",
 
         # Avoiding 2023.9.1 due to change in `auto_mkdir` parameter in
         # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the

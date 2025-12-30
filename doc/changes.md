@@ -22,6 +22,9 @@ development source code and as such may not be routinely kept up to date.
 * Updated the dependency list to explicitly include `boto3`, used for various
   commands.
   ([#499](https://github.com/nextstrain/cli/pull/499))
+* Updated code to support the latest version of `wrapt`, used to show
+  `--dry-run` outputs.
+  ([#499](https://github.com/nextstrain/cli/pull/499))
 
 (v10-4-1)=
 ## 10.4.1 (14 October 2025)
