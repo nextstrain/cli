@@ -6,7 +6,7 @@ import sys
 from contextlib import contextmanager, ExitStack, redirect_stdout, redirect_stderr
 from functools import wraps
 from typing import Callable, TextIO
-from wrapt import ObjectProxy
+from wrapt import BaseObjectProxy # pyright: ignore[reportAttributeAccessIssue]
 
 
 def auto_dry_run_indicator(getter: Callable[..., bool] = lambda opts, *args, **kwargs: opts.dry_run):
@@ -83,7 +83,7 @@ def dry_run_indicator(dry_run: bool = False):
         yield dry_run
 
 
-class LinePrefixer(ObjectProxy): # pyright: ignore[reportUntypedBaseClass]
+class LinePrefixer(BaseObjectProxy): # pyright: ignore[reportUntypedBaseClass]
     """
     Add *prefix* to every line written to *file*.
 
