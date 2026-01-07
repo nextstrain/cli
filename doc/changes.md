@@ -9,14 +9,13 @@ This changelog is intended for _humans_ and follows many of the principles from
 Versions for this project follow the [Semantic Versioning
 rules](https://semver.org/spec/v2.0.0.html).  Each heading below is a version
 released to [PyPI](https://pypi.org/project/nextstrain-cli/) and the date it
-was released.  The "__NEXT__" heading below describes changes in the unreleased
-development source code and as such may not be routinely kept up to date.
+was released.
 
 
-(v-next)=
-## __NEXT__
+(v10-4-2)=
+## 10.4.2 (7 January 2026)
 
-(v-next-improvements)=
+(v10-4-2-improvements)=
 ### Improvements
 
 * We now produce standalone installation archives for Linux running on aarch64
@@ -25,7 +24,7 @@ development source code and as such may not be routinely kept up to date.
   ([#489](https://github.com/nextstrain/cli/pull/489),
   [#490](https://github.com/nextstrain/cli/pull/490))
 
-(v-next-bug-fixes)=
+(v10-4-2-bug-fixes)=
 ### Bug fixes
 
 * Updated the s3fs dependency to avoid versions starting with 2025.12.0. This
