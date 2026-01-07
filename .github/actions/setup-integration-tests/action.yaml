@@ -25,6 +25,15 @@ inputs:
 runs:
   using: composite
   steps:
+    # Our aarch64 (linux/arm64) image still contains some x86_64 (amd64)
+    # executables and so requires the ability of the host to emulate x86_64.
+    # On macOS, which is the primary reason we have an aarch64 image, this is
+    # expected to be provided by Rosetta 2.  On Linux, we expect it to be QEMU,
+    # which we set up here.
+    - if: runner.os == 'Linux' && runner.arch == 'ARM64'
+      run: docker run --privileged --rm tonistiigi/binfmt --install amd64
+      shell: bash -l -eo pipefail {0}
+
     - uses: conda-incubator/setup-miniconda@v3
       with:
         python-version: ${{ inputs.python-version }}
@@ -72,14 +81,14 @@ runs:
         python3 --version | grep -F 'Python ${{ inputs.python-version }}.'
         [[ "$(python --version)" == "$(python3 --version)" ]]
 
-    # Install Singularity on Linux.
+    # Install Singularity on Linux x86_64.
     #
     # We don't install it with Conda because Conda Forge provides a non-suid
     # build of Singularity.  We're compatible with Singularity's non-suid mode,
     # but production usages of Singularity are likely to use its suid mode, so
     # I'd rather test against that.
     #   -trs, 6 Jan 2023
-    - if: runner.os == 'Linux'
+    - if: runner.os == 'Linux' && runner.arch == 'X64'
       shell: bash -l -eo pipefail {0}
       env:
         GITHUB_TOKEN: ${{ github.token }}
