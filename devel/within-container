@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # usage: devel/within-container <image> [<argv0> [<argv1> [...]]]
 set -euo pipefail
 

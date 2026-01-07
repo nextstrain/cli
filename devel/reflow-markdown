@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Reflows paragraphs in Markdown to single long lines while preserving verbatim
 # code blocks, lists, and what not.
 set -euo pipefail
