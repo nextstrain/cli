@@ -109,7 +109,9 @@ target-triple() {
 
     case "$KERNEL" in
         Linux)
-            [[ "$machine" == x86_64 ]] || die "unsupported architecture: $machine"
+               [[ "$machine" == x86_64 ]] \
+            || ([[ "$machine" == aarch64 ]] && version-gte 10.4.2) \
+            || die "unsupported architecture: $machine"
             vendor=unknown
             os=linux-gnu
             ;;
