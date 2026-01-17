@@ -442,14 +442,7 @@ def test_setup() -> SetupTestResults:
         if not found:
             return False
 
-        # Path.is_relative_to() was added in Python 3.9, so implement it
-        # ourselves around .relative_to().
-        try:
-            Path(found).relative_to(PREFIX_BIN)
-        except ValueError:
-            return False
-        else:
-            return True
+        return Path(found).is_relative_to(PREFIX_BIN)
 
 
     def runnable(*argv) -> bool:

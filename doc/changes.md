@@ -16,6 +16,15 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+This release drops support for Python versions 3.8 and 3.9.
+
+Note that this Python version support only matters if you're installing
+Nextstrain CLI from PyPI or Bioconda
+([c.f.](https://docs.nextstrain.org/projects/cli/en/8.0.0/installation/)).  It
+does not apply if you're installing Nextstrain CLI using the standalone
+installation method we recommend in the [Nextstrain installation
+documentation](https://docs.nextstrain.org/page/install.html).  In that case, a
+supported Python version is always bundled with `nextstrain`.
 
 (v10-4-2)=
 ## 10.4.2 (7 January 2026)

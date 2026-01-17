@@ -3,12 +3,8 @@ Type definitions for internal use.
 """
 
 import argparse
-import builtins
-import sys
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, Union, TYPE_CHECKING, runtime_checkable
-# TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
-from typing_extensions import TypeAlias
+from typing import Any, Callable, Iterable, List, Mapping, Optional, Protocol, Tuple, TypeAlias, Union, TYPE_CHECKING, runtime_checkable
 
 # Import concrete types from our other modules only during type checking to
 # avoid import cycles during runtime.
@@ -17,11 +13,7 @@ if TYPE_CHECKING:
     from .volume import NamedVolume
     from .url import URL, Origin
 
-# Re-export EllipsisType so we can paper over its absence from older Pythons
-if sys.version_info >= (3, 10):
-    from types import EllipsisType
-else:
-    EllipsisType: TypeAlias = 'builtins.ellipsis'
+from types import EllipsisType
 
 """
 An immutable mapping of (*name*, *value*) pairs representing a set of

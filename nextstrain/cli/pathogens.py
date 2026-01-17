@@ -390,11 +390,7 @@ class PathogenVersion:
             resolved_pathogen_path = self.path.resolve()
             resolved_workflow_path = (resolved_pathogen_path / path).resolve()
 
-            # Path.is_relative_to() was added in Python 3.9, so implement it
-            # ourselves around .relative_to().
-            try:
-                resolved_workflow_path.relative_to(resolved_pathogen_path)
-            except ValueError:
+            if not resolved_workflow_path.is_relative_to(resolved_pathogen_path):
                 raise UserError(f"""
                     The {self.registration_path.name} file for {str(self)!r}
                     registers an out-of-bounds path for the workflow {name!r}:

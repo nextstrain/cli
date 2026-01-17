@@ -35,8 +35,6 @@ jobs:
           - macos-latest
           - windows-latest
         python:
-          - '3.8'
-          - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
@@ -253,8 +251,6 @@ jobs:
           - macos-latest
           - windows-latest
         python:
-          - '3.8'
-          - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
@@ -274,12 +270,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
 
-          # Skip ambient runtime testing on 3.8, as it forces an old version of
-          # Augur (26.2.0, last with 3.8 support) that is not compatible with
-          # Nextstrain CLI >10.3.0 installed in the same Python environment due
-          # to conflicting jsonschema dependencies.
-          ambient: ${{ matrix.python != '3.8' }}
-
       - uses: actions/download-artifact@v7
         with:
           name: dist
@@ -289,12 +279,6 @@ jobs:
         run: python3 -m pip install --upgrade dist/nextstrain_cli-*-py3-none-any.whl
 
       - uses: ./src/.github/actions/run-integration-tests
-        with:
-          # Skip ambient runtime testing on 3.8, as it forces an old version of
-          # Augur (26.2.0, last with 3.8 support) that is not compatible with
-          # Nextstrain CLI >10.3.0 installed in the same Python environment due
-          # to conflicting jsonschema dependencies.
-          ambient: ${{ matrix.python != '3.8' }}
 
   test-standalone:
     needs: build-standalone
@@ -336,7 +320,7 @@ jobs:
 
       - uses: ./src/.github/actions/setup-integration-tests
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
       # Download and extract the installation archive.
       - uses: actions/download-artifact@v7
