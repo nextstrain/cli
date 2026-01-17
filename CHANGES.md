@@ -13,7 +13,8 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
-This release drops support for Python versions 3.8 and 3.9.
+This release drops support for Python versions 3.8 and 3.9 and adds support for
+3.14.
 
 Note that this Python version support only matters if you're installing
 Nextstrain CLI from PyPI or Bioconda
