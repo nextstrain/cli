@@ -16,6 +16,17 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-improvements)=
+### Improvements
+
+* Added the following to the list of "well-known" environment variables that are
+  automatically passed thru to runtimes:
+
+    - `AUGUR_SEARCH_PATHS`
+    - `AUGUR_DEBUG`
+    - `AUGUR_PROFILE`
+
+  ([#501](https://github.com/nextstrain/cli/pull/501))
 
 (v10-4-2)=
 ## 10.4.2 (7 January 2026)
