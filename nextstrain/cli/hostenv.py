@@ -16,9 +16,12 @@ from typing import List, Tuple
 #   -trs, 13 Dec 2019
 
 forwarded_names = [
-    # Augur <https://nextstrain-augur.readthedocs.io/en/stable/envvars.html>
+    # Augur <https://docs.nextstrain.org/projects/augur/en/stable/usage/envvars.html>
+    "AUGUR_SEARCH_PATHS",
     "AUGUR_RECURSION_LIMIT",
     "AUGUR_MINIFY_JSON",
+    "AUGUR_DEBUG",
+    "AUGUR_PROFILE",
 
     # AWS
     "AWS_ACCESS_KEY_ID",
