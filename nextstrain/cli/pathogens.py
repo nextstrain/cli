@@ -1198,3 +1198,33 @@ def nextstrain_repo_zip_url(name: str, version: str) -> URL:
             return URL(urlquote(revision), version_url)
         else:
             return version_url
+
+
+def fetch_nextstrain_run_pathogens() -> List[Dict]:
+    """
+    Fetches all pathogen repos from nextstrain.org, filtered to only those
+    with at least one `nextstrain run` compatible workflow.
+
+    Returns a list of dicts with "name" and optionally "registration" keys.
+    """
+    url = URL("/pathogen-repos", NEXTSTRAIN_DOT_ORG)
+
+    with requests.Session() as http:
+        response = http.get(str(url), headers={"Accept": "application/json"})
+        response.raise_for_status()
+        return [repo for repo in response.json() if has_nextstrain_run_compatibility(repo)]
+
+
+def has_nextstrain_run_compatibility(repo: Dict) -> bool:
+    """
+    Returns True if the pathogen repo has at least one workflow with `nextstrain run` compatibility.
+    """
+    workflows = repo.get("registration", {}).get("workflows", {})
+
+    for workflow in workflows.values():
+        if isinstance(workflow, dict):
+            compatibility = workflow.get("compatibility", {})
+            if compatibility.get("nextstrain run"):
+                return True
+
+    return False

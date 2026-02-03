@@ -14,6 +14,7 @@ nextstrain setup
 
     usage: nextstrain setup [--dry-run] [--force] [--set-default] <pathogen-name>[@<version>[=<url>]]
            nextstrain setup [--dry-run] [--force] [--set-default] <runtime-name>
+           nextstrain setup --list
            nextstrain setup --help
 
 
@@ -77,4 +78,8 @@ options
 .. option:: --set-default
 
     Use this pathogen version or runtime as the default if set up is successful.
+
+.. option:: --list
+
+    List available pathogens.
 

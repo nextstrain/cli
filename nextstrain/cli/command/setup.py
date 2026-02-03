@@ -24,7 +24,7 @@ from .. import console
 from ..errors import UserError
 from ..util import colored, runner_module, runner_name, print_and_check_setup_tests
 from ..types import Options, RunnerModule, SetupTestResults
-from ..pathogens import PathogenVersion, pathogen_defaults
+from ..pathogens import PathogenVersion, pathogen_defaults, fetch_nextstrain_run_pathogens
 from ..runner import all_runners_by_name, runner_defaults
 
 
@@ -33,10 +33,35 @@ heading = partial(colored, "bold")
 failure = partial(colored, "red")
 
 
+def list_available_pathogens():
+    """
+    Fetches and displays available pathogens with workflow compatibility details.
+    """
+    print("Fetching available pathogens…")
+    print()
+
+    pathogens = fetch_nextstrain_run_pathogens()
+    pathogens = sorted(pathogens, key=lambda p: p["name"].lower())
+
+    for pathogen in pathogens:
+        print(pathogen["name"])
+
+        compatible_workflows = [
+            workflow
+            for workflow, workflow_info in pathogen.get("registration", {}).get("workflows", {}).items()
+            if isinstance(workflow_info, dict) and workflow_info.get("compatibility", {}).get("nextstrain run")
+        ]
+        if compatible_workflows:
+            print("  Workflows compatible with nextstrain run:")
+            for workflow in compatible_workflows:
+                print(f"    - {workflow}")
+
+
 def register_parser(subparser):
     """
     %(prog)s [--dry-run] [--force] [--set-default] <pathogen-name>[@<version>[=<url>]]
     %(prog)s [--dry-run] [--force] [--set-default] <runtime-name>
+    %(prog)s --list
     %(prog)s --help
     """
     parser = subparser.add_parser("setup", help = "Set up a pathogen or runtime")
@@ -60,7 +85,9 @@ def register_parser(subparser):
 
             A runtime is one of {{{', '.join(all_runners_by_name)}}}.
             """),
-        metavar = "<pathogen>|<runtime>")
+        metavar = "<pathogen>|<runtime>",
+        nargs   = "?",
+        default = None)
 
     parser.add_argument(
         "--dry-run",
@@ -78,11 +105,24 @@ def register_parser(subparser):
         help   = "Use this pathogen version or runtime as the default if set up is successful.",
         action = "store_true")
 
+    parser.add_argument(
+        "--list",
+        help   = "List available pathogens.",
+        action = "store_true")
+
     return parser
 
 
 @console.auto_dry_run_indicator()
 def run(opts: Options) -> int:
+    if opts.list:
+        list_available_pathogens()
+        return 0
+
+    if not opts.arg:
+        print("No pathogen or runtime specified. Run with --list to see available pathogens.")
+        return 1
+
     try:
         runner = runner_module(opts.arg)
     except ValueError as e1:
