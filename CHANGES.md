@@ -15,6 +15,8 @@ development source code and as such may not be routinely kept up to date.
 
 ## Improvements
 
+* `nextstrain setup --list` now lists the available pathogens for setup.
+  ([#502](https://github.com/nextstrain/cli/issues/502)
 * Added the following to the list of "well-known" environment variables that are
   automatically passed thru to runtimes:
 
