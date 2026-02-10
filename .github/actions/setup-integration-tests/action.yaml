@@ -55,6 +55,10 @@ runs:
       run: mamba install augur auspice 'snakemake !=7.30.2'
       shell: bash -l -eo pipefail {0}
 
+    - if: inputs.python-version == '3.10'
+      run: mamba install 'setuptools <82.0.0'
+      shell: bash -l -eo pipefail {0}
+
     - run: conda info
       shell: bash -l -eo pipefail {0}
 
