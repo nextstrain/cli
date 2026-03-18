@@ -206,7 +206,7 @@ def register_parser(subparser):
         nargs   = "?")
 
     # Register runner flags and arguments
-    runner.register_runners(parser, exec = ["snakemake", "--printshellcmds", ...])
+    runner.register_runners(parser, exec = ["snakemake", ...])
 
     return parser
 
@@ -244,6 +244,11 @@ def run(opts):
 
 
     if opts.exec == "snakemake":
+        opts.default_exec_args += [
+            # Useful to see what's going on; see also 08ffc925.
+            "--printshellcmds",
+        ]
+
         snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
 
         # Automatically pass thru appropriate resource options to Snakemake to
