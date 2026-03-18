@@ -292,6 +292,10 @@ def run(opts):
         # Useful to see what's going on; see also 08ffc925.
         "--printshellcmds",
 
+        # Useful to have additional information in benchmark files.
+        *(["--benchmark-extended"]
+            if build.supports_benchmark_extended(opts) else []),
+
         # In our experience,¹ it's rarely useful to fail on incomplete outputs
         # (Snakemake's default behaviour) instead of automatically regenerating
         # them.

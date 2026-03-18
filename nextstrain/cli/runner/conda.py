@@ -175,7 +175,8 @@ EXEC_ENV = {
 
 
 class ENV_FEATURE(Enum):
-    pass
+    # --benchmark-extended was introduced in Snakemake 8.11.0.
+    benchmark_extended = "20250717T164942Z"
 
 
 def env_supports(feature: ENV_FEATURE) -> bool:

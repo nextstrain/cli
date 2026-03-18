@@ -24,7 +24,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..debug import debug
 from ..errors import UsageError, UserError
-from ..runner import docker, singularity, aws_batch
+from ..runner import docker, conda, singularity, aws_batch
 from ..util import byte_quantity, runner_name, split_image_name, warn
 from ..volume import NamedVolume
 
@@ -247,6 +247,10 @@ def run(opts):
         opts.default_exec_args += [
             # Useful to see what's going on; see also 08ffc925.
             "--printshellcmds",
+
+            # Useful to have additional information in benchmark files.
+            *(["--benchmark-extended"]
+                if supports_benchmark_extended(opts) else []),
         ]
 
         snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
@@ -446,6 +450,23 @@ def pathogen_volumes(directory: Path, *, name = "build") -> Tuple[NamedVolume, N
     assert docker.mount_point(build_volume) <= docker.mount_point(working_volume)
 
     return build_volume, working_volume
+
+
+def supports_benchmark_extended(opts) -> bool:
+    """
+    Check if the runner's image or environment supports Snakemake's
+    ``--benchmark-extended`` option (requires Snakemake ≥8.11.0).
+    """
+    if opts.__runner__ in (docker, aws_batch, singularity):
+        image = runner.configured_image(opts)
+        if opts.__runner__ is singularity:
+            image = singularity.docker_image_name(image)
+        return docker.image_supports(docker.IMAGE_FEATURE.benchmark_extended, image)
+
+    if opts.__runner__ is conda:
+        return conda.env_supports(conda.ENV_FEATURE.benchmark_extended)
+
+    return False
 
 
 def parse_snakemake_args(args):
