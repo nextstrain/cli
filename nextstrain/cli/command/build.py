@@ -243,12 +243,12 @@ def run(opts):
         opts.volumes.append(build_volume) # for Docker, Singularity, and AWS Batch
 
 
-    # Automatically pass thru appropriate resource options to Snakemake to
-    # avoid the user having to repeat themselves (once for us, once for
-    # snakemake).
     if opts.exec == "snakemake":
         snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
 
+        # Automatically pass thru appropriate resource options to Snakemake to
+        # avoid the user having to repeat themselves (once for us, once for
+        # snakemake).
         if not snakemake_opts["--cores"]:
             if opts.cpus:
                 opts.extra_exec_args += ["--cores=%d" % opts.cpus]
