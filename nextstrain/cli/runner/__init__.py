@@ -239,10 +239,7 @@ def run(opts: Options, working_volume: NamedVolume = None, extra_env: Env = {}, 
             supports these runtimes with `nextstrain check-setup`.
             """)
 
-    # Account for potentially different defaults for --image depending on the
-    # selected runner.
-    if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE:
-        opts.image = singularity.DEFAULT_IMAGE
+    opts.image = configured_image(opts)
 
     if envdirs := os.environ.get("NEXTSTRAIN_RUNTIME_ENVDIRS"):
         try:
@@ -277,3 +274,15 @@ def replace_ellipsis(items, elided_items):
         y for x in items
           for y in (elided_items if x is ... else [x])
     ]
+
+
+def configured_image(opts: Options) -> str:
+    """
+    Return the effective image for the selected runner.
+    """
+    # Account for potentially different defaults for --image depending on the
+    # selected runner.
+    if opts.__runner__ is singularity and opts.image is docker.DEFAULT_IMAGE:
+        return singularity.DEFAULT_IMAGE
+
+    return opts.image
