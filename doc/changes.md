@@ -33,6 +33,10 @@ development source code and as such may not be routinely kept up to date.
   recent versions of managed runtimes.
   ([#467](https://github.com/nextstrain/cli/issues/467))
 
+* `nextstrain build` now tries to inject `--memory` as `mem_mb` into any
+  existing `--resources` given to Snakemake.
+  ([#514](https://github.com/nextstrain/cli/pull/514))
+
 (v10-4-2)=
 ## 10.4.2 (7 January 2026)
 
