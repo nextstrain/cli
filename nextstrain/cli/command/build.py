@@ -491,7 +491,13 @@ def parse_snakemake_args(args):
 
     >>> sorted(parse_snakemake_args([]).items())
     [('--cores', []), ('--local-storage-prefix', []), ('--resources', [])]
+
+    >>> sorted(parse_snakemake_args(["--", "-j", "8"]).items())
+    [('--cores', []), ('--local-storage-prefix', []), ('--resources', [])]
     """
+    # Ignore arguments after `--`.
+    args = args[:args.index("--")] if "--" in args else args
+
     opts = {
         "-j" if re.search(r"^-j\d+$", arg) else arg
             for arg in map(lambda arg: arg.split("=", 1)[0], args)
