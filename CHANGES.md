@@ -15,6 +15,13 @@ development source code and as such may not be routinely kept up to date.
 
 ## Improvements
 
+* `nextstrain build --memory` now works alongside explicit `--resources` passed
+  to Snakemake. Previously, if `--resources` was specified (e.g.
+  `--resources concurrent_deploys=2`), the automatic `mem_mb` resource from
+  `--memory` was silently skipped with only a warning. Now, `mem_mb` is
+  injected alongside existing resource values unless the user has already
+  explicitly set `mem_mb`.
+
 * Added the following to the list of "well-known" environment variables that are
   automatically passed thru to runtimes:
 

@@ -19,7 +19,7 @@ changes in the future as desired or necessary.
 import re
 from pathlib import Path, PurePosixPath
 from textwrap import dedent
-from typing import Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..debug import debug
@@ -268,34 +268,19 @@ def run(opts):
                     """ % (snakemake_opts["--cores"][0],)))
 
         if opts.memory:
-            if not snakemake_opts["--resources"]:
-                # Named MB but is really MiB, so convert our count of bytes to MiB
-                opts.extra_exec_args += ["--resources=mem_mb=%d" % (opts.memory // 1024**2)]
-            else:
-                # XXX TODO: Support parsing of --resources to see if "mem_mb" is
-                # provided.  If it's not, we could add our own "mem_mb" constraint
-                # alongside the other values of --resources.  Punting on this
-                # because it's not as simple as appending an additional argument.
-                # So for now, if folks are specifying their own --resources,
-                # they'll also need to explicitly provide "mem_mb", which may mean
-                # repeating a previous --memory argument they provided us.
-                #   -trs, 20 May 2020
-                #
-                # We might accomplish this TODO with a bit of a trick: using a
-                # stack-walking --log-handler-script to get access to
-                # Snakemake's in-process state and update --resources from
-                # there.  I wrote a proof of concept¹ when exploring options
-                # around custom resources for an ncov PR², and it worked well
-                # in manual testing.
-                #   -trs, 1 Feb 2023
-                #
-                # ¹ <https://gist.github.com/tsibley/6b3b5c37e651518d85810945a4140cde>
-                # ² <https://github.com/nextstrain/ncov/pull/1045>
+            if snakemake_resource_value(opts.extra_exec_args, "mem_mb") is not None:
                 warn(dedent("""
-                    Warning: The explicit %s option passed to Snakemake prevents
-                    the Nextstrain CLI from automatically providing a "mem_mb" resource
-                    based on its --memory option.  This may or may not be what you expect.
-                    """ % (snakemake_opts["--resources"][0],)))
+                    Warning: The explicit "mem_mb" in the --resources option
+                    passed to Snakemake prevents the Nextstrain CLI from
+                    automatically providing one based on its --memory option.
+                    This may or may not be what you expect.
+                    """))
+            else:
+                # Named MB but is really MiB, so convert our count of bytes to MiB
+                resource_arg_index = snakemake_arg_index(opts.extra_exec_args)
+                opts.extra_exec_args[resource_arg_index:resource_arg_index] = [
+                    "--resources",
+                    "mem_mb=%d" % (opts.memory // 1024**2)]
 
         if opts.__runner__ is runner.aws_batch and snakemake_opts["--local-storage-prefix"]:
             warn(dedent("""
@@ -513,3 +498,50 @@ def parse_snakemake_args(args):
         "--resources": list(resources & opts),
         "--local-storage-prefix": list(storage_prefix & opts),
     }
+
+
+def snakemake_resource_value(args: List[str], resource: str) -> Optional[str]:
+    """
+    Returns the current value of *resource* in Snakemake args, if present.
+    """
+    resources = {
+        "--resources", # documented
+        "--resource",
+        "--resourc",
+        "--resour",
+        "--resou",
+        "--reso",
+        "--res", # documented
+    }
+
+    args = args[:args.index("--")] if "--" in args else args
+
+    i = 0
+    while i < len(args):
+        flag, _, inline_value = args[i].partition("=")
+
+        if flag in resources:
+            if inline_value:
+                key, _, val = inline_value.partition("=")
+                if key == resource:
+                    return val
+            else:
+                i += 1
+                while i < len(args) and not args[i].startswith("-"):
+                    key, _, val = args[i].partition("=")
+                    if key == resource:
+                        return val
+                    i += 1
+                continue
+
+        i += 1
+
+    return None
+
+
+def snakemake_arg_index(args: List[str]) -> int:
+    """
+    Returns an insertion index for synthesized Snakemake options before
+    Snakemake's ``--`` separator.
+    """
+    return args.index("--") if "--" in args else len(args)
