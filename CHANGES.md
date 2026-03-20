@@ -24,6 +24,11 @@ development source code and as such may not be routinely kept up to date.
 
   ([#501](https://github.com/nextstrain/cli/pull/501))
 
+* `nextstrain build` and `nextstrain run` now run Snakemake with the
+  `--benchmark-extended` option for more detailed benchmark files when used with
+  recent versions of managed runtimes.
+  ([#467](https://github.com/nextstrain/cli/issues/467))
+
 # 10.4.2 (7 January 2026)
 
 ## Improvements

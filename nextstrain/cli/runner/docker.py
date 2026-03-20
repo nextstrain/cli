@@ -116,6 +116,9 @@ class IMAGE_FEATURE(Enum):
     # file overwriting) in ZIP extraction.
     aws_batch_overlays = "build-20250321T184358Z"
 
+    # --benchmark-extended was introduced in Snakemake 8.11.0.
+    benchmark_extended = "build-20250717T164950Z"
+
 
 def register_arguments(parser) -> None:
     # Docker development options

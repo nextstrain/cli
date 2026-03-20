@@ -106,6 +106,7 @@ import subprocess
 import sys
 import tarfile
 import traceback
+from enum import Enum
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryFile
 from typing import IO, Iterable, List, NamedTuple, Optional, cast
@@ -171,6 +172,27 @@ EXEC_ENV = {
     "PYTHONUSERBASE": str(PYTHONUSERBASE),
     "PYTHONNOUSERSITE": "1",
 }
+
+
+class ENV_FEATURE(Enum):
+    # --benchmark-extended was introduced in Snakemake 8.11.0.
+    benchmark_extended = "20250717T164942Z"
+
+
+def env_supports(feature: ENV_FEATURE) -> bool:
+    """
+    Test if the conda environment supports a *feature*, i.e. by version
+    comparison of the nextstrain-base package against the feature's first
+    release.
+
+    If the nextstrain-base package is not found, it is assumed to not have
+    support for the feature.
+    """
+    meta = package_meta(NEXTSTRAIN_BASE)
+    if not meta:
+        return False
+    version = meta.get("version", "0")
+    return parse_version_lax(version) >= parse_version_lax(feature.value)
 
 
 def register_arguments(parser) -> None:

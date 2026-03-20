@@ -64,6 +64,7 @@ def colored(color, text):
     )
 
 
+# TODO: Use str.removeprefix/removesuffix once Python 3.9 is the minimum supported version.
 def remove_prefix(prefix, string):
     return re.sub('^' + re.escape(prefix), '', string)
 
