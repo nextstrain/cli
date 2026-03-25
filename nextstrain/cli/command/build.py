@@ -19,7 +19,7 @@ changes in the future as desired or necessary.
 import re
 from pathlib import Path, PurePosixPath
 from textwrap import dedent
-from typing import Tuple
+from typing import List, Optional, Tuple
 from .. import runner
 from ..argparse import add_extended_help_flags, AppendOverwriteDefault, SKIP_AUTO_DEFAULT_IN_HELP
 from ..debug import debug
@@ -277,34 +277,26 @@ def run(opts):
                     """ % (snakemake_opts["--cores"][0],)))
 
         if opts.memory:
-            if not snakemake_opts["--resources"]:
-                # Named MB but is really MiB, so convert our count of bytes to MiB
-                opts.extra_exec_args += ["--resources=mem_mb=%d" % (opts.memory // 1024**2)]
-            else:
-                # XXX TODO: Support parsing of --resources to see if "mem_mb" is
-                # provided.  If it's not, we could add our own "mem_mb" constraint
-                # alongside the other values of --resources.  Punting on this
-                # because it's not as simple as appending an additional argument.
-                # So for now, if folks are specifying their own --resources,
-                # they'll also need to explicitly provide "mem_mb", which may mean
-                # repeating a previous --memory argument they provided us.
-                #   -trs, 20 May 2020
-                #
-                # We might accomplish this TODO with a bit of a trick: using a
-                # stack-walking --log-handler-script to get access to
-                # Snakemake's in-process state and update --resources from
-                # there.  I wrote a proof of concept¹ when exploring options
-                # around custom resources for an ncov PR², and it worked well
-                # in manual testing.
-                #   -trs, 1 Feb 2023
-                #
-                # ¹ <https://gist.github.com/tsibley/6b3b5c37e651518d85810945a4140cde>
-                # ² <https://github.com/nextstrain/ncov/pull/1045>
+            if has_snakemake_resource(opts.extra_exec_args, "mem_mb"):
                 warn(dedent("""
-                    Warning: The explicit %s option passed to Snakemake prevents
-                    the Nextstrain CLI from automatically providing a "mem_mb" resource
-                    based on its --memory option.  This may or may not be what you expect.
-                    """ % (snakemake_opts["--resources"][0],)))
+                    Warning: The explicit "mem_mb" resource passed to Snakemake
+                    prevents the Nextstrain CLI from automatically providing one
+                    based on its --memory option.  This may or may not be what
+                    you expect.
+                    """))
+            else:
+                try:
+                    # Named MB but is really MiB, so convert our count of bytes to MiB
+                    set_snakemake_resource(opts.extra_exec_args, "mem_mb", str(opts.memory // 1024**2))
+                except UnsupportedInlineSnakemakeResources as err:
+                    warn(dedent("""
+                        Warning: The inline %r passed to Snakemake prevents the
+                        Nextstrain CLI from automatically appending a "mem_mb"
+                        resource based on its --memory option.  Use the split
+                        form %r instead if you want both resources.  If the
+                        split form appears before a positional argument,
+                        separate them with `--`.
+                        """ % (err.option, err.alternative)))
 
         if opts.__runner__ is runner.aws_batch and snakemake_opts["--local-storage-prefix"]:
             warn(dedent("""
@@ -475,23 +467,29 @@ def parse_snakemake_args(args):
     their presence or absence in our invocation.
 
     >>> sorted(parse_snakemake_args(["--cores"]).items())
-    [('--cores', ['--cores']), ('--local-storage-prefix', []), ('--resources', [])]
+    [('--cores', ['--cores']), ('--local-storage-prefix', [])]
 
     >>> sorted(parse_snakemake_args(["--local-storage-prefix=.snakemake/foo"]).items())
-    [('--cores', []), ('--local-storage-prefix', ['--local-storage-prefix']), ('--resources', [])]
+    [('--cores', []), ('--local-storage-prefix', ['--local-storage-prefix'])]
 
     >>> sorted(parse_snakemake_args(["--resources=mem_mb=100"]).items())
-    [('--cores', []), ('--local-storage-prefix', []), ('--resources', ['--resources'])]
+    [('--cores', []), ('--local-storage-prefix', [])]
 
     >>> sorted(parse_snakemake_args(["-j", "8", "--res", "mem_mb=100"]).items())
-    [('--cores', ['-j']), ('--local-storage-prefix', []), ('--resources', ['--res'])]
+    [('--cores', ['-j']), ('--local-storage-prefix', [])]
 
     >>> sorted(parse_snakemake_args(["-j8"]).items())
-    [('--cores', ['-j']), ('--local-storage-prefix', []), ('--resources', [])]
+    [('--cores', ['-j']), ('--local-storage-prefix', [])]
 
     >>> sorted(parse_snakemake_args([]).items())
-    [('--cores', []), ('--local-storage-prefix', []), ('--resources', [])]
+    [('--cores', []), ('--local-storage-prefix', [])]
+
+    >>> sorted(parse_snakemake_args(["--", "-j", "8"]).items())
+    [('--cores', []), ('--local-storage-prefix', [])]
     """
+    # Ignore arguments after `--`.
+    args = args[:args.index("--")] if "--" in args else args
+
     opts = {
         "-j" if re.search(r"^-j\d+$", arg) else arg
             for arg in map(lambda arg: arg.split("=", 1)[0], args)
@@ -505,16 +503,6 @@ def parse_snakemake_args(args):
         "--cor",
         "--jobs", # documented
         "-j", # documented
-    }
-
-    resources = {
-        "--resources", # documented
-        "--resource",
-        "--resourc",
-        "--resour",
-        "--resou",
-        "--reso",
-        "--res", # documented
     }
 
     storage_prefix = {
@@ -536,6 +524,155 @@ def parse_snakemake_args(args):
 
     return {
         "--cores": list(cores & opts),
-        "--resources": list(resources & opts),
         "--local-storage-prefix": list(storage_prefix & opts),
     }
+
+
+def has_snakemake_resource(args: List[str], resource: str) -> bool:
+    """
+    Returns whether *resource* is present in Snakemake args.
+
+    >>> has_snakemake_resource(["--resources=mem_mb=100"], "mem_mb")
+    True
+
+    >>> has_snakemake_resource(["--res", "a=1", "mem_mb=100"], "mem_mb")
+    True
+
+    >>> has_snakemake_resource(["--resources", "a=1", "--resources", "mem_mb=100"], "mem_mb")
+    True
+
+    >>> has_snakemake_resource(["--", "--resources", "mem_mb=100"], "mem_mb")
+    False
+    """
+    if found := find_snakemake_resources(args):
+        _, _, resources = found
+        for found_resource in resources:
+            name, _, _ = found_resource.partition("=")
+            if name == resource:
+                return True
+
+    return False
+
+
+class UnsupportedInlineSnakemakeResources(ValueError):
+    def __init__(self, option: str):
+        super().__init__(option)
+        self.option = option
+        self.alternative = option.replace("=", " ", 1)
+
+
+def set_snakemake_resource(args: List[str], resource: str, value: str) -> None:
+    """
+    Adds *resource* to Snakemake args in-place, preserving existing resource
+    arguments when possible.
+
+    >>> args = ["--res", "foo=1", "bar=2", "--cores=all"]
+    >>> set_snakemake_resource(args, "mem_mb", "100")
+    >>> args
+    ['--res', 'foo=1', 'bar=2', 'mem_mb=100', '--cores=all']
+
+    >>> args = ["--resources", "foo=1", "--resources", "bar=2"]
+    >>> set_snakemake_resource(args, "mem_mb", "100")
+    >>> args
+    ['--resources', 'foo=1', '--resources', 'bar=2', 'mem_mb=100']
+
+    >>> args = ["--cores=all", "--", "--resources", "foo=1"]
+    >>> set_snakemake_resource(args, "mem_mb", "100")
+    >>> args
+    ['--cores=all', '--resources=mem_mb=100', '--', '--resources', 'foo=1']
+
+    >>> args = ["--resources=foo=1"]
+    >>> set_snakemake_resource(args, "mem_mb", "100")
+    Traceback (most recent call last):
+    ...
+    cli.command.build.UnsupportedInlineSnakemakeResources: --resources=foo=1
+    >>> args
+    ['--resources=foo=1']
+
+    """
+    if found := find_snakemake_resources(args):
+        start, end, resources = found
+
+        if len(resources) == 1 and "=" in args[start]:
+            # We can't safely extend `--resources=foo=1` in place because
+            # rewriting it to split form (`--resources foo=1 resource=value`)
+            # would cause any following positional args to be incorrectly parsed
+            # as additional resource values.
+            raise UnsupportedInlineSnakemakeResources(args[start])
+
+        else:
+            # Append after existing resources
+            args[end:end] = [f"{resource}={value}"]
+
+    else:
+        # Insert --resources at the end of args.
+        end = args.index("--") if "--" in args else len(args)
+        # Prefer the inline form so any later positional Snakemake args won't
+        # be consumed as additional resource values.
+        args[end:end] = [f"--resources={resource}={value}"]
+
+
+def find_snakemake_resources(args: List[str]) -> Optional[Tuple[int, int, List[str]]]:
+    """
+    Find and returns the effective resources arguments as an ``(index, end,
+    resource_args)`` tuple, where ``index`` is the option position, ``end`` is
+    the first position after its args, and ``resource_args`` are the key=value
+    pairs.
+
+    >>> find_snakemake_resources(["--resources=mem_mb=100"])
+    (0, 1, ['mem_mb=100'])
+
+    >>> find_snakemake_resources(["--res", "a=1", "b=2", "--cores=all"])
+    (0, 3, ['a=1', 'b=2'])
+
+    >>> find_snakemake_resources(["--resources", "a=1", "--resources", "b=2"])
+    (2, 4, ['b=2'])
+
+    >>> print(find_snakemake_resources(["--", "--resources", "mem_mb=100"]))
+    None
+    """
+    resources = {
+        "--resources", # documented
+        "--resource",
+        "--resourc",
+        "--resour",
+        "--resou",
+        "--reso",
+        "--res", # documented
+    }
+
+    # Ignore arguments after `--`.
+    args = args[:args.index("--")] if "--" in args else args
+
+    # Walk args tokens looking for a resources flag, keeping the last match
+    # since Snakemake only takes the last one (undocumented but tested).
+    start = 0
+    found = None
+    while start < len(args):
+
+        # Split a potential `--flag=inline_value` into `flag`, `inline_value`.
+        # Other formats are handled below.
+        flag, _, inline_value = args[start].partition("=")
+
+        if flag in resources:
+            end = start + 1
+            values = ...
+
+            if inline_value:
+                # Example: `--resources=foo=1`
+                values = [inline_value]
+
+            else:
+                # Example: `--resources foo=1 bar=2 …`
+                # Resource values continue until the next option.
+                while end < len(args) and not args[end].startswith("-"):
+                    end += 1
+                values = args[start + 1:end]
+
+            found = (start, end, values)
+            start = end
+        else:
+            # Not a resources flag, keep scanning.
+            start += 1
+
+    return found
