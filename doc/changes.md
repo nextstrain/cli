@@ -16,6 +16,12 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-improvements)=
+### Improvements
+
+* `nextstrain build` now runs Snakemake with the `--rerun-incomplete` option,
+  aligning with `nextstrain run`.
+  ([#515](https://github.com/nextstrain/cli/pull/515))
 
 (v10-5-0)=
 ## 10.5.0 (25 March 2026)
