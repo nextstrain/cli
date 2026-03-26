@@ -251,6 +251,13 @@ def run(opts):
             # Useful to have additional information in benchmark files.
             *(["--benchmark-extended"]
                 if supports_benchmark_extended(opts) else []),
+
+            # In our experience,¹ it's rarely useful to fail on incomplete outputs
+            # (Snakemake's default behaviour) instead of automatically regenerating
+            # them.
+            #
+            # ¹ <https://discussion.nextstrain.org/t/snakemake-throwing-incompletefilesexception-when-using-forceall/1397/4>
+            "--rerun-incomplete",
         ]
 
         snakemake_opts = parse_snakemake_args(opts.extra_exec_args)
