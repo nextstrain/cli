@@ -41,6 +41,15 @@ development source code and as such may not be routinely kept up to date.
   existing `--resources` given to Snakemake.
   ([#514](https://github.com/nextstrain/cli/pull/514))
 
+## Bug fixes
+
+* Updated code to support the latest version of `wrapt`, used to show
+  `--dry-run` outputs.
+  ([#499](https://github.com/nextstrain/cli/pull/499))
+* Updated the dependency list to explicitly include `boto3`, used for various
+  commands.
+  ([#499](https://github.com/nextstrain/cli/pull/499))
+
 # 10.4.2 (7 January 2026)
 
 ## Improvements
