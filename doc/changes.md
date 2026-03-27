@@ -47,7 +47,7 @@ development source code and as such may not be routinely kept up to date.
   existing `--resources` given to Snakemake.
   ([#514](https://github.com/nextstrain/cli/pull/514))
 
-(v-next-bug-fixes)=
+(v10-5-0-bug-fixes)=
 ### Bug fixes
 
 * Updated code to support the latest version of `wrapt`, used to show
