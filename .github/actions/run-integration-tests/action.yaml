@@ -17,6 +17,16 @@ inputs:
 runs:
   using: composite
   steps:
+    # Workaround for Docker issue in windows runner
+    # See <https://github.com/actions/runner-images/issues/13729#issuecomment-4183956802>
+    - if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $dockerState = Get-Service -Name "docker"
+        if ($dockerState.Status -ne "Running") {
+          Start-Service -Name "docker"
+        }
+
     - shell: bash -l -eo pipefail {0}
       run: nextstrain version --verbose
 
