@@ -821,15 +821,15 @@ def parse_version_lax(version: str) -> 'LaxVersion':
     ``0.dev0`` so it compares lowest against other public version identifiers.
 
     >>> parse_version_lax("1.2.3")
-    <Version('1.2.3')>
+    <LaxVersion('1.2.3')>
     >>> parse_version_lax("1.2.3-nope")
-    <Version('0.dev0+1.2.3.nope')>
+    <LaxVersion('0.dev0+1.2.3.nope')>
     >>> parse_version_lax("20221019T172207Z")
-    <Version('0.dev0+20221019t172207z')>
+    <LaxVersion('0.dev0+20221019t172207z')>
     >>> parse_version_lax("@invalid+@")
-    <Version('0.dev0+invalid')>
+    <LaxVersion('0.dev0+invalid')>
     >>> parse_version_lax("not@@ok")
-    <Version('0.dev0+not.ok')>
+    <LaxVersion('0.dev0+not.ok')>
     >>> parse_version_lax("20221019T172207Z") < parse_version_lax("20230525T143814Z")
     True
     """
@@ -892,7 +892,7 @@ class LaxVersion(Version):
         self.original = original if original is not None else version
 
     def __repr__(self) -> str:
-        return f"<Version({str(self)!r})>"
+        return f"<LaxVersion({str(self)!r})>"
 
 
 T = TypeVar("T")
