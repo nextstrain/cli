@@ -891,6 +891,9 @@ class LaxVersion(Version):
         self.compliant = compliant
         self.original = original if original is not None else version
 
+    def __repr__(self) -> str:
+        return f"<Version({str(self)!r})>"
+
 
 T = TypeVar("T")
 
