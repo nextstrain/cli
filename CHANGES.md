@@ -27,6 +27,8 @@ development source code and as such may not be routinely kept up to date.
 * Updated the dependency list to explicitly include `boto3`, used for various
   commands.
   ([#499](https://github.com/nextstrain/cli/pull/499))
+* Suppress warning from cryptography about deprecated Python 3.8 support
+  ([#523](https://github.com/nextstrain/cli/pull/523))
 
 # 10.5.0 (25 March 2026)
 
