@@ -2,8 +2,18 @@
 Authentication sessions.
 """
 import boto3
-import jwt
-import jwt.exceptions
+import warnings
+
+# Ignore noisy warning from cryptography 47.0.0 about deprecated support for Python 3.8
+with warnings.catch_warnings():
+    warnings.filterwarnings(
+        "ignore",
+        message = "Python 3\\.8 is no longer supported by the Python core team and support for it is deprecated",
+        category = UserWarning
+    )
+    import jwt
+    import jwt.exceptions
+
 import secrets
 
 from base64 import b64encode
