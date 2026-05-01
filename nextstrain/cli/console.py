@@ -6,7 +6,7 @@ import sys
 from contextlib import contextmanager, ExitStack, redirect_stdout, redirect_stderr
 from functools import wraps
 from typing import Callable, TextIO
-from wrapt import BaseObjectProxy # pyright: ignore[reportAttributeAccessIssue]
+from wrapt import BaseObjectProxy
 
 
 def auto_dry_run_indicator(getter: Callable[..., bool] = lambda opts, *args, **kwargs: opts.dry_run):
@@ -83,7 +83,7 @@ def dry_run_indicator(dry_run: bool = False):
         yield dry_run
 
 
-class LinePrefixer(BaseObjectProxy): # pyright: ignore[reportUntypedBaseClass]
+class LinePrefixer(BaseObjectProxy):
     """
     Add *prefix* to every line written to *file*.
 
@@ -147,3 +147,8 @@ class LinePrefixer(BaseObjectProxy): # pyright: ignore[reportUntypedBaseClass]
         s_ += re.sub(r'(?<=\n)(?!\Z)', self.__prefix, s)
 
         return self.__wrapped__.write(s_)
+
+    # BaseObjectProxy forwards this at runtime, but Pyright is not aware of that
+    # when checking redirect_stdout()/redirect_stderr().
+    def flush(self) -> None:
+        self.__wrapped__.flush()

@@ -1,5 +1,5 @@
 {
-  "pythonVersion": "3.8",
+  "pythonVersion": "3.10",
   "include": ["nextstrain"],
   "ignore": [
     "nextstrain/cli/markdown.py",
