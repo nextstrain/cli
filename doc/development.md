@@ -2,7 +2,7 @@
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
 
-We currently target compatibility with Python 3.8 and higher.
+We currently target compatibility with Python 3.10 and higher.
 
 Versions for this project follow the [Semantic Versioning rules][].
 
