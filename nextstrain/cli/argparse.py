@@ -2,7 +2,6 @@
 Custom helpers for extending the behaviour of argparse standard library.
 """
 import os
-import sys
 from argparse import Action, ArgumentDefaultsHelpFormatter, ArgumentParser, ArgumentTypeError, SUPPRESS, _SubParsersAction # pyright: ignore[reportPrivateUsage]
 from itertools import chain, takewhile
 from pathlib import Path
@@ -15,10 +14,7 @@ from .types import RunnerModule
 from .util import format_usage, runner_module
 
 
-# The standard argument group title for non-positional arguments.  See
-# <https://github.com/python/cpython/pull/23858> and
-# <https://bugs.python.org/issue9694>.
-OPTIONS_TITLE = "options" if sys.version_info >= (3, 10) else "optional arguments"
+OPTIONS_TITLE = "options"
 
 
 # Include this in an argument help string to suppress the automatic appending
