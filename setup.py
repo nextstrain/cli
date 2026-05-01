@@ -98,7 +98,6 @@ setup(
         "pyparsing >=3.0.0",
         "pyyaml >=5.3.1",
         "requests",
-        "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
         "wrapt >=2.0.0",
 
