@@ -64,14 +64,6 @@ def colored(color, text):
     )
 
 
-# TODO: Use str.removeprefix/removesuffix once Python 3.9 is the minimum supported version.
-def remove_prefix(prefix, string):
-    return re.sub('^' + re.escape(prefix), '', string)
-
-def remove_suffix(suffix, string):
-    return re.sub(re.escape(suffix) + '$', '', string)
-
-
 class NewVersionCheckResult(NamedTuple):
     newer_version: Optional[str]
     status_message: Optional[str]
@@ -724,7 +716,7 @@ def print_and_check_setup_tests(tests: SetupTestResults) -> bool:
         # Indent subsequent lines of any multi-line descriptions so it
         # lines up under the status marker.
         formatted_description = \
-            remove_prefix("  ", indent(description, "  "))
+            indent(description, "  ").removeprefix("  ")
 
         results.append((description, result))
 

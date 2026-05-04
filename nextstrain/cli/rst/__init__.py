@@ -24,7 +24,6 @@ from docutils.parsers.rst.directives import register_directive
 from docutils.parsers.rst.roles import register_local_role
 from docutils.utils import unescape
 from ..__version__ import __version__ as cli_version
-from ..util import remove_suffix
 from .sphinx import TextWriter
 
 
@@ -225,7 +224,7 @@ def doc_url(target: str) -> str:
 
     if path.endswith("/index"):
         # a/b/index → a/b/ (e.g. implicitly a/b/index.html)
-        path_url = remove_suffix("index", path)
+        path_url = path.removesuffix("index")
     else:
         path_url = path + (suffix or "")
 

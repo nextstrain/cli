@@ -2,7 +2,7 @@
 
 Development of `nextstrain-cli` happens at <https://github.com/nextstrain/cli>.
 
-We currently target compatibility with Python 3.8 and higher.
+We currently target compatibility with Python 3.10 and higher.
 
 Versions for this project follow the [Semantic Versioning rules][].
 
@@ -176,9 +176,6 @@ During development you can run static type checks using [pyright][]:
 
 There are also many [editor integrations for Pyright][].
 
-The [`typing_extensions`][] module should be used for features not yet available
-in the the standard `typings` module of supported Python versions.
-
 We also use [Flake8][] for some static analysis checks focusing on runtime
 safety and correctness.  You can run them like this:
 
@@ -238,7 +235,6 @@ environmental factors.
 [type annotations]: https://www.python.org/dev/peps/pep-0484/
 [pyright]: https://github.com/microsoft/pyright
 [editor integrations for Pyright]: https://microsoft.github.io/pyright/#/installation
-[`typing_extensions`]: https://pypi.org/project/typing-extensions
 [Flake8]: https://flake8.pycqa.org
 [post-release version]: https://peps.python.org/pep-0440/#post-releases
 [autobump PR]: https://github.com/bioconda/bioconda-recipes/pulls?q=is%3Apr+author%3Abiocondabot+nextstrain-cli

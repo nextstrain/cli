@@ -1,9 +1,7 @@
 import argparse
 import os
 from argparse import ArgumentParser, ArgumentTypeError
-from typing import List, Union
-# TODO: Use typing.TypeAlias once Python 3.10 is the minimum supported version.
-from typing_extensions import TypeAlias
+from typing import List, TypeAlias, Union
 from . import docker, conda, singularity, ambient, aws_batch
 from .. import config, env, hostenv
 from ..argparse import DirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP

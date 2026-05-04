@@ -59,7 +59,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags, SUPPRESS, SKIP_AUTO_DEFAULT_IN_HELP
 from ..browser import BROWSER, open_browser as __open_browser
 from ..runner import docker, ambient, conda, singularity
-from ..util import colored, remove_suffix, warn
+from ..util import colored, warn
 from ..volume import NamedVolume
 
 
@@ -324,7 +324,7 @@ def dataset_paths(paths: Iterable[Path]) -> Iterable[str]:
 
     # v1: All *_tree.json files with corresponding *_meta.json files.
     def meta_exists(path):
-        return path.with_name(remove_suffix("_tree.json", path.name) + "_meta.json").exists()
+        return path.with_name(path.name.removesuffix("_tree.json") + "_meta.json").exists()
 
     datasets_v1 = set(
         re.sub(r"_tree$", "", path.stem).replace("_", "/")

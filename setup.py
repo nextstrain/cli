@@ -71,8 +71,6 @@ setup(
 
         # Python 3 only
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
@@ -87,7 +85,7 @@ setup(
         ],
     },
 
-    python_requires = '>=3.8',
+    python_requires = '>=3.10',
 
     install_requires = [
         "certifi",
@@ -100,7 +98,6 @@ setup(
         "pyparsing >=3.0.0",
         "pyyaml >=5.3.1",
         "requests",
-        "typing_extensions >=3.7.4",
         "wcmatch >=6.0",
         "wrapt >=2.0.0",
 
@@ -124,11 +121,6 @@ setup(
         # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the
         # error described in https://github.com/fsspec/s3fs/issues/790
         "fsspec[s3] !=2023.9.1",
-
-        # From 2.0.0 onwards, urllib3 is better typed, but not usable (given
-        # our dep tree) on 3.8 and 3.9 so we use types-urllib3 there (see
-        # below).
-        "urllib3 >=2.0.0; python_version >= '3.10'",
     ],
 
     extras_require = {
@@ -137,8 +129,7 @@ setup(
             "flake8 >=4.0.0",
             "myst-parser",
             "nextstrain-sphinx-theme>=2022.5",
-            "pytest; python_version != '3.9'",
-            "pytest !=7.0.0; python_version == '3.9'",
+            "pytest",
             "pytest-forked",
             "sphinx>=3",
             "sphinx-autobuild",
@@ -147,10 +138,6 @@ setup(
             "types-boto3",
             "types-boto3-s3",
             "types-botocore",
-
-            # Only necessary for urllib3 <2.0.0, which we only have to use on
-            # Python 3.8 and 3.9.
-            "types-urllib3; python_version < '3.10'"
         ],
     },
 )
