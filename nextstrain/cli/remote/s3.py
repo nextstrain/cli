@@ -51,7 +51,7 @@ from .. import aws
 from ..aws.s3 import split_url
 from ..authn import User
 from ..gzip import GzipCompressingReader, ContentDecodingWriter
-from ..util import warn, remove_prefix
+from ..util import warn
 from ..errors import UserError
 from ..types import S3Object
 from ..url import URL, Origin
@@ -454,4 +454,4 @@ def remove_origin_path(origin: dict, prefix: str) -> str:
     """
     Return the given prefix stripped of any implicit distribution origin path.
     """
-    return remove_prefix(origin["OriginPath"].lstrip("/"), prefix)
+    return prefix.removeprefix(origin["OriginPath"].lstrip("/"))

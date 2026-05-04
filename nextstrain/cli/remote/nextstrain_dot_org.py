@@ -86,7 +86,7 @@ from ..errors import UserError
 from ..gzip import GzipCompressingReader
 from ..net import is_loopback
 from ..url import URL, Origin
-from ..util import remove_prefix, glob_matcher, glob_match
+from ..util import glob_matcher, glob_match
 
 
 # Default to embedding images, but allow it to be turned off as an escape
@@ -971,7 +971,7 @@ def authn_challenge(response: requests.Response) -> Optional[Dict[str, str]]:
     if not challenge or not challenge.startswith("Bearer "):
         return None
 
-    challenge_params = remove_prefix("Bearer ", challenge).lstrip(" ")
+    challenge_params = challenge.removeprefix("Bearer ").lstrip(" ")
 
     return requests.utils.parse_dict_header(challenge_params)
 

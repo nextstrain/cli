@@ -10,7 +10,7 @@ from .. import runner
 from ..argparse import add_extended_help_flags
 from ..paths import SHELL_HISTORY
 from ..runner import docker, conda, singularity
-from ..util import colored, remove_prefix, runner_name
+from ..util import colored, runner_name
 from ..volume import NamedVolume
 from .build import assert_overlay_volumes_support, pathogen_volumes
 
@@ -113,7 +113,7 @@ def ps1() -> str:
     def bg(color: str) -> str: return r'\[\e[48;2;{};{};{}m\]'.format(*rgb(color))
 
     def rgb(color: str) -> Tuple[int, int, int]:
-        color = remove_prefix("#", color)
+        color = color.removeprefix("#")
         r,g,b = (int(c, 16) for c in (color[0:2], color[2:4], color[4:6]))
         return r,g,b
 
