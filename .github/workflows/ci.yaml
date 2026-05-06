@@ -364,7 +364,6 @@ jobs:
       - test-dist
       - test-standalone
       - lint
-      - doc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
