@@ -345,13 +345,6 @@ jobs:
 
       - uses: ./src/.github/actions/run-integration-tests
 
-  doc:
-    uses: nextstrain/.github/.github/workflows/docs-ci.yaml@master
-    with:
-      docs-directory: doc/
-      pip-install-target: .[dev]
-      make-target: dirhtml
-
   release:
     # Restricted to version tags by the "on: push: tags: …" config at the top.
     if: |2
