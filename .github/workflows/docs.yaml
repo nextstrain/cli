@@ -4,14 +4,12 @@ on:
   push:
     branches:
       - master
-    paths:
+    paths: &paths
       - doc/**
       - .github/workflows/docs.yaml
 
   pull_request:
-    paths:
-      - doc/**
-      - .github/workflows/docs.yaml
+    paths: *paths
 
   workflow_dispatch:
 
