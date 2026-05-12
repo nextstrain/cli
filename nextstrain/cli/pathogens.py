@@ -454,9 +454,10 @@ class PathogenVersion:
                 """) from err
 
         except requests.exceptions.HTTPError as err:
+            assert type(err.response) is requests.Response
             if 400 <= err.response.status_code <= 499:
                 if (err.response.status_code in {401, 403}
-                and (auth := err.response.request.headers["Authorization"])
+                and (auth := str(err.response.request.headers["Authorization"]))
                 and auth.startswith("Basic ")):
                     user = b64decode(auth.split(" ", 1)[1]).decode("utf-8").split(":", 1)[0]
 
@@ -536,7 +537,6 @@ class PathogenVersion:
                     may be worth waiting a little bit and trying again a few
                     more times.
                     """, urls = request_list(err.response)) from err
-
             else:
                 raise err
 

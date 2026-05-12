@@ -392,6 +392,7 @@ def download(url: URL, local_path: Path, recursively: bool = False, dry_run: boo
                     # Stream response data to local file
                     with destination.open("w") as local_file:
                         for chunk in response.iter_content(chunk_size = None, decode_unicode = True):
+                            assert type(chunk) is str
                             local_file.write(chunk)
 
 
@@ -933,7 +934,7 @@ def raise_for_status(origin: Origin, response: requests.Response) -> None:
             raise
 
 
-def authn_challenge(response: requests.Response) -> Optional[Dict[str, str]]:
+def authn_challenge(response: requests.Response) -> Optional[dict[str, Optional[str]]]:
     """
     Extract the Bearer authentication challenge parameters from the HTTP
     ``WWW-Authenticate`` header of *response*.

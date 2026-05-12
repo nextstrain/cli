@@ -87,7 +87,7 @@ def default_user_agent(minimal: bool = USER_AGENT_MINIMAL) -> str:
 
     tty = "yes" if any(os.isatty(fd) for fd in [0, 1, 2]) else "no"
 
-    return f"Nextstrain-CLI/{__version__} (https://nextstrain.org/cli) Python/{py_version} python-requests/{requests.__version__} platform/{system}-{machine} installer/{installer} tty/{tty}"
+    return f"Nextstrain-CLI/{__version__} (https://nextstrain.org/cli) Python/{py_version} python-requests/{requests.__version__} platform/{system}-{machine} installer/{installer} tty/{tty}"  # type: ignore[reportPrivateImportUsage]
 
 
 def version_info_to_str(version_info: Tuple[int, int, int, str, int]) -> str:
