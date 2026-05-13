@@ -454,10 +454,11 @@ class PathogenVersion:
                 """) from err
 
         except requests.exceptions.HTTPError as err:
-            assert type(err.response) is requests.Response
+            assert err.response is not None
             if 400 <= err.response.status_code <= 499:
+                auth = err.response.request.headers["Authorization"]
                 if (err.response.status_code in {401, 403}
-                and (auth := str(err.response.request.headers["Authorization"]))
+                and isinstance(auth, str)
                 and auth.startswith("Basic ")):
                     user = b64decode(auth.split(" ", 1)[1]).decode("utf-8").split(":", 1)[0]
 
