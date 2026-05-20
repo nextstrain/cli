@@ -25,3 +25,4 @@ jobs:
       docs-directory: doc/
       pip-install-target: .[dev]
       make-target: dirhtml
+      run-linkcheck: ${{ github.event_name == 'schedule' }}
