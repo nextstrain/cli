@@ -395,8 +395,8 @@ AWS Console, although you can also do it on the command-line.
 Give your launch template any name.
 
 Under the "Storage" section, add a new volume with EBS storage type.  Specify a
-custom device device name of `/dev/xvda`, a volume size you want (e.g. 200 GiB),
-and a volume type of `gp3`.  Make sure that the volume is marked for deletion on
+custom device name of `/dev/xvda`, a volume size you want (e.g. 200 GiB), and a
+volume type of `gp3`.  Make sure that the volume is marked for deletion on
 termination, or you'll end up paying for old volumes indefinitely!  This sets
 the size of the shared volume available to all containers on a single EC2
 instance.
