@@ -364,11 +364,12 @@ but Amazon's prorated billing uses a minimum duration of one month.
 
 ### Disk space for your jobs
 
-_The following applies to Batch compute environments using Amazon Linux 2 (AL2)
-[ECS-optimized AMIs][], which is the default for new compute environments.  If
-you're using older compute environments with Amazon Linux 1 (AL1) AMIs, either
-upgrade or see previous versions of this document.  If you're using custom
-AMIs, you can probably find your own way._
+_The following applies to Batch compute environments using Amazon Linux 2023
+(AL2023) [ECS-optimized AMIs][], which is the default for new compute
+environments.  If you're using older compute environments with Amazon Linux 2
+(AL2) or Amazon Linux 1 (AL1) AMIs, either upgrade or see previous versions of
+this document.  If you're using custom AMIs, you can probably find your own
+way._
 
 By default, your Batch jobs will have access to ~28 GiB of shared space.  This
 is enough for many Nextstrain builds, but the [SARS-CoV-2 build][] is the
@@ -395,8 +396,8 @@ AWS Console, although you can also do it on the command-line.
 Give your launch template any name.
 
 Under the "Storage" section, add a new volume with EBS storage type.  Specify a
-custom device device name of `/dev/xvda`, a volume size you want (e.g. 200 GiB),
-and a volume type of `gp3`.  Make sure that the volume is marked for deletion on
+custom device name of `/dev/xvda`, a volume size you want (e.g. 200 GiB), and a
+volume type of `gp3`.  Make sure that the volume is marked for deletion on
 termination, or you'll end up paying for old volumes indefinitely!  This sets
 the size of the shared volume available to all containers on a single EC2
 instance.
@@ -453,7 +454,7 @@ following user data blob to your launch template to configure them:
             "$0" init
     fi
     
-    yum install -y nvme-cli jq lvm2
+    dnf install -y nvme-cli jq lvm2
     
     declare -a instance_devices ebs_devices
     
