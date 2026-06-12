@@ -7,6 +7,8 @@ import jwt.exceptions
 import secrets
 
 from base64 import b64encode
+from botocore import UNSIGNED
+from botocore.config import Config
 from errno import EADDRINUSE
 from hashlib import sha256
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
@@ -704,7 +706,10 @@ class CognitoSession(OpenIDSession):
         self.user_pool_id     = self.client_configuration["aws_cognito_user_pool_id"]
         self.user_pool_region = self.user_pool_id.split("_")[0]
 
-        self.cognito = boto3.client("cognito-idp", region_name = self.user_pool_region)
+        self.cognito = boto3.client(
+            "cognito-idp",
+            region_name = self.user_pool_region,
+            config = Config(signature_version = UNSIGNED))
 
         self.can_authenticate_with_password = True
 
