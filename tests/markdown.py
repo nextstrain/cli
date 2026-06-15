@@ -8,10 +8,12 @@ topdir = testsdir.parent
 datadir = testsdir / "data/markdown/"
 
 def cases(pattern):
-    for case in datadir.glob(pattern):
-        yield pytest.param(
+    return [
+        pytest.param(
             case,
             id = str(case.relative_to(topdir)))
+        for case in datadir.glob(pattern)
+    ]
 
 
 @pytest.mark.parametrize("case", cases("roundtrip-*.md"))
