@@ -122,11 +122,6 @@ setup(
         # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the
         # error described in https://github.com/fsspec/s3fs/issues/790
         "fsspec[s3] !=2023.9.1",
-
-        # pyjwt[crypto] depends on cryptography. Our standalone build has issues
-        # with 49.0.0, so it is avoided here as a temporary fix.
-        # <https://github.com/nextstrain/cli/issues/535>
-        "cryptography <49.0.0",
     ],
 
     extras_require = {
