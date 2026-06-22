@@ -484,8 +484,8 @@ below.
 
 * Colorized and bolded output is disabled when stdout is not attached to a
   terminal (e.g. is redirected to a file, piped to another program, etc.) or
-  when the [`NO_COLOR` environment variable](https://no-color.org) is set to a
-  non-empty value.
+  when the [`NO_COLOR` environment variable](https://github.com/jcs/no_color/blob/@/index.md)
+  is set to a non-empty value.
   ([#419][])
 
 * The readability of `--help` output is improved by the addition of blank lines
