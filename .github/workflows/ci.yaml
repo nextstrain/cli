@@ -22,7 +22,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: nextstrain/.github/actions/shellcheck@master
 
   test-source:
@@ -46,7 +46,7 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
@@ -59,7 +59,7 @@ jobs:
   build-dist:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
@@ -132,7 +132,7 @@ jobs:
           python-version: "3.10"
 
       # Build the executable + necessary external files from the dists.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           name: dist
@@ -264,7 +264,7 @@ jobs:
         # activation of "test" environment.
         shell: bash -l -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: src/
 
@@ -321,7 +321,7 @@ jobs:
         # activation of "test" environment.
         shell: bash -l -eo pipefail {0}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           path: src/
 
@@ -359,9 +359,9 @@ jobs:
       - lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      # In actions/checkout@v6 above, annotated tags are intentionally
+      # In actions/checkout@v7 above, annotated tags are intentionally
       # **overwritten** and converted to a lightweight tag.  Forcibly restore
       # the annotated tag object from the remote so we can verify/use it later.
       - run: git fetch --force origin tag "$GITHUB_REF_NAME"
