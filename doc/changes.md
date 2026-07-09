@@ -16,6 +16,14 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-development)=
+### Development
+
+* We no longer test the macOS x86 standalone archive on aarch64 machines (Apple
+  Silicon). Apple Silicon users should be using the native aarch64 standalone
+  archive. If you encounter any issues starting with this version, first try
+  [re-installing Nextstrain CLI](https://docs.nextstrain.org/projects/cli/en/__NEXT__/installation/).
+  ([#537](https://github.com/nextstrain/cli/pull/537))
 
 (v11-0-0)=
 ## 11.0.0 (5 May 2026)
