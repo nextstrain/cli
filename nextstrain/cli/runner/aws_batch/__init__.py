@@ -89,6 +89,7 @@ from textwrap import dedent
 from time import sleep, time
 from typing import Iterable, Optional, cast
 from uuid import uuid4
+from ...errors import UserError
 from ...types import Env, RunnerModule, SetupStatus, SetupTestResults, UpdateStatus
 from ...util import colored, prose_list, runner_name, warn
 from ... import config
@@ -191,7 +192,16 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
 
     if opts.attach:
         print_stage("Attaching to Nextstrain AWS Batch Job ID:", opts.attach)
-        job = jobs.lookup(opts.attach)
+        try:
+            job = jobs.lookup(opts.attach)
+        except botocore.exceptions.ConnectionError as error:
+            raise UserError(f"""
+                Lost connection with AWS Batch.
+
+                Re-attach with:
+
+                    {reattach_cmd(opts.attach, local_workdir)}
+                """) from error
 
         # Read remote workdir from the job description
         remote_workdir = job.workdir
@@ -394,7 +404,16 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
     log_watcher = None
 
     while True:
-        job.update()
+        try:
+            job.update()
+        except botocore.exceptions.ConnectionError as error:
+            raise UserError(f"""
+                Lost connection with AWS Batch.
+
+                Re-attach with:
+
+                    {reattach_cmd(job.id, local_workdir)}
+                """) from error
 
         # Inform the user of intermediate status changes.  Final status changes
         # are messaged separately below.
@@ -419,7 +438,7 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
                     try:
                         for entry in job.log_entries():
                             print_job_log(entry)
-                    except botocore.exceptions.ClientError as error:
+                    except (botocore.exceptions.ClientError, botocore.exceptions.ConnectionError) as error:
                         warn(f"Unable to fetch job logs: {error}")
 
             print_stage(
@@ -511,23 +530,28 @@ def detach(job: jobs.JobState, local_workdir: Optional[Path]) -> int:
     print("")
     print_stage("Detaching from job, as requested")
 
-    reattach_cmd = " ".join([
-        "nextstrain",
-        "build",
-        "--aws-batch",
-        "--attach", shlex.quote(job.id),
-
-        # Preserve the local workdir, which has been resolved to an absolute path
-        shlex.quote(str(local_workdir) if local_workdir else ".")
-    ])
-
     print(dedent("""
         Run the following command to re-attach to this job later to see output
         and download results:
 
-        %s""") % (reattach_cmd,))
+        %s""") % (reattach_cmd(job.id, local_workdir),))
 
     return 0
+
+
+def reattach_cmd(job_id: str, local_workdir: Optional[Path]) -> str:
+    """
+    Format a command to re-attach to an AWS Batch job.
+    """
+    return " ".join([
+        "nextstrain",
+        "build",
+        "--aws-batch",
+        "--attach", shlex.quote(job_id),
+
+        # Preserve the local workdir, which has been resolved to an absolute path
+        shlex.quote(str(local_workdir) if local_workdir else ".")
+    ])
 
 
 def print_stage(stage, *args):

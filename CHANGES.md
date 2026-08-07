@@ -13,6 +13,12 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* `nextstrain build --aws-batch` now handles network connection errors
+  gracefully with a clear error message instructing how to re-attach to the job,
+  rather than failing with an unhandled traceback.
+
 ## Development
 
 * We no longer test the macOS x86 standalone archive on aarch64 machines (Apple

@@ -16,6 +16,13 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-bug-fixes)=
+### Bug fixes
+
+* `nextstrain build --aws-batch` now handles network connection errors
+  gracefully with a clear error message instructing how to re-attach to the job,
+  rather than failing with an unhandled traceback.
+
 (v-next-development)=
 ### Development
 
