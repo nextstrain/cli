@@ -131,7 +131,7 @@ setup(
             "myst-parser",
             "nextstrain-sphinx-theme>=2022.5",
             "pytest",
-            "pytest-forked",
+            "pytest-forked !=1.7.5",
             "sphinx>=3",
             "sphinx-autobuild",
             "sphinx-markdown-tables !=0.0.16",
