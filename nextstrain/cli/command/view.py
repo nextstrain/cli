@@ -131,11 +131,11 @@ def register_parser(subparser):
 
     # Register runners; excludes AWS Batch since that makes no sense.
     #
-    # Note that the --datasetDir and --narrativeDir here might be overriden in
-    # run() below.
+    # NOTE: Auspice v3 uses positional args for datasets/narratives
+    # These paths are worked out in run() and added to opts.default_exec_args
     runner.register_runners(
         parser,
-        exec    = ["auspice", "view", "--verbose", "--datasetDir=.", "--narrativeDir=."],
+        exec    = ["auspice", "view", "--verbose"],
         runners = [docker, ambient, conda, singularity])
 
     parser.epilog = cleandoc("""
@@ -193,33 +193,25 @@ def run(opts):
     working_volume = NamedVolume("auspice/data", data_dir)
     opts.volumes.append(working_volume) # for Docker and Singularity
 
-    # If auspice/ exists, then use it for datasets.  Otherwise, look for
-    # datasets in the given dir.
-    if (data_dir / "auspice/").is_dir():
-        datasets_dir = data_dir / "auspice/"
 
-        # Override our default --datasetDir=. above
-        opts.default_exec_args += ["--datasetDir=auspice/"]
-    else:
-        datasets_dir = data_dir
-
-    # If narratives/ exist, then use it for narratives.  Otherwise, look for
-    # narratives in the given dir.
+    # Our default is for `auspice view` to use `data_dir` (i.e. 'auspice view .')
+    # But (as per __docstring__) we check for subdirs "auspice/" and "narratives/"
+    # and use them if found.
+    auspice_dirs = [ # containing datasets and/or narratives; relative to `data_dir`
+        "auspice/" if (data_dir / "auspice/").is_dir() else "."
+    ]
     if (data_dir / "narratives/").is_dir():
-        narratives_dir = data_dir / "narratives/"
+        auspice_dirs.append("narratives/")
+    elif "." not in auspice_dirs:
+        auspice_dirs.append(".")
+    opts.default_exec_args += auspice_dirs
 
-        # Override our default --narrativeDir=. above
-        opts.default_exec_args += ["--narrativeDir=narratives/"]
-    else:
-        narratives_dir = data_dir
-
-    # Find the available dataset and narrative paths
-    datasets = dataset_paths(datasets_dir.glob("*.json"))
-    narratives = narrative_paths(narratives_dir.glob("*.md"))
-
+    # Collect the dataset & narrative paths (relative to the directories passed to
+    # Auspice) so we can print a list of available datasets/narratives
+    # note: data_dir / "." is data_dir.
     available_paths = [
-        *sorted(datasets, key = str.casefold),
-        *sorted(narratives, key = str.casefold),
+        *collect_paths(*[dataset_paths((data_dir / p).glob("*.json")) for p in auspice_dirs]),
+        *collect_paths(*[narrative_paths((data_dir / p).glob("*.md")) for p in auspice_dirs]),
     ]
 
     if not default_path and len(available_paths) == 1:
@@ -292,6 +284,11 @@ def run(opts):
         open_browser(f"http://{host_bracketed}:{port}/{default_path or ''}")
 
     return runner.run(opts, working_volume = working_volume, extra_env = env)
+
+
+def collect_paths(*path_sets: Iterable[str]) -> Iterable[str]:
+    """Return a sorted list of (de-duped) Auspice paths"""
+    return sorted({p for path_set in path_sets for p in path_set}, key = str.casefold)
 
 
 def dataset_paths(paths: Iterable[Path]) -> Iterable[str]:
