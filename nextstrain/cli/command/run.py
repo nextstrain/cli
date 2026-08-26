@@ -1,5 +1,6 @@
 """
-Runs a pathogen workflow in a Nextstrain runtime with config and input from an
+Runs an analysis in a Nextstrain runtime using the pathogen workflow specified
+in config or command line options, with workflow config and input from the
 analysis directory and outputs written to that same directory.
 
 This command focuses on the routine running of existing pathogen workflows
@@ -25,9 +26,11 @@ manage the run and download results after completion.
 
 import os.path
 from inspect import cleandoc
+from pathlib import Path
 from shlex import quote as shquote
 from textwrap import dedent
 from .. import runner
+from ..analysis import read_analysis_manifest, write_analysis_manifest, CONFIG_FILE
 from ..argparse import add_extended_help_flags, MkDirectoryPath, SKIP_AUTO_DEFAULT_IN_HELP
 from ..debug import DEBUGGING, debug
 from ..errors import UserError
@@ -40,7 +43,7 @@ from . import build
 
 def register_parser(subparser):
     """
-    %(prog)s [options] <pathogen-name>[@<version>]|<pathogen-path> <workflow-name> <analysis-directory> [<target> [<target> [...]]]
+    %(prog)s [options] [<analysis-directory>] [<target> [<target> [...]]]
     %(prog)s --help
     """
 
@@ -48,7 +51,54 @@ def register_parser(subparser):
 
     # Positional parameters
     parser.add_argument(
-        "pathogen",
+        "analysis_directory",
+        metavar = "<analysis-directory>",
+        type    = MkDirectoryPath(),
+        nargs   = "?",
+        default = Path("."),
+        help    = cleandoc(f"""
+            The path to your analysis directory.  The workflow uses this as its
+            working directory for all local inputs and outputs, including
+            config files, input data files, resulting output data files, log
+            files, etc.
+
+            We recommend keeping your config files and static input files (e.g.
+            reference sequences, inclusion/exclusion lists, annotations, etc.)
+            in a version control system, such as Git, so you can keep track of
+            changes over time and recover previous versions.  When using
+            version control, dynamic inputs (e.g. downloaded input filefs) and
+            outputs (e.g. resulting data files, log files, etc.) should
+            generally be marked as ignored/excluded from tracking, such as via
+            :file:`.gitignore` for Git.
+
+            A new directory will be automatically created if the given path does
+            not exist but its parent directory does.
+
+            {CONFIG_FILE!r} will be automatically created if it is missing.
+
+            Optional.  Defaults to the current directory (``.``).
+
+            {SKIP_AUTO_DEFAULT_IN_HELP}
+            """))
+
+    parser.add_argument(
+        "targets",
+        metavar = "<target>",
+        nargs   = "*",
+        help    = cleandoc("""
+            One or more workflow targets.  A target is either a file path
+            (relative to :option:`<analysis-directory>`) produced by the
+            workflow or the name of a workflow rule or step.
+
+            Available targets will vary per pathogen (and between versions of
+            pathogens).  Refer to the pathogen's own documentation for valid
+            targets.
+
+            Optional.
+            """))
+
+    parser.add_argument(
+        "--pathogen",
         metavar = "<pathogen-name>[@<version>]|<pathogen-path>",
         help    = cleandoc(f"""
             The name (and optionally, version) of a previously set up pathogen.
@@ -60,11 +110,13 @@ def register_parser(subparser):
             contain a separator ({{path_sep}}) or consist entirely of the current
             directory ({os.path.curdir}) or parent directory ({os.path.pardir}) specifier.
 
-            Required.
+            Required if not specified in {CONFIG_FILE}.
+
+            {SKIP_AUTO_DEFAULT_IN_HELP}
             """.format(path_sep = " or ".join(sorted(set([os.path.sep, os.path.altsep or os.path.sep]))))))
 
     parser.add_argument(
-        "workflow",
+        "--workflow",
         metavar = "<workflow-name>",
         help    = cleandoc(f"""
             The name of a workflow for the given pathogen, e.g. typically
@@ -84,49 +136,12 @@ def register_parser(subparser):
             the pathogen's registration info can provide an explicit path for a
             workflow name.
 
-            Required.
+            Required if not specified in {CONFIG_FILE}.
+
+            {SKIP_AUTO_DEFAULT_IN_HELP}
             """))
 
-    parser.add_argument(
-        "analysis_directory",
-        metavar = "<analysis-directory>",
-        type    = MkDirectoryPath(),
-        help    = cleandoc("""
-            The path to your analysis directory.  The workflow uses this as its
-            working directory for all local inputs and outputs, including
-            config files, input data files, resulting output data files, log
-            files, etc.
-
-            We recommend keeping your config files and static input files (e.g.
-            reference sequences, inclusion/exclusion lists, annotations, etc.)
-            in a version control system, such as Git, so you can keep track of
-            changes over time and recover previous versions.  When using
-            version control, dynamic inputs (e.g. downloaded input filefs) and
-            outputs (e.g. resulting data files, log files, etc.) should
-            generally be marked as ignored/excluded from tracking, such as via
-            :file:`.gitignore` for Git.
-
-            An empty directory will be automatically created if the given path
-            does not exist but its parent directory does.
-
-            Required.
-            """))
-
-    parser.add_argument(
-        "targets",
-        metavar = "<target>",
-        nargs   = "*",
-        help    = cleandoc("""
-            One or more workflow targets.  A target is either a file path
-            (relative to :option:`<analysis-directory>`) produced by the
-            workflow or the name of a workflow rule or step.
-
-            Available targets will vary per pathogen (and between versions of
-            pathogens).  Refer to the pathogen's own documentation for valid
-            targets.
-
-            Optional.
-            """))
+    # XXX FIXME: Add --init-only option for GUI flow? or a separate `nextstrain init` command?
 
     parser.add_argument(
         "--force",
@@ -214,6 +229,47 @@ def register_parser(subparser):
 
 
 def run(opts):
+    config_path = opts.analysis_directory / CONFIG_FILE
+    manifest = read_analysis_manifest(config_path)
+
+    if manifest is None:
+        if opts.pathogen and opts.workflow:
+            pathogen = resolve_pathogen(opts.pathogen)
+            check_workflow(pathogen, opts.pathogen, opts.workflow, strict = True)
+            write_analysis_manifest(config_path, opts.pathogen, opts.workflow)
+        else:
+            raise UserError(f"""
+                {str(opts.analysis_directory)!r} has not been configured for `nextstrain run`.
+
+                Configure it by specifying both --pathogen and --workflow.
+                """)
+    else:
+        pathogen = manifest.get("pathogen")
+        workflow = manifest.get("workflow")
+
+        if not pathogen:
+            raise UserError(f"""
+                No pathogen specified in {config_path}.
+                """)  # FIXME: actionable error message
+        if not workflow:
+            raise UserError(f"""
+                No workflow specified in {config_path}.
+                """)  # FIXME: actionable error message
+
+        if opts.pathogen and opts.pathogen != pathogen:
+            raise UserError(f"""
+                Specified pathogen {opts.pathogen!r} does not match pathogen {pathogen!r} in {config_path}.
+                """)  # FIXME: actionable error message
+
+        if opts.workflow and opts.workflow != workflow:
+            raise UserError(f"""
+                Specified workflow {opts.workflow!r} does not match workflow {workflow!r} in {config_path}.
+                """)  # FIXME: actionable error message
+        opts.pathogen = pathogen
+        opts.workflow = workflow
+
+    # XXX TODO: Consider supporting runtime options in the analysis manifest
+
     build.assert_overlay_volumes_support(opts)
 
     # Assert AWS Batch support; this command requires overlays.
@@ -234,30 +290,8 @@ def run(opts):
             """)
 
     # Resolve pathogen and workflow names to a local workflow directory.
-    try:
-        pathogen = UnmanagedPathogen(opts.pathogen)
-    except ValueError:
-        debug(f"Treating {opts.pathogen!r} as managed pathogen version")
-        pathogen = PathogenVersion(opts.pathogen)
-    else:
-        debug(f"Treating {opts.pathogen!r} as unmanaged pathogen directory")
-
-    if opts.workflow not in pathogen.registered_workflows():
-        warn(cleandoc(f"""
-            The {opts.workflow!r} workflow is not registered by pathogen {opts.pathogen!r}!
-
-            Trying to run it anyways (but it likely won't work)…
-            """))
-        warn()
-
-    elif opts.workflow not in pathogen.compatible_workflows("nextstrain run"):
-        warn(cleandoc(f"""
-            The {opts.workflow!r} workflow is registered by pathogen {opts.pathogen!r}
-            but not marked as compatible with `nextstrain run`!
-
-            Trying to run it anyways (but it likely won't work)…
-            """))
-        warn()
+    pathogen = resolve_pathogen(opts.pathogen)
+    check_workflow(pathogen, opts.pathogen, opts.workflow, strict = False)
 
     workflow_directory = pathogen.workflow_path(opts.workflow)
 
@@ -355,3 +389,47 @@ def run(opts):
         opts.cancel = None
 
     return runner.run(opts, working_volume = build_volume, cpus = opts.cpus, memory = opts.memory)
+
+
+def resolve_pathogen(name):
+    try:
+        pathogen = UnmanagedPathogen(name)
+    except ValueError:
+        debug(f"Treating {name!r} as managed pathogen version")
+        return PathogenVersion(name)
+    else:
+        debug(f"Treating {name!r} as unmanaged pathogen directory")
+        return pathogen
+
+
+def check_workflow(pathogen: PathogenVersion | UnmanagedPathogen, pathogen_name: str, workflow_name: str, strict: bool):
+    if workflow_name not in pathogen.registered_workflows():
+        message = cleandoc(f"""
+            The {workflow_name!r} workflow is not registered by pathogen {pathogen_name!r}!
+            """)
+
+        if strict:
+            raise UserError(f"""
+                {message}
+
+                Please specify a different workflow.
+                """)
+        else:
+            warn(message + "\n\nTrying to run it anyways (but it likely won't work)…")
+            warn()
+
+    elif workflow_name not in pathogen.compatible_workflows("nextstrain run"):
+        message = cleandoc(f"""
+            The {workflow_name!r} workflow is registered by pathogen {pathogen_name!r}
+            but not marked as compatible with `nextstrain run`!
+            """)
+
+        if strict:
+            raise UserError(f"""
+                {message}
+
+                Please specify a different workflow.
+                """)
+        else:
+            warn(message + "\n\nTrying to run it anyways (but it likely won't work)…")
+            warn()

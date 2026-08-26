@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nextstrain.org/schemas/analysis/v0",
+  "title": "Nextstrain Analysis Manifest (v0)",
+  "description": "Nextstrain analysis manifest nested under a top-level \"nextstrain\" key in a config.yaml file",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "const": "https://nextstrain.org/schemas/analysis/v0"
+    },
+    "pathogen": {
+      "type": "string",
+      "description": "The name (and optionally, version) of a previously set up pathogen.  See `nextstrain setup`.  If no version is specified, then the default version (if any) will be used.\n\nAlternatively, the local path to a directory that is a pathogen repository.  For this case to be recognized as such, the path must contain a separator (/ or \\) or consist entirely of the current directory (.) or parent directory (..) specifier."
+    },
+    "workflow": {
+      "type": "string",
+      "description": "The name of a workflow for the given pathogen, e.g. typically `ingest`, `phylogenetic`, or `nextclade`.\n\nAvailable workflows may vary per pathogen (and possibly between pathogen version).  Some pathogens may provide multiple variants or base configurations of a top-level workflow, e.g. as in `phylogenetic/mpxv` and `phylogenetic/hmpxv1`.  Run `nextstrain version --pathogens` to see a list of registered workflows per pathogen version.  If the pathogen does not have registered workflows, then refer to the pathogen's own documentation for valid workflow names.\n\nWorkflow names conventionally correspond directly to directory paths in the pathogen source, but this may not always be the case: the pathogen's registration info can provide an explicit path for a workflow name."
+    }
+  },
+  "required": [
+    "pathogen",
+    "workflow"
+  ]
+}

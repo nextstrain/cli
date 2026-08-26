@@ -34,6 +34,7 @@ setup(
         "nextstrain.cli.resources": [
             "bashrc",
             "schema-pathogen-v0.json",
+            "schema-analysis-v0.json",
         ],
     },
 
