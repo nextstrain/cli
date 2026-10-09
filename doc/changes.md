@@ -16,6 +16,13 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-improvements)=
+### Improvements
+
+* Documentation for AWS Batch setup has been updated to recommend setting job
+  state limits on the job queue.
+  ([#547](https://github.com/nextstrain/cli/pull/547))
+
 (v-next-bug-fixes)=
 ### Bug fixes
 

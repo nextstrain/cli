@@ -319,6 +319,9 @@ the `NEXTSTRAIN_AWS_BATCH_QUEUE` environment variable, or set `queue` in the
 If you're not using the wizard, make sure you connect the job queue to the
 compute environment you created above.
 
+While not required, you can add _[Job state limits]_ for a better user experience.
+
+[Job state limits]: https://docs.aws.amazon.com/batch/latest/userguide/job_stuck_in_runnable_time_limit_actions.html
 
 #### Job definition
 
