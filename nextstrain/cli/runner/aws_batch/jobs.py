@@ -117,6 +117,20 @@ class JobState:
 
         return s3.object_from_url(url) if url else None
 
+    @property
+    def cpus(self) -> Optional[int]:
+        for req in self.state.get("container", {}).get("resourceRequirements", []):
+            if req.get("type") == "VCPU":
+                return int(req["value"])
+        return None
+
+    @property
+    def memory(self) -> Optional[int]:
+        for req in self.state.get("container", {}).get("resourceRequirements", []):
+            if req.get("type") == "MEMORY":
+                return int(req["value"])
+        return None
+
     def log_entries(self) -> Generator[dict, None, None]:
         """
         Fetch all the CloudWatch log entries for this job.

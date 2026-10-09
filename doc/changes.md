@@ -20,7 +20,9 @@ development source code and as such may not be routinely kept up to date.
 ### Improvements
 
 * `nextstrain build --aws-batch` now automatically cancels any jobs that are
-  stuck as RUNNABLE due to misconfiguration, while attached to the job.
+  stuck as RUNNABLE due to misconfiguration, while attached to the job. If the
+  job was stuck due to the requested resources, a helpful message is shown.
+  ([#547](https://github.com/nextstrain/cli/pull/547))
 * Documentation for AWS Batch setup has been updated to recommend setting job
   state limits on the job queue.
   ([#547](https://github.com/nextstrain/cli/pull/547))
