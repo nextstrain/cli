@@ -22,6 +22,7 @@ development source code and as such may not be routinely kept up to date.
 * `nextstrain build --aws-batch` now handles network connection errors
   gracefully with a clear error message instructing how to re-attach to the job,
   rather than failing with an unhandled traceback.
+  ([#542](https://github.com/nextstrain/cli/pull/542))
 
 (v-next-development)=
 ### Development
