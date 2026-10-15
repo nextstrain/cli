@@ -420,6 +420,16 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         if job.status_changed and not job.is_complete:
             print_stage("Job now %s" % job.status)
 
+        # Cancel jobs that are stuck due to misconfiguration.
+        # <https://docs.aws.amazon.com/batch/latest/userguide/job_stuck_in_runnable_misconfiguration.html>
+        if (job.status == "RUNNABLE"
+        and job.status_reason is not None
+        and job.status_reason.startswith("MISCONFIGURATION")
+        and not job.stop_sent):
+            warn(f"Job is stuck in RUNNABLE. Reason: {job.status_reason}")
+            print_stage("Automatically canceling stuck job…")
+            job.stop(job.status_reason)
+
         if job.is_running and not log_watcher:
             # Transitioned from waiting → running, so kick off the log watcher.
             if opts.logs:
@@ -444,6 +454,15 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
             print_stage(
                 "Job %s after %0.1f minutes" % (job.status, job.elapsed_time / 60),
                 "(%s)" % job.status_reason)
+
+            if (job.status == "FAILED"
+            and job.status_reason is not None
+            and "MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT" in job.status_reason):
+                warn(dedent(f"""
+                    Requested resources of {job.cpus} CPUs and/or {job.memory} MiB memory are likely beyond the limits of the largest instance size allowed by the job queue.
+
+                    Try adjusting your requested resources or the job queue in AWS."""))
+
             break
 
         # Only check status every 6s (10 times per minute).
@@ -511,7 +530,7 @@ def interrupt(job: jobs.JobState, confirm: bool = stdin.isatty()) -> bool:
             print_stage("Send SIGINT again within %d seconds to cancel this job." % (CTRL_C_CONFIRMATION_TIMEOUT,))
     else:
         print_stage("Canceling job…")
-        job.stop()
+        job.stop("stopped by user")
 
         print_stage("Waiting for job to stop…")
         if stdin.isatty():

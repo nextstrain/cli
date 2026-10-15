@@ -26,7 +26,9 @@ class JobState:
     RUNNING_STATUS  = { 'RUNNING' }
     TERMINAL_STATUS = { 'SUCCEEDED', 'FAILED' }
 
-    STOP_REASON = "stopped by user"
+    # Formatted to match the status reason set by jobStateTimeLimitActions:
+    #                    "Canceled by JobStateTimeLimit action due to reason: MISCONFIGURATION:JOB_RESOURCE_REQUIREMENT"
+    STOP_REASON_PREFIX = "Canceled by Nextstrain CLI due to reason: "
 
     def __init__(self, job_id):
         self.id              = job_id
@@ -115,6 +117,20 @@ class JobState:
 
         return s3.object_from_url(url) if url else None
 
+    @property
+    def cpus(self) -> Optional[int]:
+        for req in self.state.get("container", {}).get("resourceRequirements", []):
+            if req.get("type") == "VCPU":
+                return int(req["value"])
+        return None
+
+    @property
+    def memory(self) -> Optional[int]:
+        for req in self.state.get("container", {}).get("resourceRequirements", []):
+            if req.get("type") == "MEMORY":
+                return int(req["value"])
+        return None
+
     def log_entries(self) -> Generator[dict, None, None]:
         """
         Fetch all the CloudWatch log entries for this job.
@@ -137,16 +153,18 @@ class JobState:
 
         return logs.LogWatcher(self.log_stream, consumer)
 
-    def stop(self) -> None:
+    def stop(self, reason: str) -> None:
         """
         Stop the job, regardless of if it has started yet or not.
         """
-        self._client.terminate_job(jobId = self.id, reason = self.STOP_REASON)
+        full_reason = self.STOP_REASON_PREFIX + reason
+        self._client.terminate_job(jobId = self.id, reason = full_reason)
         self.stop_sent = True
 
     @property
     def stopped(self) -> bool:
-        return self.status_reason == self.STOP_REASON
+        # NOTE: This does not capture external stop reasons (e.g. set by AWS).
+        return bool(self.status_reason and self.status_reason.startswith(self.STOP_REASON_PREFIX))
 
 
 def submit(name: str,
