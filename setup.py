@@ -89,7 +89,9 @@ setup(
     python_requires = '>=3.10',
 
     install_requires = [
-        "certifi",
+        # Minimum version of certifi for CA certificate incident
+        # <https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576>
+        "certifi >=2026.10.19",
         "docutils",
         "fasteners",
         "importlib_resources >=5.3.0; python_version < '3.11'",
