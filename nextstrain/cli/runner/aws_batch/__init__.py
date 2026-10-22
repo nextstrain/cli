@@ -420,11 +420,15 @@ def run(opts, argv, working_volume = None, extra_env: Env = {}, cpus: int = None
         if job.status_changed and not job.is_complete:
             print_stage("Job now %s" % job.status)
 
-        # Cancel jobs that are stuck due to misconfiguration.
-        # <https://docs.aws.amazon.com/batch/latest/userguide/job_stuck_in_runnable_misconfiguration.html>
+        # Cancel jobs that are stuck due to misconfiguration.¹ The 10 minute
+        # timeout is buffer time for EC2 instance scale-up, etc. and mirrors the
+        # minimum duration of the AWS-side equivalent.²
+        # ¹ <https://docs.aws.amazon.com/batch/latest/userguide/job_stuck_in_runnable_misconfiguration.html>
+        # ² <https://docs.aws.amazon.com/batch/latest/userguide/job_stuck_in_runnable_time_limit_actions.html>
         if (job.status == "RUNNABLE"
         and job.status_reason is not None
         and job.status_reason.startswith("MISCONFIGURATION")
+        and job.elapsed_time >= 600
         and not job.stop_sent):
             warn(f"Job is stuck in RUNNABLE. Reason: {job.status_reason}")
             print_stage("Automatically canceling stuck job…")

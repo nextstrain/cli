@@ -19,6 +19,9 @@ development source code and as such may not be routinely kept up to date.
 (v-next-bug-fixes)=
 ### Bug fixes
 
+* `nextstrain build --aws-batch` now waits 10 minutes before automatically
+  canceling any jobs that are stuck as RUNNABLE due to misconfiguration.
+  ([#551](https://github.com/nextstrain/cli/pull/551))
 * Commands that authenticate with nextstrain.org, such as `nextstrain login`,
   `nextstrain whoami`, and `nextstrain remote` with nextstrain.org addresses,
   no longer load AWS credentials, which they don't use.  Previously, a local
