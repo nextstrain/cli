@@ -13,6 +13,11 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Development
+
+* Set minimum version requirement for certifi to 2026.10.19 in response to
+  [CA certificate compromise incident](https://discuss.python.org/t/information-for-python-users-regarding-emudhra-emsign-ca-certificate-security-incident/109576).
+  ([#549](https://github.com/nextstrain/cli/pull/549))
 
 # 11.1.0 (15 October 2026)
 
