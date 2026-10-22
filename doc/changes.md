@@ -16,6 +16,12 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-bug-fixes)=
+### Bug fixes
+
+* `nextstrain build --aws-batch` now waits 10 minutes before automatically
+  canceling any jobs that are stuck as RUNNABLE due to misconfiguration.
+  ([#551](https://github.com/nextstrain/cli/pull/551))
 
 (v11-1-1)=
 ## 11.1.1 (22 October 2026)
