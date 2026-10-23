@@ -16,6 +16,14 @@ development source code and as such may not be routinely kept up to date.
 (v-next)=
 ## __NEXT__
 
+(v-next-improvements)=
+### Improvements
+
+* AWS console login credentials (from `aws login`) are now supported by
+  commands that use AWS, such as `nextstrain remote` with `s3://` addresses and
+  `nextstrain build --aws-batch`.  Previously, these commands failed with an
+  error about a missing `botocore[crt]` dependency.
+  ([#533](https://github.com/nextstrain/cli/issues/533), [#553](https://github.com/nextstrain/cli/pull/553))
 
 (v11-1-1)=
 ## 11.1.1 (22 October 2026)
