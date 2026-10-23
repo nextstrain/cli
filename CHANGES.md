@@ -13,6 +13,14 @@ development source code and as such may not be routinely kept up to date.
 
 # __NEXT__
 
+## Bug fixes
+
+* Commands that authenticate with nextstrain.org, such as `nextstrain login`,
+  `nextstrain whoami`, and `nextstrain remote` with nextstrain.org addresses,
+  no longer load AWS credentials, which they don't use.  Previously, a local
+  AWS profile using console login credentials (from `aws login`) caused these
+  commands to fail with an error about a missing `botocore[crt]` dependency.
+  ([#533](https://github.com/nextstrain/cli/issues/533))
 
 # 11.1.1 (22 October 2026)
 
