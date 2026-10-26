@@ -95,9 +95,9 @@ class JobState:
     @property
     def elapsed_time(self) -> float:
         # Timestamps from the job state are in milliseconds
-        created = self.state.get("createdAt", float("NaN"))  / 1000
-        stopped = self.state.get("stoppedAt", time() * 1000) / 1000
-        return stopped - created
+        start = self.state.get("createdAt", float("NaN"))  / 1000
+        end   = self.state.get("stoppedAt", time() * 1000) / 1000
+        return end - start
 
     @property
     def log_stream(self) -> Optional[str]:
