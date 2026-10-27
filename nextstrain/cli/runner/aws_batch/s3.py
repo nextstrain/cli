@@ -12,6 +12,10 @@ from time import struct_time
 from typing import Callable, Generator, Iterable, List, Optional, Any, Union
 from urllib.parse import urlparse
 from zipfile import ZipFile, ZipInfo
+try:
+    import zipfile_zstd  # noqa: F401 (patches zipfile on Python < 3.14 for zstd decompression)
+except ImportError:
+    pass
 from ... import env
 from ...aws.s3 import S3BucketWithPrefix, split_url
 from ...debug import DEBUGGING
