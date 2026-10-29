@@ -132,7 +132,9 @@ setup(
             "flake8 >=4.0.0",
             "myst-parser",
             "nextstrain-sphinx-theme>=2022.5",
-            "pytest",
+            # TODO: remove pytest version restriction after pytest-forked fixes compatibility
+            # <https://github.com/pytest-dev/pytest-forked/pull/112>
+            "pytest <9.2.0",
             "pytest-forked !=1.7.5",
             "sphinx>=3",
             "sphinx-autobuild",
