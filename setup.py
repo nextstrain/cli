@@ -132,10 +132,19 @@ setup(
             "flake8 >=4.0.0",
             "myst-parser",
             "nextstrain-sphinx-theme>=2022.5",
-            # TODO: remove pytest version restriction after pytest-forked fixes compatibility
-            # <https://github.com/pytest-dev/pytest-forked/pull/112>
+            # The pytest and pytest-forked pins are workarounds for two issues
+            # as of pytest-forked 1.7.5:
+            #
+            # 1. incompatibility with pytest≥9.2.0, to be fixed by
+            #    <https://github.com/pytest-dev/pytest-forked/pull/112>
+            # 2. a bug that affects our usage, to be fixed by
+            #    <https://github.com/pytest-dev/pytest-forked/pull/108>
+            #
+            # TODO: If all goes well and both are fixed in the same release, we
+            # can remove the pytest pin and set the newer pytest-forked version
+            # as minimum.
             "pytest <9.2.0",
-            "pytest-forked !=1.7.5",
+            "pytest-forked <1.7.5",
             "sphinx>=3",
             "sphinx-autobuild",
             "sphinx-markdown-tables !=0.0.16",
