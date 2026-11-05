@@ -58,8 +58,21 @@ function main([string]$version) {
 
     # curl is built into PowerShell Core since version 6, but Windows 10 ships
     # with Windows PowerShell 5.  orz
+    # Retry for <https://github.com/nextstrain/nextstrain.org/issues/1409>
+    # Invoke-WebRequest has no equivalent to curl's --retry, so use custom retry logic.
     log "Downloading $archive_url"
-    Invoke-WebRequest $archive_url -OutFile $archive
+    $retry = 3
+    for ($attempt = 0; ; $attempt++) {
+        try {
+            Invoke-WebRequest $archive_url -OutFile $archive
+            break
+        } catch {
+            if ($attempt -ge $retry) {
+                throw
+            }
+            Start-Sleep -Seconds 5
+        }
+    }
 
     log "Extracting $archive"
     New-Item -Type Directory standalone | Out-Null
