@@ -116,9 +116,14 @@ setup(
         # the boto3/botocore version early in resolution, often resulting in a
         # version newer than what aiobotocore supports.
         #
+        # The [crt] extra doesn't constrain boto3's version.  It adds awscrt,
+        # which botocore needs to use console login credentials (a profile with
+        # `login_session`, from `aws login`).
+        #
         # More background:
         # <https://github.com/nextstrain/cli/issues/496>
-        "boto3",
+        # <https://github.com/nextstrain/cli/issues/533>
+        "boto3[crt]",
 
         # Avoiding 2023.9.1 due to change in `auto_mkdir` parameter in
         # https://github.com/fsspec/filesystem_spec/pull/1358 that causes the
