@@ -45,9 +45,11 @@ main() {
     pushd "$tmp" >/dev/null
     log "Temporary working directory: $tmp"
 
+    # Timeout and retry for <https://github.com/nextstrain/nextstrain.org/issues/1409>
     log "Downloading $archive_url"
     curl "$archive_url" \
         --fail --show-error --location --proto "=https" \
+        --connect-timeout 15 --retry 3 \
         > "$archive"
 
     log "Extracting $archive"
