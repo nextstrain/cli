@@ -634,10 +634,21 @@ def split_image_name(name: str, implicit_latest: bool = True) -> Tuple[str, Opti
 
     >>> split_image_name("nextstrain/base:latest", implicit_latest = False)
     ('nextstrain/base', 'latest')
+
+    Registries which include a port also contain a colon, so split on the
+    last colon to find the tag.
+
+    >>> split_image_name("localhost:5000/nextstrain/base:build-20200424T101900Z")
+    ('localhost:5000/nextstrain/base', 'build-20200424T101900Z')
+
+    >>> split_image_name("localhost:5000/nextstrain/base")
+    ('localhost:5000/nextstrain/base', 'latest')
     """
-    if ":" in name:
-        repository, tag = name.split(":", maxsplit = 2)
-    else:
+    repository, sep, tag = name.rpartition(":")
+
+    # A colon only separates a tag when it comes after the last slash;
+    # otherwise it's part of the repository name (e.g. a registry port).
+    if not sep or "/" in tag:
         repository, tag = name, "latest" if implicit_latest else None
 
     return (repository, tag)
