@@ -634,9 +634,24 @@ def split_image_name(name: str, implicit_latest: bool = True) -> Tuple[str, Opti
 
     >>> split_image_name("nextstrain/base:latest", implicit_latest = False)
     ('nextstrain/base', 'latest')
+    >>> split_image_name("localhost:5000/nextstrain/base:latest")
+    ('localhost:5000/nextstrain/base', 'latest')
+
+    >>> split_image_name("localhost:5000/nextstrain/base")
+    ('localhost:5000/nextstrain/base', 'latest')
+
+    >>> split_image_name("localhost:5000/nextstrain/base", implicit_latest = False)
+    ('localhost:5000/nextstrain/base', None)
+
+    >>> split_image_name("[::1]:5000/nextstrain/base:build-20200424T101900Z")
+    ('[::1]:5000/nextstrain/base', 'build-20200424T101900Z')
+
+    >>> split_image_name("[::1]:5000/nextstrain/base", implicit_latest = False)
+    ('[::1]:5000/nextstrain/base', None)
+
     """
-    if ":" in name:
-        repository, tag = name.split(":", maxsplit = 2)
+    if ":" in name.rsplit("/", maxsplit = 1)[-1]:
+        repository, tag = name.rsplit(":", maxsplit = 1)
     else:
         repository, tag = name, "latest" if implicit_latest else None
 
