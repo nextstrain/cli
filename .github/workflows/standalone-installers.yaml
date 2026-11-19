@@ -43,7 +43,6 @@ jobs:
           - ubuntu-26.04-arm
           - macos-15-intel
           - macos-26-intel
-          - macos-14        # (aarch64)
           - macos-15        # (aarch64)
           - macos-26        # (aarch64)
           - windows-2022
