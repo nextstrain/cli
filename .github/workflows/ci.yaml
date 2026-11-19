@@ -258,6 +258,8 @@ jobs:
           - '3.13'
           - '3.14'
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read  # for setup-integration-tests
     defaults:
       run:
         # Add -l for setup-integration-tests → setup-miniconda → automatic
@@ -316,6 +318,8 @@ jobs:
           - { os: windows-2025,     target: x86_64-pc-windows-msvc }
 
     runs-on: ${{matrix.os}}
+    permissions:
+      contents: read  # for setup-integration-tests
     defaults:
       run:
         # Add -l for setup-integration-tests → setup-miniconda → automatic
@@ -359,6 +363,8 @@ jobs:
       - test-standalone
       - lint
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v7
 
