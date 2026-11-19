@@ -13,6 +13,9 @@ description: >-
   at the job level (or the equivalent "shell:" key at the step level) to
   activate the integration Conda environment by default.
 
+  Jobs which use this action should provide to GITHUB_TOKEN the `contents: read`
+  permission for higher GitHub API rate limits.
+
 inputs:
   python-version:
     description: Version of Python to use for conda-incubator/setup-miniconda.
